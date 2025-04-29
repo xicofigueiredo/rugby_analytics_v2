@@ -1,24 +1,19 @@
-# README
+## 🧠 Design Guidelines for UI Changes
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+These are the visual and UX principles to follow when editing or generating any frontend code (HTML, CSS, JS, Rails views):
 
-Things you may want to cover:
+### ✅ General Rules
+- **Keep it simple and clean** — avoid overcomplicated or overly creative layouts unless specifically requested.
+- All changes should feel **native** to the existing design — no "clever" surprises.
 
-* Ruby version
+### 📐 Layout
+- Favor **vertical rhythm** and spacing.
+- Use consistent padding (`p-4`, `p-6`) and rounded corners (`rounded-2xl` when appropriate).
+- Responsive behavior should follow Tailwind's mobile-first approach.
 
-* System dependencies
+### ⚠️ What Not To Do
+- ❌ Don’t introduce new fonts or external style libraries.
+- ❌ Don’t use inline styles.
+- ❌ Don’t implement unexpected animations or layouts unless they serve a clear UX purpose.
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+---
