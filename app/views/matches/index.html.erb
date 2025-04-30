@@ -1,0 +1,149 @@
+<div class="matches-container">
+  <div class="header">
+    <h1>Matches</h1>
+    <%= link_to 'New Match', new_match_path, class: 'btn btn-primary' %>
+  </div>
+
+  <div class="matches-list">
+    <% @matches.each do |match| %>
+      <div class="match-card">
+        <div class="match-header">
+          <span class="season"><%= match.season %></span>
+          <span class="competition"><%= match.competition %></span>
+        </div>
+
+        <div class="match-details">
+          <div class="teams">
+            <span class="team home"><%= match.home_team %></span>
+            <span class="vs">vs</span>
+            <span class="team away"><%= match.away_team %></span>
+          </div>
+
+          <div class="formations">
+            <span class="formation"><%= match.home_team_formation %></span>
+            <span class="formation-divider">|</span>
+            <span class="formation"><%= match.away_team_formation %></span>
+          </div>
+        </div>
+
+        <div class="match-footer">
+          <span class="date"><%= match.date.strftime("%d/%m/%Y") %></span>
+          <div class="actions">
+            <%= link_to 'View', match_path(match), class: 'btn btn-info' %>
+            <%= link_to 'Edit', edit_match_path(match), class: 'btn btn-warning' %>
+            <%= link_to 'Delete', match_path(match),
+                method: :delete,
+                data: { confirm: 'Are you sure?' },
+                class: 'btn btn-danger' %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .matches-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .matches-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .match-card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .season, .competition {
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    .match-details {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .teams {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    .vs {
+      margin: 0 10px;
+      color: #888;
+    }
+
+    .formations {
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    .formation-divider {
+      margin: 0 10px;
+    }
+
+    .match-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .date {
+      color: #888;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 5px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-info {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .btn-warning {
+      background: #ffc107;
+      color: black;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+  </style>
+<% end %>
