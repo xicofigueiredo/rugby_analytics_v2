@@ -1,4 +1,18 @@
 Rails.application.routes.draw do
+  # Root route (accessible to everyone)
+  root 'home#index'
+
+  # Devise routes
+  devise_for :users
+
+  # Protected routes
+  authenticate :user do
+    resources :matches
+  end
+
+  # Public routes
+  get 'home', to: 'home#index'
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -16,9 +30,4 @@ Rails.application.routes.draw do
 
   # Pricing route
   get '/pricing', to: 'pages#pricing', as: :pricing
-
-  # Defines the root path route ("/")
-  root "home#index"
-
-  resources :matches
 end
