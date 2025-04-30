@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   # Protected routes
   authenticate :user do
     resources :matches
+    resources :teams
   end
 
   # Public routes
@@ -30,4 +31,6 @@ Rails.application.routes.draw do
 
   # Pricing route
   get '/pricing', to: 'pages#pricing', as: :pricing
+
+  get 'profile', to: 'profiles#show', as: :profile
 end

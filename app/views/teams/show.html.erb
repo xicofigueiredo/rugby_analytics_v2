@@ -1,0 +1,20 @@
+<div class="container py-4">
+  <div class="card">
+    <div class="card-header">
+      <h1 class="card-title"><%= @team.name %></h1>
+    </div>
+    <div class="card-body">
+      <dl class="row">
+        <dt class="col-sm-3">Level:</dt>
+        <dd class="col-sm-9"><%= @team.level %></dd>
+
+        <dt class="col-sm-3">Classification:</dt>
+        <dd class="col-sm-9"><%= @team.classification %></dd>
+      </dl>
+    </div>
+    <div class="card-footer">
+      <%= link_to 'Edit', edit_team_path(@team), class: 'btn btn-warning' %>
+      <%= link_to 'Back', teams_path, class: 'btn btn-secondary' %>
+    </div>
+  </div>
+</div>
