@@ -32,19 +32,10 @@
                   </td>
                   <td><%= team.level %></td>
                   <td>
-                    <% case team.classification %>
-                    <% when 1 %>
-                      <span class="badge bg-success">1st Division</span>
-                    <% when 2 %>
-                      <span class="badge bg-primary">2nd Division</span>
-                    <% when 3 %>
-                      <span class="badge bg-info">3rd Division</span>
-                    <% else %>
-                      <span class="badge bg-secondary">Division <%= team.classification %></span>
-                    <% end %>
+                    <%= team.classification %>
                   </td>
                   <td>
-                    <% player_count = team.users.where(role: 'player').count %>
+                    <% player_count = team.players_count %>
                     <span class="badge bg-secondary">
                       <i class="fas fa-users me-1"></i>
                       <%= pluralize(player_count, 'player') %>

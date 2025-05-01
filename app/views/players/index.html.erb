@@ -11,7 +11,7 @@
               onchange: 'this.form.submit();'
           %>
           <%= select_tag :position,
-              options_for_select(User::VALID_POSITIONS, params[:position]),
+              options_for_select(Player::VALID_POSITIONS, params[:position]),
               prompt: "All Positions",
               class: "form-select form-select-sm",
               onchange: 'this.form.submit();'
@@ -31,6 +31,7 @@
                 <th>Positions</th>
                 <th>Age</th>
                 <th>Physical Stats</th>
+                <th >Account?</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -39,9 +40,19 @@
                 <tr>
                   <td><%= player.name %></td>
                   <td><%= player.team&.name || 'Not assigned' %></td>
-                  <td><small><%= player.position_list %></small></td>
+                  <td><small><%= player.positions&.join(', ') %></small></td>
                   <td><%= player.age %></td>
-                  <td><%= player.physical_stats %></td>
+                  <td>
+                    <%# Example: 185cm, 90kg %>
+                    <%= "#{player.height}cm, #{player.weight}kg" if player.height && player.weight %>
+                  </td>
+                  <td>
+                    <% if player.user.present? %>
+                      <i class="fas fa-check-circle text-success"></i>
+                    <% else %>
+                      <i class="fas fa-times-circle text-danger"></i>
+                    <% end %>
+                  </td>
                   <td>
                     <%= link_to player_path(player),
                         class: "btn btn-sm btn-outline-primary",
@@ -72,6 +83,11 @@
           <i class="fas fa-info-circle me-2"></i>No players found.
         </div>
       <% end %>
+      <div class="d-flex justify-content-end">
+      <%= link_to new_player_path, class: "btn btn-success" do %>
+        <i class="fas fa-user-plus me-1"></i> Add Player
+      <% end %>
+      </div>
     </div>
   </div>
 </div>

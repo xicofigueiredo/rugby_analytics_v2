@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   authenticate :user do
     resources :matches
     resources :teams
-    resources :players, except: [:new, :create, :destroy]
+    resources :players
   end
 
   # Public routes

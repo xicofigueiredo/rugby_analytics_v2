@@ -1,0 +1,72 @@
+<%= form_with(model: @player, local: true) do |f| %>
+  <% if @player.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(@player.errors.count, "error") %> prohibited this player from being saved:</h4>
+      <ul>
+        <% @player.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= f.label :name, class: "form-label" %>
+        <%= f.text_field :name, class: "form-control" %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :team_id, "Team", class: "form-label" %>
+        <%= f.collection_select :team_id, Team.all, :id, :name,
+            { include_blank: 'Select team' },
+            { class: "form-select" }
+        %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :age, class: "form-label" %>
+        <%= f.number_field :age, class: "form-control" %>
+      </div>
+
+      <div class="mt-4">
+        <%= f.submit submit_text || "Save Player", class: "btn btn-primary" %>
+        <%= link_to "Cancel", players_path, class: "btn btn-secondary ms-2" %>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= f.label :height, "Height (cm)", class: "form-label" %>
+        <%= f.number_field :height, step: 1, class: "form-control" %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :weight, "Weight (kg)", class: "form-label" %>
+        <%= f.number_field :weight, step: "any", class: "form-control" %>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="mb-3">
+        <%= f.label :positions, class: "form-label" %>
+        <div class="position-checkboxes border rounded p-3">
+          <% Player::VALID_POSITIONS.each do |position| %>
+            <div class="form-check">
+              <%= check_box_tag 'player[positions][]',
+                  position,
+                  @player.positions&.include?(position),
+                  id: "player_positions_#{position.parameterize}",
+                  class: "form-check-input"
+              %>
+              <%= label_tag "player_positions_#{position.parameterize}",
+                  position,
+                  class: "form-check-label"
+              %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

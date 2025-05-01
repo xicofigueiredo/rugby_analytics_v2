@@ -3,14 +3,11 @@ class TeamsController < ApplicationController
   before_action :set_team, only: [:show, :edit, :update, :destroy]
 
   def index
-    @teams = Team.includes(:users)
-                 .order(classification: :asc, name: :asc)
+    @teams = Team.all.order(classification: :asc, name: :asc)
   end
 
   def show
-    @players = @team.users.where(role: 'player')
-                    .includes(:team)
-                    .order(name: :asc)
+    @players = @team.players
   end
 
   def new

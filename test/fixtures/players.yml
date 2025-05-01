@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  age: 1
+  height: 1
+  weight: 9.99
+  positions: MyString
+  team: one
+
+two:
+  age: 1
+  height: 1
+  weight: 9.99
+  positions: MyString
+  team: two

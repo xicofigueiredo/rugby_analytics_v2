@@ -3,9 +3,22 @@ class PlayersController < ApplicationController
   before_action :set_player, only: [:show, :edit, :update]
 
   def index
-    @players = User.includes(:team)
-                  .where(role: 'player')
-                  .order(name: :asc)
+    @players = Player.includes(:team, :user)
+                     .order(:id)
+  end
+
+  def new
+    @player = Player.new
+    @player.team_id = params[:team_id] if params[:team_id].present?
+  end
+
+  def create
+    @player = Player.new(player_params)
+    if @player.save
+      redirect_to players_path, notice: 'Player was successfully created.'
+    else
+      render :new, status: :unprocessable_entity
+    end
   end
 
   def show
@@ -26,16 +39,14 @@ class PlayersController < ApplicationController
   private
 
   def set_player
-    @player = User.includes(:team)
-                 .where(role: 'player')
-                 .find(params[:id])
+    @player = Player.includes(:team, :user).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to players_path, alert: 'Player not found.'
   end
 
   def player_params
-    params.require(:user)
-          .permit(:name, :team_id, :age, :height, :weight, positions: [])
+    params.require(:player)
+          .permit(:name, :age, :height, :weight, :team_id, positions: [])
           .tap { |params| params[:positions]&.reject!(&:blank?) }
   end
 end
