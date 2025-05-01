@@ -37,85 +37,14 @@
 
 
   <div class="container py-5">
-    <!-- Match Info -->
     <div class="card shadow-sm mb-4">
-      <div class="card-header bg-dark text-white">New Match</div>
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label">Opponent</label>
-            <input type="text" class="form-control" placeholder="Team A">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Result</label>
-            <input type="text" class="form-control" placeholder="17-6">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Season</label>
-            <input type="text" class="form-control" placeholder="2024/25">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Competition</label>
-            <input type="text" class="form-control" placeholder="Top 12">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-control">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Description</label>
-            <input type="text" class="form-control" placeholder="Optional">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Field Layout -->
-    <div class="row">
-      <!-- Home Subs -->
-      <div class="col-1 d-flex flex-column justify-content-center align-items-center sub-list border-end">
-        <% (16..23).each do |num| %>
-          <div class="player-badge bg-primary mb-3"><%= num %></div>
+      <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">New Match</h2>
+        <%= link_to matches_path, class: "btn btn-outline-light" do %>
+          <i class="fas fa-arrow-left me-1"></i> Back to Matches
         <% end %>
       </div>
 
-      <!-- Field -->
-      <div class="col-10">
-        <div class="field">
-          <!-- Field lines -->
-          <div class="field-line" style="left: 50%;"></div>
-          <div class="field-line" style="left: 22%;"></div>
-          <div class="field-line" style="right: 22%;"></div>
-          <div class="field-line" style="left: 40%; width: 4px; border-left: 4px dashed #28a745; position: absolute;"></div>
-          <div class="field-line" style="right: 40%; width: 4px; border-left: 4px dashed #28a745; position: absolute;"></div>
-
-
-
-          <!-- Home players -->
-          <div class="home-team">
-            <% (1..15).each do |num| %>
-              <div class="position-absolute" style="<%= get_home_position(num) %>">
-                <div class="player-badge bg-primary"><%= num %></div>
-              </div>
-            <% end %>
-          </div>
-
-          <!-- Away players -->
-          <div class="away-team">
-            <% (1..15).each do |num| %>
-              <div class="position-absolute" style="<%= get_away_position(num) %>">
-                <div class="player-badge bg-danger"><%= num %></div>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      </div>
-
-      <!-- Away Subs -->
-      <div class="col-1 d-flex flex-column justify-content-center align-items-center sub-list border-start">
-        <% (16..23).each do |num| %>
-          <div class="player-badge bg-danger mb-3"><%= num %></div>
-        <% end %>
-      </div>
+      <%= render 'form', submit_text: 'Create Match' %>
     </div>
   </div>

@@ -1,23 +1,79 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark bg-rugby-red mb-4">
   <div class="container">
     <%= link_to "Rugby Analytics", root_path, class: "navbar-brand" %>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <%= link_to "Home", root_path, class: "nav-link" %>
+        </li>
+        <% if user_signed_in? %>
+          <li class="nav-item">
+            <%= link_to matches_path, class: "nav-link" do %>
+              <i class="fas fa-gamepad me-1"></i> Matches
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to teams_path, class: "nav-link" do %>
+              <i class="fas fa-users me-1"></i> Teams
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to players_path, class: "nav-link" do %>
+              <i class="fas fa-running me-1"></i> Players
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+
       <ul class="navbar-nav">
-        <li class="nav-item">
-          <%= link_to "Demo", login_path, class: "nav-link" %>
-        </li>
-        <li class="nav-item">
-          <%= link_to "Login", login_path, class: "nav-link" %>
-        </li>
-        <li class="nav-item">
-          <%= link_to "Register", register_path, class: "btn btn-danger" %>
-        </li>
+        <% if user_signed_in? %>
+          <li class="nav-item">
+            <%= link_to profile_path, class: "nav-link" do %>
+              <i class="fas fa-user me-1"></i> <%= current_user.name %>
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= button_to destroy_user_session_path,
+                method: :delete,
+                class: "btn btn-outline-light ms-2",
+                data: {
+                  bs_toggle: "tooltip",
+                  bs_placement: "bottom",
+                  bs_title: "Sign Out"
+                } do %>
+              <i class="fas fa-sign-out-alt"></i>
+            <% end %>
+          </li>
+        <% else %>
+          <li class="nav-item">
+            <%= link_to new_user_session_path, class: "nav-link" do %>
+              <i class="fas fa-sign-in-alt me-1"></i> Sign In
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to new_user_registration_path, class: "nav-link" do %>
+              <i class="fas fa-user-plus me-1"></i> Sign Up
+            <% end %>
+          </li>
+        <% end %>
       </ul>
     </div>
   </div>
 </nav>
+
+<style>
+  .bg-rugby-red {
+    background-color: #dc3545 !important;
+  }
+  .navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .navbar-dark .navbar-nav .nav-link:hover {
+    color: white;
+  }
+</style>

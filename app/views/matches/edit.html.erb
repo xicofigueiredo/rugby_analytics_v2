@@ -1,0 +1,13 @@
+<div class="container py-5">
+  <!-- Match Info -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">Edit Match</h2>
+      <%= link_to match_path(@match), class: "btn btn-outline-light" do %>
+        <i class="fas fa-arrow-left me-1"></i> Back to Match
+      <% end %>
+    </div>
+
+    <%= render 'form', submit_text: 'Update Match' %>
+  </div>
+</div>

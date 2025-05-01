@@ -1,36 +1,110 @@
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Teams</h1>
-    <%= link_to 'New Team', new_team_path, class: 'btn btn-primary' %>
-  </div>
+  <div class="card shadow-sm">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">Teams</h2>
+      <%= link_to new_team_path, class: "btn btn-outline-light" do %>
+        <i class="fas fa-plus me-1"></i> New Team
+      <% end %>
+    </div>
 
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Level</th>
-          <th>Classification</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @teams.each do |team| %>
-          <tr>
-            <td><%= team.name %></td>
-            <td><%= team.level %></td>
-            <td><%= team.classification %></td>
-            <td>
-              <%= link_to 'View', team, class: 'btn btn-sm btn-info' %>
-              <%= link_to 'Edit', edit_team_path(team), class: 'btn btn-sm btn-warning' %>
-              <%= link_to 'Delete', team,
-                  method: :delete,
-                  data: { confirm: 'Are you sure?' },
-                  class: 'btn btn-sm btn-danger' %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+    <div class="card-body">
+      <% if @teams.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>Classification</th>
+                <th>Squad</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @teams.each do |team| %>
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <span class="<%= team == current_user.team ? 'fw-bold' : '' %>">
+                        <%= team.name %>
+                      </span>
+                    </div>
+                  </td>
+                  <td><%= team.level %></td>
+                  <td>
+                    <% case team.classification %>
+                    <% when 1 %>
+                      <span class="badge bg-success">1st Division</span>
+                    <% when 2 %>
+                      <span class="badge bg-primary">2nd Division</span>
+                    <% when 3 %>
+                      <span class="badge bg-info">3rd Division</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Division <%= team.classification %></span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% player_count = team.users.where(role: 'player').count %>
+                    <span class="badge bg-secondary">
+                      <i class="fas fa-users me-1"></i>
+                      <%= pluralize(player_count, 'player') %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="d-flex justify-content-end gap-2">
+                      <%= link_to team_path(team),
+                          class: "btn btn-sm btn-outline-primary",
+                          data: {
+                            bs_toggle: "tooltip",
+                            bs_placement: "top",
+                            bs_title: "View Team Details"
+                          } do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+
+                      <%= link_to edit_team_path(team),
+                          class: "btn btn-sm btn-outline-secondary",
+                          data: {
+                            bs_toggle: "tooltip",
+                            bs_placement: "top",
+                            bs_title: "Edit Team"
+                          } do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+
+                      <%= button_to team_path(team),
+                          method: :delete,
+                          class: "btn btn-sm btn-outline-danger",
+                          form: {
+                            data: {
+                              turbo_confirm: "Are you sure? This will remove all player associations.",
+                              bs_toggle: "tooltip",
+                              bs_placement: "top",
+                              bs_title: "Delete Team"
+                            }
+                          },
+                          disabled: team.users.exists? do %>
+                        <i class="fas fa-trash-alt"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-4">
+          <div class="mb-3">
+            <i class="fas fa-users fa-3x text-muted"></i>
+          </div>
+          <h4 class="text-muted">No teams found</h4>
+          <p class="text-muted">Get started by creating your first team</p>
+          <%= link_to new_team_path, class: "btn btn-primary" do %>
+            <i class="fas fa-plus me-1"></i> Create Team
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

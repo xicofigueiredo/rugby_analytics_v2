@@ -15,4 +15,8 @@ class ApplicationController < ActionController::Base
       :weight
     ])
   end
+
+  def after_sign_in_path_for(resource)
+    matches_path
+  end
 end
