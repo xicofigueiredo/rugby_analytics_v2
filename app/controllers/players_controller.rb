@@ -3,8 +3,18 @@ class PlayersController < ApplicationController
   before_action :set_player, only: [:show, :edit, :update]
 
   def index
-    @players = Player.includes(:team, :user)
-                     .order(:id)
+    @players = Player.all
+
+    if params.dig(:player, :team_id).present?
+      @players = @players.where(team_id: params[:player][:team_id])
+    end
+
+    if params.dig(:player, :positions)&.reject(&:blank?)&.present?
+      @players = @players.where('positions && ARRAY[?]::varchar[]',
+        Array(params[:player][:positions]).reject(&:blank?))
+    end
+
+    @players = @players.includes(:team, :user)
   end
 
   def new
