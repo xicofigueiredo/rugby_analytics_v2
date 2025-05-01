@@ -7,14 +7,15 @@
       <%= form_tag players_path,
           method: :get,
           class: "d-flex gap-2",
-          data: { controller: "players-filter" } do %>
-        <%= select_tag "player[team_id]",  # Changed to use player.team_id
+          data: { controller: "players-filter",
+                 turbo_frame: "players-table" } do %>
+        <%= select_tag "player[team_id]",
             options_from_collection_for_select(Team.all, :id, :name, params.dig(:player, :team_id)),
             prompt: "All Teams",
             class: "form-select form-select-sm",
             data: { action: "change->players-filter#submit" }
         %>
-        <%= select_tag "player[positions][]",  # Changed to use player.positions
+        <%= select_tag "player[positions][]",
             options_for_select(Player::VALID_POSITIONS, params.dig(:player, :positions)),
             prompt: "All Positions",
             class: "form-select form-select-sm",
@@ -23,74 +24,77 @@
       <% end %>
     </div>
 
-    <div class="card-body">
-      <% if @players.any? %>
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Team</th>
-                <th>Positions</th>
-                <th>Age</th>
-                <th>Physical Stats</th>
-                <th >Account?</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @players.each do |player| %>
+    <%= turbo_frame_tag "players-table" do %>
+      <div class="card-body">
+        <% if @players.any? %>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
                 <tr>
-                  <td><%= player.name %></td>
-                  <td><%= player.team&.name || 'Not assigned' %></td>
-                  <td><small><%= player.positions&.join(', ') %></small></td>
-                  <td><%= player.age %></td>
-                  <td>
-                    <%# Example: 185cm, 90kg %>
-                    <%= "#{player.height}cm, #{player.weight}kg" if player.height && player.weight %>
-                  </td>
-                  <td>
-                    <% if player.user.present? %>
-                      <i class="fas fa-check-circle text-success"></i>
-                    <% else %>
-                      <i class="fas fa-times-circle text-danger"></i>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to player_path(player),
-                        class: "btn btn-sm btn-outline-primary",
-                        data: {
-                          bs_toggle: "tooltip",
-                          bs_placement: "top",
-                          bs_title: "View Details"
-                        } do %>
-                      <i class="fas fa-eye"></i>
-                    <% end %>
-                    <%= link_to edit_player_path(player),
-                        class: "btn btn-sm btn-outline-secondary ms-1",
-                        data: {
-                          bs_toggle: "tooltip",
-                          bs_placement: "top",
-                          bs_title: "Edit Player"
-                        } do %>
-                      <i class="fas fa-edit"></i>
-                    <% end %>
-                  </td>
+                  <th>Name</th>
+                  <th>Team</th>
+                  <th>Positions</th>
+                  <th>Age</th>
+                  <th>Physical Stats</th>
+                  <th >Account?</th>
+                  <th>Actions</th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% else %>
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle me-2"></i>No players found.
-        </div>
-      <% end %>
-      <div class="d-flex justify-content-end">
+              </thead>
+              <tbody>
+                <% @players.each do |player| %>
+                  <tr>
+                    <td><%= player.name %></td>
+                    <td><%= player.team&.name || 'Not assigned' %></td>
+                    <td><small><%= player.positions&.join(', ') %></small></td>
+                    <td><%= player.age %></td>
+                    <td>
+                      <%# Example: 185cm, 90kg %>
+                      <%= "#{player.height}cm, #{player.weight}kg" if player.height && player.weight %>
+                    </td>
+                    <td>
+                      <% if player.user.present? %>
+                        <i class="fas fa-check-circle text-success"></i>
+                      <% else %>
+                        <i class="fas fa-times-circle text-danger"></i>
+                      <% end %>
+                    </td>
+                    <td>
+                      <%= link_to player_path(player),
+                          class: "btn btn-sm btn-outline-primary",
+                          data: {
+                            bs_toggle: "tooltip",
+                            bs_placement: "top",
+                            bs_title: "View Details"
+                          } do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+                      <%= link_to edit_player_path(player),
+                          class: "btn btn-sm btn-outline-secondary ms-1",
+                          data: {
+                            bs_toggle: "tooltip",
+                            bs_placement: "top",
+                            bs_title: "Edit Player"
+                          } do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No players found.
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="d-flex justify-content-end p-3">
       <%= link_to new_player_path, class: "btn btn-success" do %>
         <i class="fas fa-user-plus me-1"></i> Add Player
       <% end %>
-      </div>
     </div>
   </div>
 </div>

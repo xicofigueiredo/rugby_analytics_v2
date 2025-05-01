@@ -11,9 +11,21 @@ export default class extends Controller {
     // Visual feedback
     event.target.style.backgroundColor = "#e0e0e0"
 
-    // Submit the form directly since this.element is now the form
+    // Submit form with Turbo
+    this.requestSubmit(this.element)
+
+    // Reset visual feedback after a short delay
     setTimeout(() => {
-      this.element.submit()
-    }, 100)
+      event.target.style.backgroundColor = ""
+    }, 200)
+  }
+
+  // Helper method to safely submit the form
+  requestSubmit(form) {
+    if (form.requestSubmit) {
+      form.requestSubmit()
+    } else {
+      form.submit()
+    }
   }
 }

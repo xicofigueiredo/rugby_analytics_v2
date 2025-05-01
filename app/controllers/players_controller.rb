@@ -15,6 +15,12 @@ class PlayersController < ApplicationController
     end
 
     @players = @players.includes(:team, :user)
+
+    # Handle both Turbo Frame and regular requests
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
   def new
