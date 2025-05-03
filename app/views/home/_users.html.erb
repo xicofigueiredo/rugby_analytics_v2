@@ -155,30 +155,23 @@
   document.addEventListener('DOMContentLoaded', function() {
     const tabs = ['coach', 'player', 'fans'];
     let currentTabIndex = 0;
+    let intervalId;
 
     function rotateTab() {
-      // Remove active class from current tab
-      document.querySelector(`#${tabs[currentTabIndex]}-tab`).classList.remove('active');
-      document.querySelector(`#${tabs[currentTabIndex]}`).classList.remove('show', 'active');
-
-      // Move to next tab
+      const nextTabId = `${tabs[(currentTabIndex + 1) % tabs.length]}-tab`;
+      const nextTab = document.getElementById(nextTabId);
+      const tabInstance = new bootstrap.Tab(nextTab);
+      tabInstance.show();
       currentTabIndex = (currentTabIndex + 1) % tabs.length;
-
-      // Add active class to new tab
-      document.querySelector(`#${tabs[currentTabIndex]}-tab`).classList.add('active');
-      const newTab = document.querySelector(`#${tabs[currentTabIndex]}`);
-      newTab.classList.add('show', 'active');
     }
 
-    // Start the rotation
-    const intervalId = setInterval(rotateTab, 3000);
+    intervalId = setInterval(rotateTab, 3000);
 
     // Pause rotation when user manually clicks a tab
-    document.querySelectorAll('.nav-link').forEach(tab => {
+    document.querySelectorAll('.nav-link').forEach((tab, idx) => {
       tab.addEventListener('click', () => {
         clearInterval(intervalId);
-        // Get the clicked tab index
-        currentTabIndex = tabs.indexOf(tab.id.replace('-tab', ''));
+        currentTabIndex = idx;
       });
     });
   });

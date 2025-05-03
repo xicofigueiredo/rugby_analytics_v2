@@ -1,3 +1,4 @@
+import "bootstrap"
 import "controllers"
 import "turbo-rails"
 
