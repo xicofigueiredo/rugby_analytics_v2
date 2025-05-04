@@ -16,6 +16,9 @@ class MatchesController < ApplicationController
     15.times do
       @match.player_matches.build(started: true, on_field: true)
     end
+    8.times do
+      @match.player_matches.build(started: false, on_field: false)
+    end
   end
 
   def create
@@ -30,9 +33,6 @@ class MatchesController < ApplicationController
   end
 
   def edit
-    (15 - @match.player_matches.size).times do
-      @match.player_matches.build(started: true, on_field: true)
-    end
   end
 
   def update
@@ -68,7 +68,8 @@ class MatchesController < ApplicationController
       :away_team,
       :location_type,
       :opponent_id,
-      :result
+      :result,
+      player_matches_attributes: [:id, :player_id, :position, :started, :on_field, :_destroy]
     )
   end
 

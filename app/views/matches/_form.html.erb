@@ -25,7 +25,7 @@
           %>
         </div>
       </div>
-
+      
       <div class="col-md-4">
         <div class="mb-3">
           <%= f.label :opponent_id, "opponent", class: "form-label" %>
@@ -88,41 +88,56 @@
       </div>
     </div>
 
+    <% modals = [] %>
     <div class="rugby-formation">
-
       <% MatchesHelper::RUGBY_POSITIONS.reverse.each_with_index do |position, i| %>
         <div class="player-slot" style="<%= get_home_position(position[:number]) %>">
           <%= f.fields_for :player_matches, @match.player_matches[i] do |pm_form| %>
-            <div class="player-shirt">
-              <%= image_tag('backshirt.PNG') %>
-              <span class="shirt-number"><%= position[:number] %></span>
-              <div class="shirt-plus">
-                <button type="button"
-                        class="btn btn-primary btn-circle shirt-plus"
-                        data-bs-toggle="modal"
-                        data-bs-target="#playermodal-<%= position[:number] %>">
-                  Add
-                </button>
+            <a href="#playermodal-<%= position[:number] %>"
+               class="player-shirt-link"
+               data-bs-toggle="modal"
+               data-bs-target="#playermodal-<%= position[:number] %>">
+              <div class="player-shirt">
+                <%= image_tag('backshirt.PNG') %>
+                <span class="shirt-number"><%= position[:number] %></span>
+                <% if pm_form.object.player_id.present? %>
+                  <% player = current_user.team.players.find { |p| p.id == pm_form.object.player_id } %>
+                  <% last_name = player&.name&.split&.last %>
+                  <% first_name = player&.name&.split&.first %>
+                  <span class="shirt-player-name" id="player-name-<%= position[:number] %>">
+                     <%= first_name %>
+                     <br>
+                     <%= last_name %>
+
+                  </span>
+                <% else %>
+                  <span class="shirt-player-name" id="player-name-<%= position[:number] %>"></span>
+                <% end %>
               </div>
-            </div>
+            </a>
             <%= pm_form.hidden_field :position, value: position[:number] %>
-            <div class="modal fade" id="playermodal-<%= position[:number] %>" tabindex="-1" aria-labelledby="playermodallabel-<%= position[:number] %>" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="playermodallabel-<%= position[:number] %>">select player for position <%= position[:number] %></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <%= pm_form.collection_select :player_id, current_user.team.players, :id, :name, { include_blank: true }, class: "form-select" %>
+            <%# Collect the modal markup %>
+            <% modals << capture do %>
+              <div class="modal fade" id="playermodal-<%= position[:number] %>" tabindex="-1" aria-labelledby="playermodallabel-<%= position[:number] %>" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="playermodallabel-<%= position[:number] %>">Select a <%= position[:name] %></h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <%= pm_form.collection_select :player_id, current_user.team.players, :id, :name, { include_blank: true }, class: "form-select player-select-dropdown" %>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            <% end %>
           <% end %>
         </div>
       <% end %>
     </div>
+
+    <%= safe_join(modals) %>
 
     <div class="mt-4">
       <%= f.submit submit_text, class: "btn btn-primary" %>
@@ -130,3 +145,41 @@
     </div>
   </div>
 <% end %>
+
+<script>
+document.addEventListener('turbo:load', function() {
+  document.querySelectorAll('.player-select-dropdown').forEach(function(select) {
+    select.addEventListener('change', function() {
+      // Find the closest modal ancestor
+      var modal = select.closest('.modal');
+      if (modal) {
+        var modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
+      // Get the position number from the modal's id
+      var modalId = modal.id;
+      var match = modalId.match(/playermodal-(\d+)/);
+      if (match) {
+        var positionNumber = match[1];
+        // Get the selected option's text (player name)
+        var playerName = select.options[select.selectedIndex].text.trim();
+        // If "blank" is selected, clear the name
+        if (select.value === "" || select.selectedIndex === 0) {
+          playerName = "";
+        } else {
+          // Extract only the last name
+          var nameParts = playerName.split(/\s+/);
+          playerName = nameParts[nameParts.length - 1];
+        }
+        // Update the name under the shirt
+        var nameSpan = document.getElementById('player-name-' + positionNumber);
+        if (nameSpan) {
+          nameSpan.textContent = playerName;
+        }
+      }
+    });
+  });
+});
+</script>

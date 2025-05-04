@@ -16,16 +16,20 @@
  .rugby-formation {
   position: relative;
   width: 100%;
-  height: 50em;
   aspect-ratio: 10 / 5;
   background: url('/assets/rugbyfield.jpg') center top no-repeat;
-  background-size: 100% auto;
+  background-size: 100% 100%;
+  max-width: 100vw;
+  height: 50vw;
 }
 
 .player-slot {
   position: absolute;
-  width: 120px;
+  width: 10vw;
+  min-width: 40px;
+  max-width: 120px;
   text-align: center;
+  transform: translate(-50%, -50%);
 }
 
 .player-shirt {
@@ -33,22 +37,38 @@
   right: 52%;
   top: 50%;
   display: inline-block;
-  width: 120px;
-  height: 100px;
+  width: 120px; /*trasnform this responsive*/
+  @media (max-width: 768px) {
+    width: 80px;
+  }
+  @media (max-width: 480px) {
+    width: 60px;
+  }
+  @media (max-width: 320px) {
+    width: 40px;
+  }
+
+  @media (max-width: 768px) {
+    height: 80px;
+  }
+  @media (max-width: 480px) {
+    height: 60px;
+  }
 }
 
 .player-shirt img {
   width: 100%;
   height: auto;
   display: block;
+  max-width: 120px; /* Prevents shirts from getting too large on big screens */
 }
 
 .shirt-number {
   position: absolute;
-  top: 45%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3em;
+  font-size: 2.8vw; /* Responsive font size */
   font-weight: bold;
   color: #222;
   pointer-events: none;
@@ -57,10 +77,48 @@
 
 .shirt-plus {
   position: absolute;
-  top: 85%;
+  top: 75%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.9em;
+  font-size: 0.9vw; /* Responsive font size */
   font-weight: bold;
+}
 
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .player-shirt img {
+    max-width: 70px;
+  }
+  .shirt-number {
+    font-size: 1.5em;
+  }
+  .shirt-plus {
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  .player-shirt img {
+    max-width: 50px;
+  }
+  .shirt-number {
+    font-size: 1.1em;
+  }
+  .shirt-plus {
+    font-size: 0.7em;
+  }
+}
+
+.shirt-player-name {
+  position: absolute;
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7em;
+  color: #222;
+  margin-top: 0.2em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bold;
 }
