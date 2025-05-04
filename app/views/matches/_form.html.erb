@@ -14,10 +14,10 @@
     <div class="row g-3">
       <div class="col-md-4">
         <div class="mb-3">
-          <%= f.label :location_type, "Match Location", class: "form-label" %>
+          <%= f.label :location_type, "match location", class: "form-label" %>
           <%= f.select :location_type,
-              [['Home Game', 'home'], ['Away Game', 'away']],
-              { include_blank: 'Select location' },
+              [['home game', 'home'], ['away game', 'away']],
+              { include_blank: 'select location' },
               {
                 class: "form-select",
                 required: true
@@ -28,12 +28,12 @@
 
       <div class="col-md-4">
         <div class="mb-3">
-          <%= f.label :opponent_id, "Opponent", class: "form-label" %>
+          <%= f.label :opponent_id, "opponent", class: "form-label" %>
           <%= f.collection_select :opponent_id,
               @opponents,
               :id,
               :name,
-              { include_blank: 'Select opponent' },
+              { include_blank: 'select opponent' },
               {
                 class: "form-select",
                 required: true
@@ -57,7 +57,7 @@
                 ['2024/2025', '2024/2025'],
                 ['2023/2024', '2023/2024']
               ],
-              { include_blank: 'Select season' },
+              { include_blank: 'select season' },
               {
                 class: "form-select",
                 required: true
@@ -69,7 +69,7 @@
       <div class="col-md-4">
         <div class="mb-3">
           <%= f.label :competition, class: "form-label" %>
-          <%= f.text_field :competition, class: "form-control", placeholder: "Top 12", required: true %>
+          <%= f.text_field :competition, class: "form-control", placeholder: "top 12", required: true %>
         </div>
       </div>
 
@@ -83,14 +83,50 @@
       <div class="col-md-12">
         <div class="mb-3">
           <%= f.label :description, class: "form-label" %>
-          <%= f.text_field :description, class: "form-control", placeholder: "Optional match description" %>
+          <%= f.text_field :description, class: "form-control", placeholder: "optional match description" %>
         </div>
       </div>
     </div>
 
+    <div class="rugby-formation">
+
+      <% MatchesHelper::RUGBY_POSITIONS.reverse.each_with_index do |position, i| %>
+        <div class="player-slot" style="<%= get_home_position(position[:number]) %>">
+          <%= f.fields_for :player_matches, @match.player_matches[i] do |pm_form| %>
+            <div class="player-shirt">
+              <%= image_tag('backshirt.PNG') %>
+              <span class="shirt-number"><%= position[:number] %></span>
+              <div class="shirt-plus">
+                <button type="button"
+                        class="btn btn-primary btn-circle shirt-plus"
+                        data-bs-toggle="modal"
+                        data-bs-target="#playermodal-<%= position[:number] %>">
+                  add
+                </button>
+              </div>
+            </div>
+            <%= pm_form.hidden_field :position, value: position[:number] %>
+            <div class="modal fade" id="playermodal-<%= position[:number] %>" tabindex="-1" aria-labelledby="playermodallabel-<%= position[:number] %>" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="playermodallabel-<%= position[:number] %>">select player for position <%= position[:number] %></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <%= pm_form.collection_select :player_id, current_user.team.players, :id, :name, { include_blank: true }, class: "form-select" %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
     <div class="mt-4">
       <%= f.submit submit_text, class: "btn btn-primary" %>
-      <%= link_to "Cancel", matches_path, class: "btn btn-secondary ms-2" %>
+      <%= link_to "cancel", matches_path, class: "btn btn-secondary ms-2" %>
     </div>
   </div>
 <% end %>

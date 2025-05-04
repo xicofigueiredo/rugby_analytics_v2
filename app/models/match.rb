@@ -1,6 +1,12 @@
 class Match < ApplicationRecord
+  has_many :player_matches, dependent: :destroy
+  has_many :players, through: :player_matches
+
+  accepts_nested_attributes_for :player_matches, allow_destroy: true
+  
   # Add virtual attribute
   attr_accessor :location_type, :opponent_id
+
 
   # Validations
   validates :season, presence: true

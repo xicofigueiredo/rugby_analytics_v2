@@ -13,6 +13,9 @@ class MatchesController < ApplicationController
 
   def new
     @match = Match.new
+    15.times do
+      @match.player_matches.build(started: true, on_field: true)
+    end
   end
 
   def create
@@ -27,6 +30,9 @@ class MatchesController < ApplicationController
   end
 
   def edit
+    (15 - @match.player_matches.size).times do
+      @match.player_matches.build(started: true, on_field: true)
+    end
   end
 
   def update
