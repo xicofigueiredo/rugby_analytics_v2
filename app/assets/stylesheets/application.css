@@ -124,7 +124,7 @@
 }
 
 body {
-  background: radial-gradient(circle at 50% 0, #1a1336 0%, #0f111c 100%);
+  background: #1a1336;
   min-height: 100vh;
 }
 .main-card {
