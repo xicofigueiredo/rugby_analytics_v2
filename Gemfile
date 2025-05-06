@@ -43,8 +43,6 @@ gem "bootsnap", require: false
 
 gem 'rails_12factor'
 
-gem "tailwindcss-rails"
-
 # Add Bootstrap
 gem 'bootstrap', '~> 5.3.2'
 gem 'sassc-rails'
