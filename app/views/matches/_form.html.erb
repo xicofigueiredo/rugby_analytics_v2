@@ -1,5 +1,5 @@
 <%= form_with(model: @match, local: true) do |f| %>
-  <div class="card-body">
+  <div class="card-body text-white">
     <% if @match.errors.any? %>
       <div class="alert alert-danger">
         <h4><%= pluralize(@match.errors.count, "error") %> prohibited this match from being saved:</h4>
@@ -14,7 +14,7 @@
     <div class="row g-3">
       <div class="col-md-4">
         <div class="mb-3">
-          <%= f.label :location_type, "match location", class: "form-label" %>
+          <%= f.label :location_type, "Location", class: "form-label" %>
           <%= f.select :location_type,
               [['home game', 'home'], ['away game', 'away']],
               { include_blank: 'select location' },
@@ -25,10 +25,10 @@
           %>
         </div>
       </div>
-      
+
       <div class="col-md-4">
         <div class="mb-3">
-          <%= f.label :opponent_id, "opponent", class: "form-label" %>
+          <%= f.label :opponent_id, "Opponent", class: "form-label" %>
           <%= f.collection_select :opponent_id,
               @opponents,
               :id,
@@ -122,7 +122,7 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title" id="playermodallabel-<%= position[:number] %>">Select a <%= position[:name] %></h5>
+                      <h5 class="modal-title text-black" id="playermodallabel-<%= position[:number] %>">Select a <%= position[:name] %></h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
                     </div>
                     <div class="modal-body">

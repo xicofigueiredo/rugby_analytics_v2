@@ -124,14 +124,14 @@
 }
 
 body {
-  background: #1a1336;
+  background: #1a1336f6;
   min-height: 100vh;
 }
 .main-card {
   background: #23263a;
   border-radius: 24px;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  border: none;
+  border: 1px solid #35395a;
 }
 .profile-img {
   width: 100%;

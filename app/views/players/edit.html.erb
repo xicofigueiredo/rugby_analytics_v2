@@ -1,7 +1,7 @@
-<div class="container">
-  <div class="card">
-    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-      <h2 class="mb-0">Edit Player: <%= @player.name || @player.user&.name %></h2>
+<div class="container py-5">
+  <div class="card main-card">
+    <div class="card-header text-danger d-flex justify-content-between align-items-center" style="background-color: #23263a;">
+      <h2 class="mb-0">Edit Player</h2>
       <%= link_to players_path, class: "btn btn-outline-light" do %>
         <i class="fas fa-arrow-left me-1"></i> Back to Players
       <% end %>

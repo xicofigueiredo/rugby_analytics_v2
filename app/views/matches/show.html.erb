@@ -1,6 +1,6 @@
 <div class="container py-4">
-  <div class="card shadow-sm">
-    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+  <div class="card main-card">
+    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #23263a;">
       <h2 class="mb-0">Match Details</h2>
       <%= link_to matches_path, class: "btn btn-outline-light" do %>
         <i class="fas fa-arrow-left me-1"></i> Back to Matches
@@ -10,8 +10,8 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-6">
-          <h4 class="border-bottom pb-2 mb-3">Match Information</h4>
-          <dl class="row">
+          <h4 class="border-bottom pb-2 mb-3 text-white">Match Information</h4>
+          <dl class="row text-white">
             <dt class="col-sm-4">Season</dt>
             <dd class="col-sm-8"><%= @match.season %></dd>
 
@@ -27,7 +27,7 @@
         </div>
 
         <div class="col-md-6">
-          <h4 class="border-bottom pb-2 mb-3">Teams</h4>
+          <h4 class="border-bottom pb-2 mb-3 text-white">Teams</h4>
           <div class="card bg-light">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center">

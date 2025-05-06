@@ -1,8 +1,8 @@
 <div data-controller="hello"></div>
 
 <div class="container">
-  <div class="card">
-    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #23263a;">
+  <div class="card main-card">
+    <div class="card-header text-danger d-flex justify-content-between align-items-center" style="background-color: #23263a;">
       <h2 class="mb-0">Players</h2>
       <%= form_tag players_path,
           method: :get,
@@ -48,7 +48,6 @@
                     <td><small><%= player.positions&.join(', ') %></small></td>
                     <td><%= player.age %></td>
                     <td>
-                      <%# Example: 185cm, 90kg %>
                       <%= "#{player.height}cm, #{player.weight}kg" if player.height && player.weight %>
                     </td>
                     <td>
