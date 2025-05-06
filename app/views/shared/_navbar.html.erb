@@ -1,30 +1,29 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-rugby-red mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-rugby-purple mb-4">
   <div class="container">
-    <%= link_to "Rugby Analytics", root_path, class: "navbar-brand" %>
+    <div class="h4 fw-bold text-white mb-0">
+      Rugby<span class="text-danger">Analytics</span>
+    </div>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <%= link_to "Home", root_path, class: "nav-link" %>
-        </li>
+      <ul class="navbar-nav me-auto d-flex align-items-center">
         <% if user_signed_in? %>
           <li class="nav-item">
-            <%= link_to matches_path, class: "nav-link" do %>
-              <i class="fas fa-gamepad me-1"></i> Matches
+            <%= link_to matches_path, class: "nav-link text-white #{'active' if controller_name == 'matches'}" do %>
+              Matches
             <% end %>
           </li>
           <li class="nav-item">
-            <%= link_to teams_path, class: "nav-link" do %>
-              <i class="fas fa-users me-1"></i> Teams
+            <%= link_to teams_path, class: "nav-link text-white #{'active' if controller_name == 'teams'}" do %>
+              Teams
             <% end %>
           </li>
           <li class="nav-item">
-            <%= link_to players_path, class: "nav-link" do %>
-              <i class="fas fa-running me-1"></i> Players
+            <%= link_to players_path, class: "nav-link text-white #{'active' if controller_name == 'players'}" do %>
+              Players
             <% end %>
           </li>
         <% end %>
@@ -32,9 +31,26 @@
 
       <ul class="navbar-nav">
         <% if user_signed_in? %>
+          <li class="nav-item dropdown">
+            </a>
+            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <%= link_to root_path, class: "dropdown-item" do %>
+                <i class="fa fa-user"></i> Profile
+              <% end %>
+              <%= link_to root_path, class: "dropdown-item" do %>
+                <i class="fa-regular fa-circle-question"></i> About
+              <% end %>
+              <%= link_to root_path, class: "dropdown-item" do %>
+                <i class="fa-solid fa-rotate"></i> Password
+              <% end %>
+              <%= link_to root_path, class: "dropdown-item", data: {turbo_method: :delete} do %>
+                <i class="fa fa-sign-out"></i> Logout
+              <% end %>
+            </div>
+          </li>
           <li class="nav-item">
-            <%= link_to profile_path, class: "nav-link" do %>
-              <i class="fas fa-user me-1"></i> <%= current_user.name %>
+            <%= link_to profile_path, class: "nav-link text-white" do %>
+              <%= current_user.name %>
             <% end %>
           </li>
           <li class="nav-item">
@@ -51,12 +67,12 @@
           </li>
         <% else %>
           <li class="nav-item">
-            <%= link_to new_user_session_path, class: "nav-link" do %>
+            <%= link_to new_user_session_path, class: "nav-link text-white" do %>
               <i class="fas fa-sign-in-alt me-1"></i> Sign In
             <% end %>
           </li>
           <li class="nav-item">
-            <%= link_to new_user_registration_path, class: "nav-link" do %>
+            <%= link_to new_user_registration_path, class: "nav-link text-white" do %>
               <i class="fas fa-user-plus me-1"></i> Sign Up
             <% end %>
           </li>
@@ -67,13 +83,14 @@
 </nav>
 
 <style>
-  .bg-rugby-red {
-    background-color: #dc3545 !important;
-  }
+
   .navbar-dark .navbar-nav .nav-link {
     color: rgba(255, 255, 255, 0.85);
   }
   .navbar-dark .navbar-nav .nav-link:hover {
+    color: white;
+  }
+  .navbar-dark .navbar-nav .nav-link.active {
     color: white;
   }
 </style>

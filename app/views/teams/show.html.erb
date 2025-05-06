@@ -1,24 +1,4 @@
-<div class="container py-5">
-  <!-- Header/Navigation (copy from player show if you want the same nav) -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="h4 fw-bold text-white mb-0">
-      Rugby<span class="text-danger">Analytics</span>
-    </div>
-    <nav class="nav">
-      <%= link_to "Home", root_path, class: "nav-link text-white" %>
-      <%= link_to "My team", root_path, class: "nav-link text-primary active" %>
-      <%= link_to "Tournaments", root_path, class: "nav-link text-white" %>
-      <%= link_to "Leaderboard", root_path, class: "nav-link text-white" %>
-      <%= link_to "How to play", root_path, class: "nav-link text-white" %>
-    </nav>
-    <div class="d-flex align-items-center">
-      <img src="<%= asset_path('eu.jpg') %>" alt="User avatar" class="rounded-circle me-2" style="width: 40px; height: 40px;">
-      <div>
-        <div class="fw-semibold text-white"><%= current_user.name %></div>
-        <div class="small text-secondary">97.5 min</div>
-      </div>
-    </div>
-  </div>
+
 
   <div class="mb-3">
     <%= link_to teams_path, class: "btn btn-link text-white p-0 d-inline-flex align-items-center" do %>

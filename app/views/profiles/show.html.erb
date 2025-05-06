@@ -27,19 +27,19 @@
             <h4>Player Details</h4>
             <dl class="row">
               <dt class="col-sm-4">Age</dt>
-              <dd class="col-sm-8"><%= @user.age %></dd>
+              <dd class="col-sm-8"><%= @user.player.age %></dd>
 
               <dt class="col-sm-4">Height</dt>
-              <dd class="col-sm-8"><%= @user.height %> cm</dd>
+              <dd class="col-sm-8"><%= @user.player.height %> cm</dd>
 
               <dt class="col-sm-4">Weight</dt>
-              <dd class="col-sm-8"><%= @user.weight %> kg</dd>
+              <dd class="col-sm-8"><%= @user.player.weight %> kg</dd>
 
               <dt class="col-sm-4">Positions</dt>
               <dd class="col-sm-8">
-                <% if @user.positions.present? %>
+                <% if @user.player.positions.present? %>
                   <ul class="list-unstyled">
-                    <% @user.positions.each do |position| %>
+                    <% @user.player.positions.each do |position| %>
                       <li><%= position %></li>
                     <% end %>
                   </ul>
