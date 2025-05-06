@@ -7,7 +7,7 @@ class TeamsController < ApplicationController
   end
 
   def show
-    @players = @team.players
+    @players = @team.players.order(name: :asc)
   end
 
   def new

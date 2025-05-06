@@ -3,7 +3,7 @@ class PlayersController < ApplicationController
   before_action :set_player, only: [:show, :edit, :update]
 
   def index
-    @players = Player.all
+    @players = Player.all.order(name: :asc)
 
     if params.dig(:player, :team_id).present?
       @players = @players.where(team_id: params[:player][:team_id])

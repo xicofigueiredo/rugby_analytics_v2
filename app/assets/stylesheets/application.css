@@ -198,6 +198,8 @@ body {
 .table-dark-custom tbody tr {
   transition: background 0.2s;
 }
-.table-dark-custom tbody tr:hover {
-  background-color: #2d3150 !important;
+.table-dark-custom tbody tr:hover,
+.table-dark-custom tbody tr:hover td,
+.table-dark-custom tbody tr:hover th {
+  background-color: #44476a63 !important;
 }
