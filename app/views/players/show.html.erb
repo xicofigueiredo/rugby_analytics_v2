@@ -1,8 +1,7 @@
-<div class="container py-5">
-
-  <div class="mb-3">
-    <%= link_to root_path, class: "btn btn-link text-white p-0 d-inline-flex align-items-center" do %>
-      <i class="bi bi-arrow-left me-1"></i> Back to my team
+<div class="container">
+  <div class="mb-3 d-flex justify-content-end align-items-center">
+    <%= link_to (request.referer || root_path), class: "btn btn-outline-light" do %>
+      <i class="fas fa-arrow-left me-1"></i> Back
     <% end %>
   </div>
 
