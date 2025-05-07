@@ -1,6 +1,6 @@
 <div class="container">
   <div class="mb-3 d-flex justify-content-end align-items-center">
-    <%= link_to (request.referer || root_path), class: "btn btn-outline-light" do %>
+    <%= link_to players_path, class: "btn btn-outline-light" do %>
       <i class="fas fa-arrow-left me-1"></i> Back
     <% end %>
   </div>
@@ -40,8 +40,18 @@
           </div>
         </div>
         <div class="d-flex gap-2">
-          <button class="btn btn-primary btn-action flex-fill">Add to my team </button>
-          <button class="btn btn-outline-danger btn-action"><i class="fa fa-heart"></i></button>
+          <div class="mt-4">
+            <%= link_to edit_player_path(@player),
+                class: "btn btn-lg btn-outline-light",
+                data: {
+                  turbo_frame: "_top",
+                  bs_toggle: "tooltip",
+                  bs_placement: "top",
+                  bs_title: "Edit Player"
+                } do %>
+              <i class="fas fa-edit"></i> Edit Player
+            <% end %>
+          </div>
         </div>
       </div>
     </div>

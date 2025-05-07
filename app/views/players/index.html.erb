@@ -37,7 +37,6 @@
                   <th>Age</th>
                   <th>Physical Stats</th>
                   <th>Account?</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,18 +55,6 @@
                         <i class="fas fa-check-circle text-success"></i>
                       <% else %>
                         <i class="fas fa-times-circle text-danger"></i>
-                      <% end %>
-                    </td>
-                    <td>
-                      <%= link_to edit_player_path(player),
-                          class: "btn btn-sm btn-outline-secondary",
-                          data: {
-                            turbo_frame: "_top",
-                            bs_toggle: "tooltip",
-                            bs_placement: "top",
-                            bs_title: "Edit Player"
-                          } do %>
-                        <i class="fas fa-edit"></i>
                       <% end %>
                     </td>
                   </tr>

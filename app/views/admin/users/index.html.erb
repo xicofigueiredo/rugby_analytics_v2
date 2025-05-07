@@ -67,7 +67,7 @@
                     </td>
                     <td>
                       <% if user.team %>
-                        <span class="badge bg-primary">
+                        <span class="badge" style="background-color: <%= user.team.main_color %>;">
                           <%= user.team.name %>
                         </span>
                       <% else %>
