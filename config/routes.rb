@@ -10,6 +10,9 @@ Rails.application.routes.draw do
     resources :matches
     resources :teams
     resources :players
+    namespace :admin do
+      resources :users, only: [:index]
+    end
   end
 
   # Public routes

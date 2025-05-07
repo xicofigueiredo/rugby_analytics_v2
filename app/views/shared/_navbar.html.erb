@@ -26,6 +26,11 @@
               Players
             <% end %>
           </li>
+          <li class="nav-item">
+            <%= link_to admin_users_path, class: "nav-link text-white #{'active' if controller.class.name.start_with?('Admin::')}" do %>
+              Users
+            <% end %>
+          </li>
         <% end %>
       </ul>
 
