@@ -1,101 +1,97 @@
-<div class="container py-4">
+<div class="container">
   <div class="card main-card">
     <div class="card-header text-danger d-flex justify-content-between align-items-center" style="background-color: #23263a;">
       <h2 class="mb-0">Teams</h2>
-      <%= link_to new_team_path, class: "btn btn-outline-light" do %>
-        <i class="fas fa-plus me-1"></i> New Team
-      <% end %>
+        <%= form_tag teams_path,
+            method: :get,
+            class: "d-flex gap-2",
+            data: { turbo_frame: "teams-table" } do %>
+          <%= select_tag :level,
+              options_for_select(
+                [['All Levels', '']] + @available_levels.map { |level| [level.titleize, level] },
+                params[:level]
+              ),
+              class: "form-select form-select-sm",
+              style: "background-color: #23263a; color: white; border-color: white;",
+              onchange: "this.form.submit()"
+          %>
+          <%= select_tag :country,
+              options_for_select(
+                [['All Countries', '']] + @available_countries.map { |country| [country, country] },
+                params[:country]
+              ),
+              class: "form-select form-select-sm",
+              style: "background-color: #23263a; color: white; border-color: white;",
+              onchange: "this.form.submit()"
+          %>
+        <% end %>
+        <%= link_to new_team_path, class: "btn btn-outline-light" do %>
+          <i class="fas fa-plus me-1"></i> New Team
+        <% end %>
     </div>
 
-    <div class="card-body">
-      <% if @teams.any? %>
-        <div class="table-responsive">
-          <table class="table table-hover table-dark-custom align-middle">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Level</th>
-                <th>Classification</th>
-                <th>Squad</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @teams.each do |team| %>
+    <%= turbo_frame_tag "teams-table" do %>
+      <div class="card-body">
+        <% if @teams.any? %>
+          <div class="table-responsive">
+            <table class="table table-hover table-dark-custom align-middle">
+              <thead>
                 <tr>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <span class="<%= team == current_user.team ? 'fw-bold' : '' %>">
-                        <%= team.name %>
-                      </span>
-                    </div>
-                  </td>
-                  <td><%= team.level %></td>
-                  <td>
-                    <%= team.classification %>
-                  </td>
-                  <td>
-                    <% player_count = team.players_count %>
-                    <span class="badge bg-secondary">
-                      <i class="fas fa-users me-1"></i>
-                      <%= pluralize(player_count, 'player') %>
-                    </span>
-                  </td>
-                  <td>
-                    <div class="d-flex justify-content-end gap-2">
-                      <%= link_to team_path(team),
-                          class: "btn btn-sm btn-outline-primary",
-                          data: {
-                            bs_toggle: "tooltip",
-                            bs_placement: "top",
-                            bs_title: "View Team Details"
-                          } do %>
-                        <i class="fas fa-eye"></i>
-                      <% end %>
-
-                      <%= link_to edit_team_path(team),
-                          class: "btn btn-sm btn-outline-secondary",
-                          data: {
-                            bs_toggle: "tooltip",
-                            bs_placement: "top",
-                            bs_title: "Edit Team"
-                          } do %>
-                        <i class="fas fa-edit"></i>
-                      <% end %>
-
-                      <%= button_to team_path(team),
-                          method: :delete,
-                          class: "btn btn-sm btn-outline-danger",
-                          form: {
-                            data: {
-                              turbo_confirm: "Are you sure? This will remove all player associations.",
-                              bs_toggle: "tooltip",
-                              bs_placement: "top",
-                              bs_title: "Delete Team"
-                            }
-                          },
-                          disabled: team.users.exists? do %>
-                        <i class="fas fa-trash-alt"></i>
-                      <% end %>
-                    </div>
-                  </td>
+                  <th class="text-start">Name</th>
+                  <th class="text-center">Level</th>
+                  <th class="text-center">Country</th>
+                  <th class="text-center">Classification</th>
+                  <th class="text-center">Squad</th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% else %>
-        <div class="text-center py-4">
-          <div class="mb-3">
-            <i class="fas fa-users fa-3x text-muted"></i>
+              </thead>
+              <tbody>
+                <% @teams.each do |team| %>
+                  <tr style="cursor: pointer;"
+                      onclick="window.location.href='<%= team_path(team) %>'">
+                    <td>
+                      <div class="d-flex align-items-center justify-content-start">
+                        <span class="<%= team == current_user.team ? 'fw-bold' : '' %>">
+                          <%= team.name %>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="text-center"><%= team.level %></td>
+                    <td class="text-center">
+                      <span class="d-flex align-items-center justify-content-center gap-2">
+                        <img src="https://flagcdn.com/24x18/<%= team.country.downcase %>.png"
+                             alt="<%= team.country %>"
+                             style="width:24px;height:18px;">
+                        <%= team.country %>
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <%= team.classification %>
+                    </td>
+                    <td class="text-center">
+                      <% player_count = team.players_count %>
+                      <span class="badge bg-secondary">
+                        <i class="fas fa-users me-1"></i>
+                        <%= pluralize(player_count, 'player') %>
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
-          <h4 class="text-muted">No teams found</h4>
-          <p class="text-muted">Get started by creating your first team</p>
-          <%= link_to new_team_path, class: "btn btn-primary" do %>
-            <i class="fas fa-plus me-1"></i> Create Team
-          <% end %>
-        </div>
-      <% end %>
-    </div>
+        <% else %>
+          <div class="text-center py-4">
+            <div class="mb-3">
+              <i class="fas fa-users fa-3x text-muted"></i>
+            </div>
+            <h4 class="text-muted">No teams found</h4>
+            <p class="text-muted">Get started by creating your first team</p>
+            <%= link_to new_team_path, class: "btn btn-primary" do %>
+              <i class="fas fa-plus me-1"></i> Create Team
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </div>

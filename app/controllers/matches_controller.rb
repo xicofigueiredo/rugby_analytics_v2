@@ -6,6 +6,8 @@ class MatchesController < ApplicationController
   def index
     @matches = Match.all
 
+    @current_team = current_user.team if current_user.team
+
     # Apply team filter
     if params[:team_id].present?
       @matches = @matches.where("home_team_id = ? OR away_team_id = ?", params[:team_id], params[:team_id])

@@ -9,7 +9,9 @@ class User < ApplicationRecord
 
   validates :name, presence: true
   validates :role, presence: true, inclusion: { in: %w[player coach fan admin] }
+  validates :email, presence: true, uniqueness: true
 
+  enum role: { user: 0, admin: 1 }
 
   # Methods
   def player?

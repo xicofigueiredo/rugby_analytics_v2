@@ -9,15 +9,21 @@
         <%= select_tag "user[role]",
             options_for_select([['All Roles', ''], ['Admin', 'admin'], ['Coach', 'coach'], ['Player', 'player'], ['Fan', 'fan']], params.dig(:user, :role)),
             class: "form-select form-select-sm",
+            style: "background-color: #23263a; color: white; border-color: white;",
             onchange: "this.form.submit()"
         %>
         <%= select_tag "user[team_id]",
             options_from_collection_for_select(Team.all, :id, :name, params.dig(:user, :team_id)),
             prompt: "All Teams",
             class: "form-select form-select-sm",
+            style: "background-color: #23263a; color: white; border-color: white;",
             onchange: "this.form.submit()"
         %>
         <%= hidden_field_tag :sort_direction, @sort_direction %>
+      <% end %>
+      <%= link_to new_admin_user_path,
+          class: "btn btn-outline-light" do %>
+        <i class="fas fa-plus me-1"></i> New User
       <% end %>
     </div>
 
@@ -25,118 +31,51 @@
       <div class="card-body" style="background-color: #23263a;">
         <% if @users.any? %>
           <div class="table-responsive">
-            <table class="table table-hover table-dark-custom">
+            <table class="table table-hover table-dark-custom align-middle">
               <thead>
                 <tr>
-                  <th>Name</th>
                   <th>Email</th>
-                  <th>Role</th>
                   <th>Team</th>
-                  <th>Player</th>
-                  <th>
-                    <div class="d-flex align-items-center gap-2">
-                      Created At
-                      <%= link_to admin_users_path(
-                            request.params.merge(
-                              sort_direction: @sort_direction == 'asc' ? 'desc' : 'asc'
-                            )
-                          ),
-                          class: "text-white",
-                          data: { turbo_frame: "users-table" } do %>
-                        <i class="fas fa-sort<%= @sort_direction == 'asc' ? '-up' : '-down' %>"></i>
-                      <% end %>
-                    </div>
-                  </th>
+                  <th>Role</th>
+                  <th>Created At</th>
+                  <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <% @users.each do |user| %>
-                  <tr style="cursor: pointer;"
-                      onclick="window.location.href='<%= admin_user_path(user) %>'">
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <%= user.name %>
-                      </div>
-                    </td>
+                  <tr>
                     <td><%= user.email %></td>
+                    <td><%= user.team&.name || 'Not assigned' %></td>
+                    <td><%= user.role %></td>
+                    <td><%= user.created_at.strftime("%d/%m/%Y") %></td>
                     <td>
-                      <span>
-                        <%= user.role.titleize %>
-                      </span>
-                    </td>
-                    <td>
-                      <% if user.team %>
-                        <span class="badge" style="background-color: <%= user.team.main_color %>;">
-                          <%= user.team.name %>
-                        </span>
-                      <% else %>
-                        <span class="badge bg-secondary">
-                          <i class="fas fa-ban me-1"></i>
-                          Not assigned
-                        </span>
-                      <% end %>
-                    </td>
-                    <td>
-                      <% if user.player %>
-                        <span class="badge bg-success">
-                          <i class="fas fa-user me-1"></i>
-                          <%= user.player.name %>
-                        </span>
-                      <% elsif user.role == 'player' %>
-                        <button type="button"
-                                class="btn btn-sm btn-outline-warning"
-                                data-bs-toggle="modal"
-                                data-bs-target="#linkPlayerModal<%= user.id %>"
-                                onclick="event.stopPropagation()">
-                          <i class="fas fa-link me-1"></i>
-                          Link Player
-                        </button>
-                      <% else %>
-                        <span class="badge bg-secondary">
-                          <i class="fas fa-ban me-1"></i>
-                          N/A
-                        </span>
-                      <% end %>
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <i class="fas fa-calendar me-2 text-muted"></i>
-                        <%= user.created_at.strftime("%B %d, %Y") %>
+                      <div class="d-flex justify-content-end gap-2">
+                        <%= link_to edit_admin_user_path(user),
+                            class: "btn btn-sm btn-outline-secondary",
+                            data: {
+                              bs_toggle: "tooltip",
+                              bs_placement: "top",
+                              bs_title: "Edit User"
+                            } do %>
+                          <i class="fas fa-edit"></i>
+                        <% end %>
+
+                        <%= button_to admin_user_path(user),
+                            method: :delete,
+                            class: "btn btn-sm btn-outline-danger",
+                            form: {
+                              data: {
+                                turbo_confirm: "Are you sure? This will delete the user account.",
+                                bs_toggle: "tooltip",
+                                bs_placement: "top",
+                                bs_title: "Delete User"
+                              }
+                            } do %>
+                          <i class="fas fa-trash-alt"></i>
+                        <% end %>
                       </div>
                     </td>
                   </tr>
-
-                  <% if user.role == 'player' && !user.player %>
-                    <!-- Link Player Modal -->
-                    <div class="modal fade" id="linkPlayerModal<%= user.id %>" tabindex="-1" aria-hidden="true">
-                      <div class="modal-dialog">
-                        <div class="modal-content bg-dark text-white">
-                          <div class="modal-header">
-                            <h5 class="modal-title">Link Player to <%= user.name %></h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          <%= form_with(model: user, url: link_player_admin_user_path(user), method: :patch) do |f| %>
-                            <div class="modal-body">
-                              <div class="mb-3">
-                                <%= f.label :player_id, "Select Player", class: "form-label" %>
-                                <%= f.collection_select :player_id,
-                                    Player.left_outer_joins(:user).where(users: { id: nil }).order(:name),
-                                    :id,
-                                    :name,
-                                    { prompt: "Choose a player" },
-                                    { class: "form-select" }
-                                %>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                              <%= f.submit "Link Player", class: "btn btn-primary" %>
-                            </div>
-                          <% end %>
-                        </div>
-                      </div>
-                    </div>
-                  <% end %>
                 <% end %>
               </tbody>
             </table>

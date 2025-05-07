@@ -10,12 +10,14 @@
             options_from_collection_for_select(Team.all, :id, :name, params[:team_id]),
             prompt: "All Teams",
             class: "form-select form-select-sm",
+            style: "background-color: #23263a; color: white; border-color: white;",
             onchange: "this.form.submit()"
         %>
         <%= select_tag :season,
             options_for_select(Match.distinct.pluck(:season).sort.reverse, params[:season]),
             prompt: "All Seasons",
             class: "form-select form-select-sm",
+            style: "background-color: #23263a; color: white; border-color: white;",
             onchange: "this.form.submit()"
         %>
         <%= select_tag :month,
@@ -26,10 +28,17 @@
             ], params[:month]),
             prompt: "All Months",
             class: "form-select form-select-sm",
+            style: "background-color: #23263a; color: white; border-color: white;",
             onchange: "this.form.submit()"
         %>
         <%= hidden_field_tag :sort_direction, @sort_direction %>
       <% end %>
+      <div class="d-flex justify-content-end p-3" style="background-color: #23263a;">
+        <%= link_to new_match_path,
+            class: "btn btn-outline-light" do %>
+          <i class="fas fa-plus me-1"></i> Add Match
+        <% end %>
+      </div>
     </div>
 
     <%= turbo_frame_tag "matches-table" do %>
@@ -39,14 +48,8 @@
             <table class="table table-hover table-dark-custom">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th class="text-center">Home Team</th>
-                  <th class="text-center">Score</th>
-                  <th class="text-center">Away Team</th>
-                  <th class="text-center">Competition</th>
-                  <th class="text-center">Season</th>
                   <th>
-                    <div class="d-flex align-items-center justify-content-end gap-2">
+                    <div class="d-flex align-items-center justify-content-start gap-2">
                       Date
                       <%= link_to matches_path(
                             request.params.merge(
@@ -59,20 +62,56 @@
                       <% end %>
                     </div>
                   </th>
+                  <th class="text-center">Home Team</th>
+                  <th class="text-center">Score</th>
+                  <th class="text-center">Away Team</th>
+                  <th class="text-center">Competition</th>
+                  <th class="text-end">Season</th>
                 </tr>
               </thead>
               <tbody>
                 <% @matches.each do |match| %>
                   <tr style="cursor: pointer;"
                       onclick="window.location.href='<%= match_path(match) %>'">
-                    <td><%= match.date.strftime("%B %d, %Y") %></td>
+                    <td class="text-start"><%= match.date.strftime("%B %d, %Y") %></td>
                     <td class="text-center">
-                        <span class="badge" style="background-color: <%= match.home_team.main_color %>;">
-                          <%= match.home_team&.name || 'Not assigned' %>
-                        </span>
-
+                      <span class="badge" style="background-color: <%= match.home_team.main_color %>;">
+                        <%= match.home_team&.name || 'Not assigned' %>
+                      </span>
                     </td>
-                    <td class="text-center"><%= match.result%></td>
+                    <td class="text-center">
+                      <% if @current_team.present? %>
+                        <% if match.result.present? && match.result.split('-').first.to_i == match.result.split('-').last.to_i %>
+                          <span class="badge" style="background-color:rgb(161, 161, 42);">
+                            <%= match.result %>
+                          </span>
+                        <% elsif match.result.present? && match.result.split('-').first.to_i < match.result.split('-').last.to_i && match.home_team_id == @current_team.id %>
+                          <span class="badge" style="background-color:red">
+                            <%= match.result %>
+                          </span>
+                        <% elsif match.result.present? && match.result.split('-').first.to_i < match.result.split('-').last.to_i && match.away_team_id == @current_team.id %>
+                          <span class="badge" style="background-color: green">
+                            <%= match.result %>
+                          </span>
+                        <% elsif match.result.present? && match.result.split('-').first.to_i > match.result.split('-').last.to_i && match.home_team_id == @current_team.id %>
+                          <span class="badge" style="background-color:green;">
+                            <%= match.result %>
+                          </span>
+                        <% elsif match.result.present? && match.result.split('-').first.to_i > match.result.split('-').last.to_i && match.away_team_id == @current_team.id %>
+                          <span class="badge" style="background-color:red">
+                            <%= match.result %>
+                          </span>
+                        <% else %>
+                          -
+                        <% end %>
+                      <% else %>
+                        <% if match.result.present? %>
+                          <%= match.result %>
+                        <% else %>
+                            -
+                        <% end %>
+                      <% end %>
+                    </td>
                     <td class="text-center">
                         <span class="badge" style="background-color: <%= match.away_team.main_color %>;">
                           <%= match.away_team&.name || 'Not assigned' %>
@@ -80,12 +119,7 @@
 
                     </td>
                     <td class="text-center"><%= match.competition %></td>
-                    <td class="text-center"><%= match.season %></td>
-                    <td>
-                      <div class="d-flex align-items-center justify-content-end">
-                        <%= match.date.strftime("%B %d, %Y") %>
-                      </div>
-                    </td>
+                    <td class="text-end"><%= match.season %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -98,13 +132,5 @@
         <% end %>
       </div>
     <% end %>
-
-    <div class="d-flex justify-content-end p-3" style="background-color: #23263a;">
-      <%= link_to new_match_path,
-          class: "btn btn-success",
-          data: { turbo_frame: "_top" } do %>
-        <i class="fas fa-plus me-1"></i> Add Match
-      <% end %>
-    </div>
   </div>
 </div>

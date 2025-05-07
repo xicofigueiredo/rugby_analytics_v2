@@ -14,6 +14,14 @@ class PlayersController < ApplicationController
         Array(params[:player][:positions]).reject(&:blank?))
     end
 
+    if params.dig(:player, :has_account).present?
+      if params[:player][:has_account] == 'true'
+        @players = @players.joins(:user)
+      else
+        @players = @players.left_outer_joins(:user).where(users: { id: nil })
+      end
+    end
+
     @players = @players.includes(:team, :user)
 
     # Handle both Turbo Frame and regular requests

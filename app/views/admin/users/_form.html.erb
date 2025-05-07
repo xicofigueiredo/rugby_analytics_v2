@@ -1,0 +1,51 @@
+<%= form_with(model: [:admin, @user], class: "needs-validation") do |f| %>
+  <% if @user.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h4>
+      <ul>
+        <% @user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :name, class: "form-label text-light" %>
+    <%= f.text_field :name, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :email, class: "form-label text-light" %>
+    <%= f.email_field :email, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :password, class: "form-label text-light" %>
+    <%= f.password_field :password, class: "form-control", required: local_assigns[:require_password] %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :password_confirmation, class: "form-label text-light" %>
+    <%= f.password_field :password_confirmation, class: "form-control", required: local_assigns[:require_password] %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :team_id, "Team", class: "form-label text-light" %>
+    <%= f.collection_select :team_id, Team.all, :id, :name,
+        { prompt: "Select a team" },
+        { class: "form-select" } %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :role, class: "form-label text-light" %>
+    <%= f.select :role,
+        User.roles.keys.map { |role| [role.titleize, role] },
+        { prompt: "Select a role" },
+        { class: "form-select" } %>
+  </div>
+
+  <div class="d-flex justify-content-end">
+    <%= f.submit local_assigns[:submit_text] || "Save User", class: "btn btn-primary" %>
+  </div>
+<% end %>

@@ -3,7 +3,22 @@ class TeamsController < ApplicationController
   before_action :set_team, only: [:show, :edit, :update, :destroy]
 
   def index
-    @teams = Team.all.order(classification: :asc, name: :asc)
+    @teams = Team.all
+    @available_levels = Team.distinct.pluck(:level).sort
+    @available_countries = Team.distinct.pluck(:country).sort
+
+    # Apply level filter
+    if params[:level].present?
+      @teams = @teams.where(level: params[:level])
+    end
+
+    # Apply country filter
+
+    # Handle both Turbo Frame and regular requests
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
   def show

@@ -11,11 +11,7 @@ Rails.application.routes.draw do
     resources :teams
     resources :players
     namespace :admin do
-      resources :users, only: [:index, :show, :edit, :update] do
-        member do
-          patch :link_player
-        end
-      end
+      resources :users, except: [:show]
     end
   end
 
@@ -41,4 +37,8 @@ Rails.application.routes.draw do
   get '/pricing', to: 'pages#pricing', as: :pricing
 
   get 'profile', to: 'profiles#show', as: :profile
+
+  namespace :admin do
+    resources :users
+  end
 end
