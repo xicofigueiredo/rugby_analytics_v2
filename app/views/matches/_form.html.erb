@@ -126,7 +126,7 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
                     </div>
                     <div class="modal-body">
-                      <%= pm_form.collection_select :player_id, current_user.team.players, :id, :name, { include_blank: true }, class: "form-select player-select-dropdown" %>
+                      <%= pm_form.collection_select :player_id, current_user.team.players, :id, :name, { include_blank: true }, class: "form-select player-select-dropdown" if current_user.player != nil %>
                     </div>
                   </div>
                 </div>
