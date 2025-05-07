@@ -5,18 +5,17 @@
       <%= form_tag admin_users_path,
           method: :get,
           class: "d-flex gap-2",
-          data: { controller: "users-filter",
-                 turbo_frame: "users-table" } do %>
+          data: { turbo_frame: "users-table" } do %>
         <%= select_tag "user[role]",
             options_for_select([['All Roles', ''], ['Admin', 'admin'], ['Coach', 'coach'], ['Player', 'player'], ['Fan', 'fan']], params.dig(:user, :role)),
             class: "form-select form-select-sm",
-            data: { action: "change->users-filter#submit" }
+            onchange: "this.form.submit()"
         %>
         <%= select_tag "user[team_id]",
             options_from_collection_for_select(Team.all, :id, :name, params.dig(:user, :team_id)),
             prompt: "All Teams",
             class: "form-select form-select-sm",
-            data: { action: "change->users-filter#submit" }
+            onchange: "this.form.submit()"
         %>
         <%= hidden_field_tag :sort_direction, @sort_direction %>
       <% end %>
