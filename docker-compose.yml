@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:14.2-alpine
+    container_name: rugby-app
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      # - ./databackup/data:/var/lib/postgresql/data
+    command: "postgres -c 'max_connections=500'"
+    env_file:
+      - .env.production
+    # ports:
+    #   - "5432:5432"
+  server:
+    build:
+      context: .
+      args:
+        RUBY_VERSION: 3.2.2
+    command: "./bin/rails server -e production -b 0.0.0.0"
+    env_file:
+      - .env.production
+    volumes:
+      - app-storage:/rails/storage
+    depends_on:
+      - db
+    ports:
+      - "80:3000"
+      # labels:
+      # - "traefik.enable=true"
+      # - "traefik.http.routers.worktools.rule=Host(`worktools.site`)"
+      # - "traefik.http.routers.worktools.entrypoints=websecure"
+      # - "traefik.http.routers.worktools.tls.certresolver=myresolver"
+  # traefik:
+  #   image: "traefik:v2.11"
+  #   container_name: "traefik"
+  #   command:
+  #     - "--log.level=DEBUG"
+  #     - "--api.insecure=true"
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #     - "--entrypoints.websecure.address=:443"
+  #     - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+  #     - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+  #     - "--certificatesresolvers.myresolver.acme.email=francisco-abf@hotmail.com"
+  #     - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+  #   ports:
+  #     - "443:443"
+  #     - "8080:8080"
+  #   volumes:
+  #     - "./letsencrypt:/letsencrypt"
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+
+volumes:
+  postgres-data: {}
+  app-storage: {}
