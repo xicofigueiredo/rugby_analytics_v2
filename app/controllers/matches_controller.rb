@@ -38,12 +38,6 @@ class MatchesController < ApplicationController
 
   def new
     @match = Match.new
-    15.times do
-      @match.player_matches.build(started: true, on_field: true)
-    end
-    8.times do
-      @match.player_matches.build(started: false, on_field: false)
-    end
   end
 
   def create
@@ -51,7 +45,7 @@ class MatchesController < ApplicationController
     set_teams_based_on_location
 
     if @match.save
-      redirect_to @match, notice: 'Match was successfully created.'
+      redirect_to matches_path, notice: 'Match was successfully created.'
     else
       render :new, status: :unprocessable_entity
     end

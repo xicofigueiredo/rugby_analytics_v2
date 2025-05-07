@@ -39,7 +39,11 @@
                   <% if @match.result.present? %>
                     <h4 class="mb-0"><%= @match.result %></h4>
                   <% else %>
-                    <span class="badge bg-secondary">Not Played</span>
+                    <% if @match.date < Date.today %>
+                      <span class="badge bg-secondary">Analysis Pending</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Upcoming</span>
+                    <% end %>
                   <% end %>
                 </div>
                 <div class="text-center flex-grow-1">
@@ -51,21 +55,6 @@
           </div>
         </div>
       </div>
-
-      <% if @match.result.blank? %>
-        <div class="mt-4">
-          <%= form_with(model: @match, local: true, class: "d-inline-block") do |f| %>
-            <div class="input-group">
-              <%= f.text_field :result,
-                  class: "form-control",
-                  placeholder: "Enter result (e.g., 24-17)",
-                  pattern: "^\d+-\d+$",
-                  title: "Format: numbers separated by hyphen (e.g., 24-17)" %>
-              <%= f.submit "Update Result", class: "btn btn-primary" %>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
 
       <div class="mt-4">
         <%= link_to edit_match_path(@match), class: "btn btn-primary me-2" do %>
