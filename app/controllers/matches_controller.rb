@@ -33,6 +33,16 @@ class MatchesController < ApplicationController
   end
 
   def edit
+    # Set the location_type based on whether the current user's team is home or away
+    @match.location_type = if @match.home_team == current_user.team.name
+                            'home'
+                          else
+                            'away'
+                          end
+
+    # Set the opponent_id by finding the opponent team
+    opponent_team = Team.find_by(name: [@match.home_team, @match.away_team].find { |team| team != current_user.team.name })
+    @match.opponent_id = opponent_team&.id
   end
 
   def update

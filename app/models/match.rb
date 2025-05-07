@@ -3,7 +3,7 @@ class Match < ApplicationRecord
   has_many :players, through: :player_matches
 
   accepts_nested_attributes_for :player_matches, allow_destroy: true
-  
+
   # Add virtual attribute
   attr_accessor :location_type, :opponent_id
 

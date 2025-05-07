@@ -56,6 +56,43 @@
       </div>
     </div>
 
+    <!-- New row for team colors and abbreviation -->
+    <div class="row text-white mt-3">
+      <div class="col-md-4">
+        <div class="mb-3">
+          <%= f.label :abbreviation, class: "form-label" %>
+          <%= f.text_field :abbreviation,
+              class: "form-control",
+              placeholder: "e.g., RFC",
+              required: true
+          %>
+          <div class="form-text">Enter team abbreviation (2-5 characters)</div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="mb-3">
+          <%= f.label :main_color, class: "form-label" %>
+          <%= f.color_field :main_color,
+              class: "form-control form-control-color",
+              required: true
+          %>
+          <div class="form-text">Select team's main color</div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="mb-3">
+          <%= f.label :secondary_color, class: "form-label" %>
+          <%= f.color_field :secondary_color,
+              class: "form-control form-control-color",
+              required: true
+          %>
+          <div class="form-text">Select team's secondary color</div>
+        </div>
+      </div>
+    </div>
+
     <div class="mt-4">
       <%= f.submit submit_text, class: "btn btn-primary" %>
       <%= link_to "Cancel", teams_path, class: "btn btn-secondary ms-2" %>
