@@ -5,7 +5,32 @@ class MatchesController < ApplicationController
 
   def index
     @matches = Match.for_team(current_user.team&.name)
-                   .order(date: :desc, created_at: :desc)
+
+    # Apply team filter
+    if params[:team_id].present?
+      team = Team.find(params[:team_id])
+      @matches = @matches.where("home_team = ? OR away_team = ?", team.name, team.name)
+    end
+
+    # Apply season filter
+    if params[:season].present?
+      @matches = @matches.where(season: params[:season])
+    end
+
+    # Apply month filter
+    if params[:month].present?
+      @matches = @matches.where("EXTRACT(MONTH FROM date) = ?", params[:month])
+    end
+
+    # Apply sorting
+    @sort_direction = params[:sort_direction] == 'asc' ? 'asc' : 'desc'
+    @matches = @matches.order(date: @sort_direction, created_at: @sort_direction)
+
+    # Handle both Turbo Frame and regular requests
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
   def show
