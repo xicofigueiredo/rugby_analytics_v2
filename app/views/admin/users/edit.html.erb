@@ -3,8 +3,8 @@
     <div class="card-header text-danger d-flex justify-content-between align-items-center" style="background-color: #23263a;">
       <h2 class="mb-0">Edit User</h2>
     </div>
-    <div class="card-body" style="background-color: #23263a;">
-      <%= form_with(model: [:admin, @user], class: "text-white") do |f| %>
+    <div class="card-body text-white" style="background-color: #23263a;">
+      <%= form_with(model: [:admin, @user], url: admin_user_path(@user), method: :patch, local: true) do |f| %>
         <% if @user.errors.any? %>
           <div class="alert alert-danger">
             <h4><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h4>
@@ -67,28 +67,3 @@
     </div>
   </div>
 </div>
-
-<% content_for :styles do %>
-  <style>
-    .form-control, .form-select {
-      background-color: #2d3147;
-      border-color: #3a3f55;
-      color: #fff;
-    }
-
-    .form-control:focus, .form-select:focus {
-      background-color: #2d3147;
-      border-color: #4a4f65;
-      color: #fff;
-      box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
-    }
-
-    .form-control::placeholder {
-      color: #6c757d;
-    }
-
-    .form-label {
-      color: #fff;
-    }
-  </style>
-<% end %>

@@ -18,6 +18,7 @@
             class: "form-select form-select-sm",
             data: { action: "change->users-filter#submit" }
         %>
+        <%= hidden_field_tag :sort_direction, @sort_direction %>
       <% end %>
     </div>
 
@@ -33,16 +34,28 @@
                   <th>Role</th>
                   <th>Team</th>
                   <th>Player</th>
-                  <th>Created At</th>
-                  <th>Actions</th>
+                  <th>
+                    <div class="d-flex align-items-center gap-2">
+                      Created At
+                      <%= link_to admin_users_path(
+                            request.params.merge(
+                              sort_direction: @sort_direction == 'asc' ? 'desc' : 'asc'
+                            )
+                          ),
+                          class: "text-white",
+                          data: { turbo_frame: "users-table" } do %>
+                        <i class="fas fa-sort<%= @sort_direction == 'asc' ? '-up' : '-down' %>"></i>
+                      <% end %>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <% @users.each do |user| %>
-                  <tr>
+                  <tr style="cursor: pointer;"
+                      onclick="window.location.href='<%= admin_user_path(user) %>'">
                     <td>
                       <div class="d-flex align-items-center">
-
                         <%= user.name %>
                       </div>
                     </td>
@@ -74,7 +87,8 @@
                         <button type="button"
                                 class="btn btn-sm btn-outline-warning"
                                 data-bs-toggle="modal"
-                                data-bs-target="#linkPlayerModal<%= user.id %>">
+                                data-bs-target="#linkPlayerModal<%= user.id %>"
+                                onclick="event.stopPropagation()">
                           <i class="fas fa-link me-1"></i>
                           Link Player
                         </button>
@@ -90,28 +104,6 @@
                         <i class="fas fa-calendar me-2 text-muted"></i>
                         <%= user.created_at.strftime("%B %d, %Y") %>
                       </div>
-                    </td>
-                    <td>
-                      <%= link_to "#",
-                          class: "btn btn-sm btn-outline-primary",
-                          data: {
-                            turbo_frame: "_top",
-                            bs_toggle: "tooltip",
-                            bs_placement: "top",
-                            bs_title: "View Details"
-                          } do %>
-                        <i class="fas fa-eye"></i>
-                      <% end %>
-                      <%= link_to edit_admin_user_path(user),
-                          class: "btn btn-sm btn-outline-secondary ms-1",
-                          data: {
-                            turbo_frame: "_top",
-                            bs_toggle: "tooltip",
-                            bs_placement: "top",
-                            bs_title: "Edit User"
-                          } do %>
-                        <i class="fas fa-edit"></i>
-                      <% end %>
                     </td>
                   </tr>
 
