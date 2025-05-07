@@ -1,4 +1,4 @@
-<div class="container mt-4">
+<div class="container mt-4 text-white">
   <h2>Sign up</h2>
 
   <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
@@ -31,42 +31,6 @@
       %>
     </div>
 
-    <!-- Player fields - always visible but only required for players -->
-    <div class="mb-3">
-      <%= f.label :age, class: "form-label" %>
-      <%= f.number_field :age, class: "form-control" %>
-      <small class="text-muted">Required for players</small>
-    </div>
-
-    <div class="mb-3">
-      <%= f.label :positions, class: "form-label" %>
-      <div class="position-checkboxes">
-        <% User::VALID_POSITIONS.each do |position| %>
-          <div class="form-check">
-            <%= check_box_tag 'user[positions][]', position, false,
-                id: "user_positions_#{position.parameterize}",
-                class: "form-check-input"
-            %>
-            <%= label_tag "user_positions_#{position.parameterize}", position,
-                class: "form-check-label"
-            %>
-          </div>
-        <% end %>
-      </div>
-      <small class="text-muted">Required for players</small>
-    </div>
-
-    <div class="mb-3">
-      <%= f.label :height, "Height (cm)", class: "form-label" %>
-      <%= f.number_field :height, step: 0.01, class: "form-control" %>
-      <small class="text-muted">Required for players</small>
-    </div>
-
-    <div class="mb-3">
-      <%= f.label :weight, "Weight (kg)", class: "form-label" %>
-      <%= f.number_field :weight, step: 0.01, class: "form-control" %>
-      <small class="text-muted">Required for players</small>
-    </div>
 
     <div class="mb-3">
       <%= f.label :password, class: "form-label" %>

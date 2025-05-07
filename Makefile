@@ -29,7 +29,7 @@ dangling:
 	docker rmi -f $(docker images -f "dangling=true" -q)
 
 pass: ## user = User.find_by(email: '') ; user.password = '' ; user.password_confirmation = '' ; user.save
-	docker exec -it rugby-container bash -c "RAILS_ENV=production bundle exec rails console"
+	docker exec -it rugby_analytics_v2-server-1 bash -c "RAILS_ENV=production bundle exec rails console"
 
 cache: ## Clear the cache
 	docker builder prune

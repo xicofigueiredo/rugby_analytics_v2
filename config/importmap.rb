@@ -7,6 +7,6 @@ pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
 pin "bootstrap", to: "bootstrap.min.js", preload: true
 pin "bootstrap/dist/js/bootstrap.bundle.min.js", to: "bootstrap.min.js", preload: true
 pin "bootstrap/dist/css/bootstrap.min.css", to: "bootstrap.min.css", preload: true
-
+pin "chart.js", to: "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"
 
 pin_all_from "app/javascript/controllers", under: "controllers"
