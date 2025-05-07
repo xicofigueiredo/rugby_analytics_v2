@@ -14,7 +14,7 @@ services:
     build:
       context: .
       args:
-        RUBY_VERSION: 3.2.2
+        RUBY_VERSION: 3.2.4
     command: "./bin/rails server -e production -b 0.0.0.0"
     env_file:
       - .env.production

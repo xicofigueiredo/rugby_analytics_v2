@@ -1,8 +1,16 @@
-// app/javascript/controllers/application.js
 import { Application } from "@hotwired/stimulus"
+import PlayersFilterController from "./players_filter_controller"
+import RoleFieldsController from "./role_fields_controller"
+import UsersFilterController from "./users_filter_controller"
 
 const application = Application.start()
-application.debug = true
-window.Stimulus = application
+
+// Configure Stimulus development experience
+application.debug = false
+window.Stimulus   = application
+
+Stimulus.register("players-filter", PlayersFilterController)
+Stimulus.register("role-fields", RoleFieldsController)
+Stimulus.register("users-filter", UsersFilterController)
 
 export { application }
