@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_04_172645) do
+ActiveRecord::Schema[7.1].define(version: 2025_05_07_145626) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -48,6 +48,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_04_172645) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
+    t.string "nationality"
+    t.jsonb "cache_counters", default: {}
+    t.integer "total_points", default: 0
     t.index ["team_id"], name: "index_players_on_team_id"
   end
 
@@ -58,6 +61,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_04_172645) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "players_count", default: 0, null: false
+    t.string "abbreviation"
+    t.string "main_color"
+    t.string "secondary_color"
   end
 
   create_table "users", force: :cascade do |t|

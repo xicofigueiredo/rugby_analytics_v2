@@ -7,6 +7,8 @@ class Player < ApplicationRecord
   validates :height, presence: true, numericality: { only_integer: true, greater_than: 150, less_than: 220 }
   validates :weight, presence: true, numericality: { greater_than: 40, less_than: 170 }
   validates :positions, presence: true
+  # validates :nationality, presence: true
+  # validates :total_points, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate :validate_positions
 
   VALID_POSITIONS = [
