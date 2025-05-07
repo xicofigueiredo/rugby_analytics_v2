@@ -11,7 +11,11 @@ Rails.application.routes.draw do
     resources :teams
     resources :players
     namespace :admin do
-      resources :users, only: [:index]
+      resources :users, only: [:index] do
+        member do
+          patch :link_player
+        end
+      end
     end
   end
 
