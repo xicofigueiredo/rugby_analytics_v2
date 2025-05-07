@@ -11,17 +11,40 @@
       </div>
     <% end %>
 
-    <div class="row g-3">
+    <div class="row">
       <div class="col-md-4">
         <div class="mb-3">
-          <%= f.label :location_type, "Location", class: "form-label" %>
+          <%= f.label :season, class: "form-label" %>
+          <%= f.text_field :season, class: "form-control" %>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="mb-3">
+          <%= f.label :competition, class: "form-label" %>
+          <%= f.text_field :competition, class: "form-control" %>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="mb-3">
+          <%= f.label :date, class: "form-label" %>
+          <%= f.date_field :date, class: "form-control" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="mb-3">
+          <%= f.label :location_type, "Match Location", class: "form-label" %>
           <%= f.select :location_type,
-              [['home game', 'home'], ['away game', 'away']],
-              { include_blank: 'select location' },
-              {
-                class: "form-select",
-                required: true
-              }
+              options_for_select([
+                ['Home', 'home'],
+                ['Away', 'away']
+              ], @match.location_type),
+              { prompt: "Select location" },
+              { class: "form-select" }
           %>
         </div>
       </div>
@@ -33,11 +56,8 @@
               @opponents,
               :id,
               :name,
-              { include_blank: 'select opponent' },
-              {
-                class: "form-select",
-                required: true
-              }
+              { prompt: "Select opponent" },
+              { class: "form-select" }
           %>
         </div>
       </div>
@@ -53,42 +73,13 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="col-md-4">
-        <div class="mb-3">
-          <%= f.label :season, class: "form-label" %>
-          <%= f.select :season,
-              [
-                ['2024/2025', '2024/2025'],
-                ['2023/2024', '2023/2024']
-              ],
-              { include_blank: 'select season' },
-              {
-                class: "form-select",
-                required: true
-              }
-          %>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="mb-3">
-          <%= f.label :competition, class: "form-label" %>
-          <%= f.text_field :competition, class: "form-control", placeholder: "Top 12", required: true %>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="mb-3">
-          <%= f.label :date, class: "form-label" %>
-          <%= f.date_field :date, class: "form-control", required: true %>
-        </div>
-      </div>
-
-      <div class="col-md-12">
+    <div class="row">
+      <div class="col-12">
         <div class="mb-3">
           <%= f.label :description, class: "form-label" %>
-          <%= f.text_field :description, class: "form-control", placeholder: "optional match description" %>
+          <%= f.text_area :description, class: "form-control", rows: 3 %>
         </div>
       </div>
     </div>
@@ -144,9 +135,9 @@
 
     <%= safe_join(modals) %>
 
-    <div class="mt-4">
-      <%= f.submit submit_text, class: "btn btn-primary" %>
-      <%= link_to "cancel", matches_path, class: "btn btn-secondary ms-2" %>
+    <div class="d-flex justify-content-end gap-2">
+      <%= link_to "Cancel", matches_path, class: "btn btn-secondary" %>
+      <%= f.submit class: "btn btn-primary" %>
     </div>
   </div>
 <% end %>

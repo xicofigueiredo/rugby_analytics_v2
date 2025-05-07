@@ -4,12 +4,11 @@ class MatchesController < ApplicationController
   before_action :set_opponents, only: [:new, :edit, :create, :update]
 
   def index
-    @matches = Match.for_team(current_user.team&.name)
+    @matches = Match.all
 
     # Apply team filter
     if params[:team_id].present?
-      team = Team.find(params[:team_id])
-      @matches = @matches.where("home_team = ? OR away_team = ?", team.name, team.name)
+      @matches = @matches.where("home_team_id = ? OR away_team_id = ?", params[:team_id], params[:team_id])
     end
 
     # Apply season filter
@@ -42,10 +41,10 @@ class MatchesController < ApplicationController
 
   def create
     @match = Match.new(match_params)
-    set_teams_based_on_location
+    @match.current_team_id = current_user.team&.id
 
     if @match.save
-      redirect_to matches_path, notice: 'Match was successfully created.'
+      redirect_to @match, notice: 'Match was successfully created.'
     else
       render :new, status: :unprocessable_entity
     end
@@ -53,18 +52,23 @@ class MatchesController < ApplicationController
 
   def edit
     # Set the location_type based on whether the current user's team is home or away
-    @match.location_type = if @match.home_team == current_user.team.name
+    @match.location_type = if @match.home_team_id == current_user.team&.id
                             'home'
                           else
                             'away'
                           end
 
     # Set the opponent_id by finding the opponent team
-    opponent_team = Team.find_by(name: [@match.home_team, @match.away_team].find { |team| team != current_user.team.name })
-    @match.opponent_id = opponent_team&.id
+    @match.opponent_id = if @match.location_type == 'home'
+                          @match.away_team_id
+                        else
+                          @match.home_team_id
+                        end
   end
 
   def update
+    @match.current_team_id = current_user.team&.id
+
     if @match.update(match_params)
       redirect_to @match, notice: 'Match was successfully updated.'
     else
@@ -93,23 +97,10 @@ class MatchesController < ApplicationController
       :competition,
       :description,
       :date,
-      :home_team,
-      :away_team,
       :location_type,
       :opponent_id,
-      :result,
-      player_matches_attributes: [:id, :player_id, :position, :started, :on_field, :_destroy]
+      :result
     )
-  end
-
-  def set_teams_based_on_location
-    if params[:match][:location_type] == 'home'
-      @match.home_team = current_user.team.name
-      @match.away_team = Team.find(params[:match][:opponent_id]).name
-    else
-      @match.away_team = current_user.team.name
-      @match.home_team = Team.find(params[:match][:opponent_id]).name
-    end
   end
 
   def ensure_user_has_team

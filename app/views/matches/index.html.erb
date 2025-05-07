@@ -40,13 +40,13 @@
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Home Team</th>
-                  <th>Score</th>
-                  <th>Away Team</th>
-                  <th>Competition</th>
-                  <th>Season</th>
+                  <th class="text-center">Home Team</th>
+                  <th class="text-center">Score</th>
+                  <th class="text-center">Away Team</th>
+                  <th class="text-center">Competition</th>
+                  <th class="text-center">Season</th>
                   <th>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-end gap-2">
                       Date
                       <%= link_to matches_path(
                             request.params.merge(
@@ -66,30 +66,23 @@
                   <tr style="cursor: pointer;"
                       onclick="window.location.href='<%= match_path(match) %>'">
                     <td><%= match.date.strftime("%B %d, %Y") %></td>
-                    <td>
-                      <% if match.home_team == current_user.team&.name %>
-                        <span class="badge" style="background-color: <%= current_user.team.main_color %>;">
-                          <%= match.home_team %>
+                    <td class="text-center">
+                        <span class="badge" style="background-color: <%= match.home_team.main_color %>;">
+                          <%= match.home_team&.name || 'Not assigned' %>
                         </span>
-                      <% else %>
-                        <%= match.home_team %>
-                      <% end %>
+
                     </td>
-                    <td><%= match.result || "vs" %></td>
-                    <td>
-                      <% if match.away_team == current_user.team&.name %>
-                        <span class="badge" style="background-color: <%= current_user.team.main_color %>;">
-                          <%= match.away_team %>
+                    <td class="text-center"><%= match.result%></td>
+                    <td class="text-center">
+                        <span class="badge" style="background-color: <%= match.away_team.main_color %>;">
+                          <%= match.away_team&.name || 'Not assigned' %>
                         </span>
-                      <% else %>
-                        <%= match.away_team %>
-                      <% end %>
+
                     </td>
-                    <td><%= match.competition %></td>
-                    <td><%= match.season %></td>
+                    <td class="text-center"><%= match.competition %></td>
+                    <td class="text-center"><%= match.season %></td>
                     <td>
-                      <div class="d-flex align-items-center">
-                        <i class="fas fa-calendar me-2 text-muted"></i>
+                      <div class="d-flex align-items-center justify-content-end">
                         <%= match.date.strftime("%B %d, %Y") %>
                       </div>
                     </td>
