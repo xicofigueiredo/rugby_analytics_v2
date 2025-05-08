@@ -8,10 +8,15 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   validates :name, presence: true
-  validates :role, presence: true, inclusion: { in: %w[player coach fan admin] }
   validates :email, presence: true, uniqueness: true
 
-  enum role: { user: 0, admin: 1 }
+  # Define the roles enum with string values
+  enum role: {
+    player: 'player',
+    coach: 'coach',
+    fan: 'fan',
+    admin: 'admin'
+  }, _default: 'fan'
 
   # Methods
   def player?

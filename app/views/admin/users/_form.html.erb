@@ -20,15 +20,17 @@
     <%= f.email_field :email, class: "form-control", required: true %>
   </div>
 
-  <div class="mb-3">
-    <%= f.label :password, class: "form-label text-light" %>
-    <%= f.password_field :password, class: "form-control", required: local_assigns[:require_password] %>
-  </div>
+  <% if local_assigns[:require_password] %>
+    <div class="mb-3">
+      <%= f.label :password, class: "form-label text-light" %>
+      <%= f.password_field :password, class: "form-control", required: true %>
+    </div>
 
-  <div class="mb-3">
-    <%= f.label :password_confirmation, class: "form-label text-light" %>
-    <%= f.password_field :password_confirmation, class: "form-control", required: local_assigns[:require_password] %>
-  </div>
+    <div class="mb-3">
+      <%= f.label :password_confirmation, class: "form-label text-light" %>
+      <%= f.password_field :password_confirmation, class: "form-control", required: true %>
+    </div>
+  <% end %>
 
   <div class="mb-3">
     <%= f.label :team_id, "Team", class: "form-label text-light" %>

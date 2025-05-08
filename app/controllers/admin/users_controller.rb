@@ -2,7 +2,7 @@ module Admin
   class UsersController < ApplicationController
     before_action :authenticate_user!
     before_action :require_admin
-    before_action :set_user, only: [:edit, :update, :destroy]
+    before_action :set_user, only: [:show, :edit, :update, :destroy]
 
     def index
       @users = User.all
@@ -37,6 +37,9 @@ module Admin
       redirect_to admin_users_path, notice: 'User was successfully deleted.'
     end
 
+    def show
+    end
+
     private
 
     def set_user
@@ -44,11 +47,15 @@ module Admin
     end
 
     def user_params
-      params.require(:user).permit(:name, :email, :password, :password_confirmation, :team_id, :role)
+      if params[:user][:password].blank?
+        params.require(:user).permit(:name, :email, :team_id, :role)
+      else
+        params.require(:user).permit(:name, :email, :password, :password_confirmation, :team_id, :role)
+      end
     end
 
     def require_admin
-      unless current_user.role != 'admin'
+      unless current_user.role == 'admin'
         redirect_to root_path, alert: 'You are not authorized to access this area.'
       end
     end
