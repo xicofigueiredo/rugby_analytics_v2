@@ -1,6 +1,8 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_team, only: [:show, :edit, :update, :destroy]
+  before_action :require_admin
+
 
   def index
     @teams = Team.all
@@ -60,6 +62,12 @@ class TeamsController < ApplicationController
   end
 
   private
+
+  def require_admin
+    unless current_user.role == 'admin'
+      redirect_to root_path, alert: 'You are not authorized to access this area.'
+    end
+  end
 
   def set_team
     @team = Team.find(params[:id])

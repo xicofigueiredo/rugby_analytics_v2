@@ -1,9 +1,15 @@
 class PlayersController < ApplicationController
   before_action :authenticate_user!
   before_action :set_player, only: [:show, :edit, :update]
+  before_action :require_admin, only: [:new, :create]
 
   def index
-    @players = Player.all.order(name: :asc)
+    if current_user.role == 'admin'
+      @players = Player.all.order(name: :asc)
+    else
+      @players = Player.where(team_id: current_user.team_id).order(name: :asc)
+    end
+
 
     if params.dig(:player, :team_id).present?
       @players = @players.where(team_id: params[:player][:team_id])
@@ -61,6 +67,12 @@ class PlayersController < ApplicationController
   end
 
   private
+
+  def require_admin
+    unless current_user.role == 'admin'
+      redirect_to players_path, alert: 'You are not authorized to perform this action.'
+    end
+  end
 
   def set_player
     @player = Player.includes(:team, :user).find(params[:id])

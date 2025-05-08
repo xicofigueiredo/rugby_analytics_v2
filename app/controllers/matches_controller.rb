@@ -2,9 +2,15 @@ class MatchesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_match, only: [:show, :edit, :update, :destroy]
   before_action :set_opponents, only: [:new, :edit, :create, :update]
+  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
 
   def index
     @matches = Match.all
+
+    if current_user.role != 'admin'
+      @matches = @matches.where(home_team_id: current_user.team_id)
+      @matches = @matches.or(@matches.where(away_team_id: current_user.team_id))
+    end
 
     @current_team = current_user.team if current_user.team
 
@@ -39,41 +45,28 @@ class MatchesController < ApplicationController
 
   def new
     @match = Match.new
+    @teams = Team.all
   end
 
   def create
     @match = Match.new(match_params)
-    @match.current_team_id = current_user.team&.id
-
     if @match.save
       redirect_to @match, notice: 'Match was successfully created.'
     else
+      @teams = Team.all
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
-    # Set the location_type based on whether the current user's team is home or away
-    @match.location_type = if @match.home_team_id == current_user.team&.id
-                            'home'
-                          else
-                            'away'
-                          end
-
-    # Set the opponent_id by finding the opponent team
-    @match.opponent_id = if @match.location_type == 'home'
-                          @match.away_team_id
-                        else
-                          @match.home_team_id
-                        end
+    @teams = Team.all
   end
 
   def update
-    @match.current_team_id = current_user.team&.id
-
     if @match.update(match_params)
       redirect_to @match, notice: 'Match was successfully updated.'
     else
+      @teams = Team.all
       render :edit, status: :unprocessable_entity
     end
   end
@@ -97,12 +90,19 @@ class MatchesController < ApplicationController
     params.require(:match).permit(
       :season,
       :competition,
-      :description,
       :date,
-      :location_type,
-      :opponent_id,
-      :result
+      :home_team_id,
+      :away_team_id,
+      :result,
+      :description,
+      player_matches_attributes: [:id, :player_id, :position, :_destroy]
     )
+  end
+
+  def require_admin
+    unless current_user.role == 'admin'
+      redirect_to matches_path, alert: 'You are not authorized to access this area.'
+    end
   end
 
   def ensure_user_has_team

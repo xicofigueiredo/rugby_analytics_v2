@@ -5,13 +5,15 @@
       <%= form_tag players_path,
           method: :get,
           class: "d-flex gap-2" do %>
-        <%= select_tag "player[team_id]",
-            options_from_collection_for_select(Team.all, :id, :name, params.dig(:player, :team_id)),
-            prompt: "All Teams",
-            class: "form-select form-select-sm",
-            style: "background-color: #23263a; color: white; border-color: white;",
-            onchange: "this.form.submit()"
-        %>
+        <% if current_user.role == 'admin' %>
+          <%= select_tag "player[team_id]",
+              options_from_collection_for_select(Team.all, :id, :name, params.dig(:player, :team_id)),
+              prompt: "All Teams",
+              class: "form-select form-select-sm",
+              style: "background-color: #23263a; color: white; border-color: white;",
+              onchange: "this.form.submit()"
+          %>
+        <% end %>
         <%= select_tag "player[positions][]",
             options_for_select(Player::VALID_POSITIONS, params.dig(:player, :positions)),
             prompt: "All Positions",
@@ -30,10 +32,18 @@
             onchange: "this.form.submit()"
         %>
       <% end %>
+
       <div class="d-flex justify-content-end p-3" style="background-color: #23263a;">
-        <%= link_to new_player_path,
-            class: "btn btn-outline-light" do %>
-          <i class="fas fa-plus me-1"></i> Add Player
+        <% if current_user.role == 'admin' %>
+          <%= link_to new_player_path,
+              class: "btn btn-outline-light" do %>
+            <i class="fas fa-plus me-1"></i> Add Player
+          <% end %>
+        <% else %>
+          <%= link_to new_player_path,
+              class: "btn btn-outline-light disabled" do %>
+            <i class="fas fa-plus me-1"></i> Add Player
+          <% end %>
         <% end %>
       </div>
     </div>

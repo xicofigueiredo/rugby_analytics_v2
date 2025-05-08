@@ -1,0 +1,89 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-rugby-purple mb-4">
+  <div class="container">
+    <div class="h4 fw-bold text-white mb-0">
+      Rugby<span class="text-danger">Analytics</span>
+    </div>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mx-auto flex-row gap-0">
+        <% if user_signed_in? %>
+          <li class="nav-item">
+            <%= link_to matches_path, class: "nav-link text-white #{'active' if controller_name == 'matches'}" do %>
+              Matches
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to teams_path, class: "nav-link text-white #{'active' if controller_name == 'teams'}" do %>
+              Teams
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to players_path, class: "nav-link text-white #{'active' if controller_name == 'players'}" do %>
+              Players
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to admin_users_path, class: "nav-link text-white #{'active' if controller.class.name.start_with?('Admin::')}" do %>
+              Users
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+
+      <ul class="navbar-nav">
+        <% if user_signed_in? %>
+          <li class="nav-item dropdown">
+            </a>
+            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <%= link_to root_path, class: "dropdown-item" do %>
+                <i class="fa fa-user"></i> Profile
+              <% end %>
+              <%= link_to root_path, class: "dropdown-item" do %>
+                <i class="fa-regular fa-circle-question"></i> About
+              <% end %>
+              <%= link_to root_path, class: "dropdown-item" do %>
+                <i class="fa-solid fa-rotate"></i> Password
+              <% end %>
+              <%= link_to root_path, class: "dropdown-item", data: {turbo_method: :delete} do %>
+                <i class="fa fa-sign-out"></i> Logout
+              <% end %>
+            </div>
+          </li>
+          <li class="nav-item">
+            <%= link_to profile_path, class: "nav-link text-white" do %>
+              <%= current_user.name %>
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= button_to destroy_user_session_path,
+                method: :delete,
+                class: "btn btn-outline-light ms-2",
+                data: {
+                  bs_toggle: "tooltip",
+                  bs_placement: "bottom",
+                  bs_title: "Sign Out"
+                } do %>
+              <i class="fas fa-sign-out-alt"></i>
+            <% end %>
+          </li>
+        <% else %>
+          <li class="nav-item">
+            <%= link_to new_user_session_path, class: "nav-link text-white" do %>
+              <i class="fas fa-sign-in-alt me-1"></i> Sign In
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= link_to new_user_registration_path, class: "nav-link text-white" do %>
+              <i class="fas fa-user-plus me-1"></i> Sign Up
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>
+

@@ -35,33 +35,34 @@
     </div>
 
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="mb-3">
-          <%= f.label :location_type, "Match Location", class: "form-label" %>
-          <%= f.select :location_type,
-              options_for_select([
-                ['Home', 'home'],
-                ['Away', 'away']
-              ], @match.location_type),
-              { prompt: "Select location" },
-              { class: "form-select" }
-          %>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="mb-3">
-          <%= f.label :opponent_id, "Opponent", class: "form-label" %>
-          <%= f.collection_select :opponent_id,
-              @opponents,
+          <%= f.label :home_team_id, "Home Team", class: "form-label" %>
+          <%= f.collection_select :home_team_id,
+              @teams,
               :id,
               :name,
-              { prompt: "Select opponent" },
+              { prompt: "Select home team" },
               { class: "form-select" }
           %>
         </div>
       </div>
 
+      <div class="col-md-6">
+        <div class="mb-3">
+          <%= f.label :away_team_id, "Away Team", class: "form-label" %>
+          <%= f.collection_select :away_team_id,
+              @teams,
+              :id,
+              :name,
+              { prompt: "Select away team" },
+              { class: "form-select" }
+          %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
       <div class="col-md-4">
         <div class="mb-3">
           <%= f.label :result, class: "form-label" %>

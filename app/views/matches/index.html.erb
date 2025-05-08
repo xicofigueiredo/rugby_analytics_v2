@@ -81,26 +81,26 @@
                     </td>
                     <td class="text-center">
                       <% if @current_team.present? %>
-                        <% if match.result.present? && match.result.split('-').first.to_i == match.result.split('-').last.to_i %>
-                          <span class="badge" style="background-color:rgb(161, 161, 42);">
-                            <%= match.result %>
-                          </span>
-                        <% elsif match.result.present? && match.result.split('-').first.to_i < match.result.split('-').last.to_i && match.home_team_id == @current_team.id %>
-                          <span class="badge" style="background-color:red">
-                            <%= match.result %>
-                          </span>
-                        <% elsif match.result.present? && match.result.split('-').first.to_i < match.result.split('-').last.to_i && match.away_team_id == @current_team.id %>
-                          <span class="badge" style="background-color: green">
-                            <%= match.result %>
-                          </span>
-                        <% elsif match.result.present? && match.result.split('-').first.to_i > match.result.split('-').last.to_i && match.home_team_id == @current_team.id %>
-                          <span class="badge" style="background-color:green;">
-                            <%= match.result %>
-                          </span>
-                        <% elsif match.result.present? && match.result.split('-').first.to_i > match.result.split('-').last.to_i && match.away_team_id == @current_team.id %>
-                          <span class="badge" style="background-color:red">
-                            <%= match.result %>
-                          </span>
+                        <% if match.result.present? %>
+                          <% if match.home_team_id == @current_team.id || match.away_team_id == @current_team.id %>
+                            <% if match.result.split('-').first.to_i == match.result.split('-').last.to_i %>
+                              <span class="badge" style="background-color:rgb(161, 161, 42);">
+                                <%= match.result %>
+                              </span>
+                            <% elsif match.home_team_id == @current_team.id %>
+                              <span class="badge" style="background-color:<%= match.result.split('-').first.to_i > match.result.split('-').last.to_i ? 'green' : 'red' %>">
+                                <%= match.result %>
+                              </span>
+                            <% else %>
+                              <span class="badge" style="background-color:<%= match.result.split('-').first.to_i < match.result.split('-').last.to_i ? 'green' : 'red' %>">
+                                <%= match.result %>
+                              </span>
+                            <% end %>
+                          <% else %>
+                            <span class="badge" style="background-color:gray">
+                              <%= match.result %>
+                            </span>
+                          <% end %>
                         <% else %>
                           -
                         <% end %>
