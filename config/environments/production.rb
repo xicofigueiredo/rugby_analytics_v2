@@ -95,4 +95,10 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
   config.consider_all_requests_local = true
+
+  # Add cache headers for PWA files
+  config.public_file_server.headers = {
+    'Cache-Control' => 'public, max-age=31536000',
+    'X-Content-Type-Options' => 'nosniff'
+  }
 end

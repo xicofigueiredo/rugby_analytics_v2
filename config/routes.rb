@@ -45,4 +45,8 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :users
   end
+
+  # PWA routes
+  get '/pwa/manifest.json', to: 'pwa#manifest'
+  get '/pwa/service-worker.js', to: 'pwa#service_worker'
 end
