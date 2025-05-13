@@ -9,7 +9,11 @@ Rails.application.routes.draw do
   authenticate :user do
     resources :matches
     resources :teams
-    resources :players
+    resources :players do
+      member do
+        get 'all_stats'
+      end
+    end
     namespace :admin do
       resources :users, except: [:show]
     end
