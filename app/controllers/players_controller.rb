@@ -52,6 +52,22 @@ class PlayersController < ApplicationController
   end
 
   def show
+
+    @performance_data = {
+      "CDUL" => 9,
+      "CDUP" => 4,
+      "AAC" => 7,
+      "Bel" => 8,
+      "GDD" => 6
+    }
+
+    @minutes_data = {
+      "CDUL" => 65,
+      "CDUP" => 72,
+      "AAC" => 50,
+      "Bel" => 78,
+      "GDD" => 58
+    }
   end
 
   def edit

@@ -1,4 +1,3 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <!-- app/views/players/show_all_stats.html.erb or similar -->
 <div class="container" data-controller="charts">
@@ -22,25 +21,72 @@
           </div>
         </div>
         <div style="height: 300px;">
-          <canvas id="performanceChart" data-charts-target="canvas"></canvas>
+          <%= line_chart [
+            ["12 Dec", 40], ["17 Dec", 65], ["25 Dec", 75], ["29 Dec", 50],
+            ["4 Jan", 35], ["8 Jan", 60], ["15 Jan", 45], ["29 Jan", 35],
+            ["6 Feb", 40], ["17 Feb", 70], ["24 Feb", 50]
+          ], height: "300px" %>
         </div>
       </div>
     </div>
 
     <!-- Four Small Charts -->
-    <% [["Minutes", "minutesChart"], ["Tries", "triesChart"], ["Points", "pointsChart"], ["Cards", "cardsChart"]].each do |title, id| %>
-      <div class="col-md-6">
-        <div class="card chart-card p-4 h-100">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="h5 text-white mb-0"><%= title %></div>
-            <span class="text-secondary">per game</span>
-          </div>
-          <div style="height: 200px;">
-            <canvas id="<%= id %>" data-charts-target="canvas"></canvas>
-          </div>
+    <div class="col-md-6">
+      <div class="card chart-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Minutes</div>
+          <span class="text-secondary">per game</span>
+        </div>
+        <div style="height: 200px;">
+          <%= line_chart [
+            ["Match 1", 80], ["Match 2", 65], ["Match 3", 80], ["Match 4", 75], ["Match 5", 80], ["Match 6", 70]
+          ], height: "200px" %>
         </div>
       </div>
-    <% end %>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card chart-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Tries</div>
+          <span class="text-secondary">per game</span>
+        </div>
+        <div style="height: 200px;">
+          <%= bar_chart [
+            ["Match 1", 1], ["Match 2", 0], ["Match 3", 2], ["Match 4", 1], ["Match 5", 0], ["Match 6", 1]
+          ], height: "200px" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card chart-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Points</div>
+          <span class="text-secondary">per game</span>
+        </div>
+        <div style="height: 200px;">
+          <%= line_chart [
+            ["Match 1", 5], ["Match 2", 0], ["Match 3", 10], ["Match 4", 5], ["Match 5", 0], ["Match 6", 5]
+          ], height: "200px" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card chart-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Cards</div>
+          <span class="text-secondary">per game</span>
+        </div>
+        <div style="height: 200px;">
+          <%= column_chart [
+            {name: "Yellow Cards", data: [["Match 1", 0], ["Match 2", 1], ["Match 3", 0], ["Match 4", 0], ["Match 5", 1], ["Match 6", 0]]},
+            {name: "Red Cards", data: [["Match 1", 0], ["Match 2", 0], ["Match 3", 0], ["Match 4", 0], ["Match 5", 0], ["Match 6", 0]]}
+          ], height: "200px" %>
+        </div>
+      </div>
+    </div>
 
     <!-- General Info Cards -->
     <div class="col-md-6">

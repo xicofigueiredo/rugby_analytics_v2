@@ -14,14 +14,13 @@
         <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player.name %>" class="profile-img mb-3">
         <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
           <%= @player.name %>
-
         </div>
         <div class="text-info fw-bold mb-3" style="font-size:1.2em;"><%= @player.total_points %> pts</div>
         <div class="d-flex align-items-center justify-content-between mb-3">
-          <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="England" style="width:24px;height:18px;"></span>
+          <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
           <span class="me-2" style="color: white;"><%= @player.country %></span>
-          <span class="me-2"><img src="<%= asset_path('cdul.jpg') %>" alt="Man United" style="width:35px;height:35px;"></span>
-          <span style="color: white;" ><%= @player.team.name %></span>
+          <span class="me-2"><img src="<%= asset_path('cdul.jpg') %>" alt="Team Logo" style="width:35px;height:35px;"></span>
+          <span style="color: white;"><%= @player.team.name %></span>
         </div>
         <div class="row mb-3">
           <div class="col-6">
@@ -72,36 +71,41 @@
                 <button class="btn btn-outline-light">Away</button>
               </div>
             </div>
-            <div style="height: 220px;">
-              <canvas id="performanceChart"></canvas>
+            <div>
+              <%= line_chart @performance_data, height: "220px", colors: ["#4dc9f6"] %>
             </div>
           </div>
         </div>
-        <!-- Statistics -->
+
+        <!-- Minutes Per Game Chart -->
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Minutes</div>
-              <span class="text-secondary">per game</span>
+              <div class="h5 text-white mb-0">Overall</div>
+              <span class="text-secondary">average</span>
             </div>
-            <div style="height: 160px;">
-              <canvas id="priceChart"></canvas>
-            </div>
+            <canvas id="radarChart" width="400" height="400"></canvas>
             <br>
-<%= link_to all_stats_player_path(@player),
-    class: "btn btn-primary btn-action btn-sm d-block mx-auto",
-    style: "width: 50%;",
-    data: { turbo: true } do %>
-  View all stats
-<% end %>          </div>
+            <%= link_to all_stats_player_path(@player),
+                class: "btn btn-primary btn-action btn-sm d-block mx-auto",
+                style: "width: 50%;",
+                data: { turbo: true } do %>
+              View all stats
+            <% end %>
+          </div>
         </div>
+
+        <!-- General Info -->
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">General Info</div>
               <span class="text-secondary">2024/2025</span>
             </div>
-
+            <div>
+              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
+            </div>
+            <br>
             <ul class="list-unstyled stats-list">
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="bi bi-clock"></i> Minutes played</span>
@@ -130,111 +134,52 @@
     </div>
   </div>
 </div>
-
 <script>
-// Wait for both DOM and Chart.js to be ready
-document.addEventListener('turbo:load', function() {
-  // Add a small delay to ensure Chart.js is fully loaded
-  setTimeout(function() {
-    if (typeof Chart === 'undefined') {
-      console.error('Chart.js is not loaded');
-      return;
-    }
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('radarChart').getContext('2d');
 
-    // Performance Chart
-    const performanceCtx = document.getElementById('performanceChart');
-    if (performanceCtx) {
-      new Chart(performanceCtx.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: ['12 Dec', '17 Dec', '25 Dec', '29 Dec', '4 Jan', '8 Jan', '15 Jan', '29 Jan', '6 Feb', '17 Feb', '24 Feb'],
-          datasets: [{
-            label: 'Points',
-            data: [40, 65, 75, 50, 35, 60, 45, 35, 40, 70, 50],
-            backgroundColor: [
-              '#0dcaf0', '#0dcaf0', '#20c997', '#0dcaf0', '#0dcaf0',
-              '#20c997', '#0dcaf0', '#0dcaf0', '#0dcaf0', '#20c997', '#0dcaf0'
-            ],
-            borderRadius: 8,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  let teamIcons = [
-                    '⚽', '🏟️', '🏆', '⚽', '🏟️', '🏆', '⚽', '🏟️', '🏆', '⚽', '🏟️'
-                  ];
-                  return `${teamIcons[context.dataIndex]}  ${context.parsed.y} pts  3:2`;
-                }
-              }
-            }
+    const radarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ["Attack", "Defense", "Breakdown", "Discipline", "Kicking"],
+        datasets: [{
+          data: [6, 6, 8, 6, 9],
+          fill: true,
+          backgroundColor: '#4dc9f67a',
+          borderColor: '#4dc9f6',
+          pointBackgroundColor: '#4dc9f6'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(255,255,255,0.08)' },
-              ticks: { color: '#b0b3c6' }
+          title: {
+            display: true,
+            color: '#fff'
+          }
+        },
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            angleLines: {
+              color: '#ccc'
             },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#b0b3c6' }
+            grid: {
+              color: '#666'
+            },
+            pointLabels: {
+              color: '#eee'
+            },
+            ticks: {
+              display: false
             }
           }
         }
-      });
-    }
-
-    // Price Chart
-    const priceCtx = document.getElementById('priceChart');
-    if (priceCtx) {
-      new Chart(priceCtx.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: [<%= raw @player.team.name.to_json %>, 'CDUP', 'AAC', 'GDD', 'SLB', 'TEC'],
-          datasets: [{
-            label: 'Price',
-            data: [60, 55, 80, 60, 40, 50, 70, 80, 70, 47, 64],
-            borderColor: '#0dcaf0',
-            backgroundColor: 'rgba(13, 202, 240, 0.1)',
-            tension: 0.4,
-            fill: true,
-            pointRadius: 4,
-            pointBackgroundColor: '#0dcaf0'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return ` ${context.parsed.y} mln`;
-                }
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(255,255,255,0.08)' },
-              ticks: { color: '#b0b3c6' }
-            },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#b0b3c6' }
-            }
-          }
-        }
-      });
-    }
-  }, 100);
-});
+      }
+    });
+  });
 </script>
