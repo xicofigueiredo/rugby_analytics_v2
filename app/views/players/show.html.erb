@@ -1,4 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <div class="container">
   <div class="mb-3 d-flex justify-content-end align-items-center">
@@ -88,8 +88,12 @@
               <canvas id="priceChart"></canvas>
             </div>
             <br>
-            <button class="btn btn-primary btn-action btn-sm d-block mx-auto" style="width: 50%;">View all stats</button>
-          </div>
+<%= link_to all_stats_player_path(@player),
+    class: "btn btn-primary btn-action btn-sm d-block mx-auto",
+    style: "width: 50%;",
+    data: { turbo: true } do %>
+  View all stats
+<% end %>          </div>
         </div>
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
@@ -128,96 +132,109 @@
 </div>
 
 <script>
+// Wait for both DOM and Chart.js to be ready
 document.addEventListener('turbo:load', function() {
-  // Performance Chart
-  const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-  new Chart(performanceCtx, {
-    type: 'bar',
-    data: {
-      labels: ['12 Dec', '17 Dec', '25 Dec', '29 Dec', '4 Jan', '8 Jan', '15 Jan', '29 Jan', '6 Feb', '17 Feb', '24 Feb'],
-      datasets: [{
-        label: 'Points',
-        data: [40, 65, 75, 50, 35, 60, 45, 35, 40, 70, 50],
-        backgroundColor: [
-          '#0dcaf0', '#0dcaf0', '#20c997', '#0dcaf0', '#0dcaf0',
-          '#20c997', '#0dcaf0', '#0dcaf0', '#0dcaf0', '#20c997', '#0dcaf0'
-        ],
-        borderRadius: 8,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              let teamIcons = [
-                '⚽', '🏟️', '🏆', '⚽', '🏟️', '🏆', '⚽', '🏟️', '🏆', '⚽', '🏟️'
-              ];
-              return `${teamIcons[context.dataIndex]}  ${context.parsed.y} pts  3:2`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(255,255,255,0.08)' },
-          ticks: { color: '#b0b3c6' }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: '#b0b3c6' }
-        }
-      }
+  // Add a small delay to ensure Chart.js is fully loaded
+  setTimeout(function() {
+    if (typeof Chart === 'undefined') {
+      console.error('Chart.js is not loaded');
+      return;
     }
-  });
 
-  // Price Chart
-  const priceCtx = document.getElementById('priceChart').getContext('2d');
-  new Chart(priceCtx, {
-    type: 'line',
-    data: {
-      labels: [<%= raw @player.team.name.to_json %>, 'CDUP', 'AAC', 'GDD', 'SLB', 'TEC'],
-      datasets: [{
-        label: 'Price',
-        data: [60, 55, 80, 60, 40, 50, 70, 80, 70, 47, 64],
-        borderColor: '#0dcaf0',
-        backgroundColor: 'rgba(13, 202, 240, 0.1)',
-        tension: 0.4,
-        fill: true,
-        pointRadius: 4,
-        pointBackgroundColor: '#0dcaf0'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return ` ${context.parsed.y} mln`;
+    // Performance Chart
+    const performanceCtx = document.getElementById('performanceChart');
+    if (performanceCtx) {
+      new Chart(performanceCtx.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: ['12 Dec', '17 Dec', '25 Dec', '29 Dec', '4 Jan', '8 Jan', '15 Jan', '29 Jan', '6 Feb', '17 Feb', '24 Feb'],
+          datasets: [{
+            label: 'Points',
+            data: [40, 65, 75, 50, 35, 60, 45, 35, 40, 70, 50],
+            backgroundColor: [
+              '#0dcaf0', '#0dcaf0', '#20c997', '#0dcaf0', '#0dcaf0',
+              '#20c997', '#0dcaf0', '#0dcaf0', '#0dcaf0', '#20c997', '#0dcaf0'
+            ],
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let teamIcons = [
+                    '⚽', '🏟️', '🏆', '⚽', '🏟️', '🏆', '⚽', '🏟️', '🏆', '⚽', '🏟️'
+                  ];
+                  return `${teamIcons[context.dataIndex]}  ${context.parsed.y} pts  3:2`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255,255,255,0.08)' },
+              ticks: { color: '#b0b3c6' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#b0b3c6' }
             }
           }
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(255,255,255,0.08)' },
-          ticks: { color: '#b0b3c6' }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: '#b0b3c6' }
-        }
-      }
+      });
     }
-  });
+
+    // Price Chart
+    const priceCtx = document.getElementById('priceChart');
+    if (priceCtx) {
+      new Chart(priceCtx.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: [<%= raw @player.team.name.to_json %>, 'CDUP', 'AAC', 'GDD', 'SLB', 'TEC'],
+          datasets: [{
+            label: 'Price',
+            data: [60, 55, 80, 60, 40, 50, 70, 80, 70, 47, 64],
+            borderColor: '#0dcaf0',
+            backgroundColor: 'rgba(13, 202, 240, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4,
+            pointBackgroundColor: '#0dcaf0'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.parsed.y} mln`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255,255,255,0.08)' },
+              ticks: { color: '#b0b3c6' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#b0b3c6' }
+            }
+          }
+        }
+      });
+    }
+  }, 100);
 });
 </script>

@@ -66,6 +66,10 @@ class PlayersController < ApplicationController
     end
   end
 
+  def all_stats
+    @player = Player.find(params[:id])
+  end
+
   private
 
   def require_admin

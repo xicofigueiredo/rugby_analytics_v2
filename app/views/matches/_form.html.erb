@@ -144,7 +144,7 @@
 <% end %>
 
 <script>
-document.addEventListener('turbo:load', function() {
+document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.player-select-dropdown').forEach(function(select) {
     select.addEventListener('change', function() {
       // Find the closest modal ancestor

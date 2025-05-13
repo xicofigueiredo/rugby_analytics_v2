@@ -1,0 +1,78 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- app/views/players/show_all_stats.html.erb or similar -->
+<div class="container" data-controller="charts">
+  <div class="mb-3 d-flex justify-content-between align-items-center">
+    <h2 class="text-white mb-0"><%= @player.name %> - All Stats</h2>
+    <%= link_to player_path(@player), class: "btn btn-outline-light", data: { turbo: true } do %>
+      <i class="fas fa-arrow-left me-1"></i> Back to Profile
+    <% end %>
+  </div>
+
+  <div class="row g-4">
+    <!-- Performance Chart -->
+    <div class="col-12">
+      <div class="card chart-card p-4 mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Performance</div>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-primary active">All</button>
+            <button class="btn btn-outline-light">At home</button>
+            <button class="btn btn-outline-light">Away</button>
+          </div>
+        </div>
+        <div style="height: 300px;">
+          <canvas id="performanceChart" data-charts-target="canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Four Small Charts -->
+    <% [["Minutes", "minutesChart"], ["Tries", "triesChart"], ["Points", "pointsChart"], ["Cards", "cardsChart"]].each do |title, id| %>
+      <div class="col-md-6">
+        <div class="card chart-card p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="h5 text-white mb-0"><%= title %></div>
+            <span class="text-secondary">per game</span>
+          </div>
+          <div style="height: 200px;">
+            <canvas id="<%= id %>" data-charts-target="canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- General Info Cards -->
+    <div class="col-md-6">
+      <div class="card chart-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Season Stats</div>
+          <span class="text-secondary">2024/2025</span>
+        </div>
+        <ul class="list-unstyled stats-list">
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-clock"></i> Total Minutes</span><span class="stat-value">740</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-bar-chart"></i> Matches Played</span><span class="stat-value">14</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-people"></i> Starting Lineup</span><span class="stat-value">13</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-trophy"></i> Total Tries</span><span class="stat-value">5</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-exclamation-triangle"></i> Yellow / Red Cards</span><span class="stat-value">2 / 0</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card chart-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="h5 text-white mb-0">Performance Stats</div>
+          <span class="text-secondary">2024/2025</span>
+        </div>
+        <ul class="list-unstyled stats-list">
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-graph-up"></i> Average Rating</span><span class="stat-value">7.5</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-trophy"></i> Man of the Match</span><span class="stat-value">2</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-flag"></i> Penalties</span><span class="stat-value">3</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-arrow-up-circle"></i> Conversions</span><span class="stat-value">8</span></li>
+          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-shield"></i> Tackles</span><span class="stat-value">45</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
