@@ -46,6 +46,4 @@ Rails.application.routes.draw do
     resources :users
   end
 
-  # PWA routes
-  get '/pwa/manifest.json', to: 'pwa#manifest'
 end
