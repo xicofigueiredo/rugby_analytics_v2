@@ -68,6 +68,14 @@ class PlayersController < ApplicationController
       "Bel" => 78,
       "GDD" => 58
     }
+
+    @overall_data = {
+      "Attack" => 6,
+      "Defense" => 7,
+      "Work Rate" => 8,
+      "Discipline" => 8,
+      "Kicking" => 3
+    }
   end
 
   def edit
