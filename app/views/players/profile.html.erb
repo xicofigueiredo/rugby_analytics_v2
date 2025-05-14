@@ -1,16 +1,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <div class="container">
-  <div class="mb-3 d-flex justify-content-end align-items-center">
-    <%= link_to players_path, class: "btn btn-outline-light" do %>
-      <i class="fas fa-arrow-left me-1"></i> Back
-    <% end %>
-  </div>
-
   <div class="row g-4">
     <!-- Profile Card -->
     <div class="col-md-4">
-      <div class="card main-card p-4 h-100 d-flex justify-content-center align-items-center">
+      <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
         <% if @player.id == 1 %>
           <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player.name %>" class="profile-img mb-3">
         <% elsif @player.id == 2 %>
@@ -25,6 +19,12 @@
           <span class="me-2" style="color: white;"><%= @player.country %></span>
           <span class="me-2"><img src="<%= asset_path('cdul.jpg') %>" alt="Team Logo" style="width:35px;height:35px;"></span>
           <span style="color: white;"><%= @player.team.name %></span>
+        </div>
+        <!-- Overall Chart -->
+        <div class="col-md-12">
+          <div class="card chart-card h-100">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+          </div>
         </div>
         <div class="row mb-3">
           <div class="col-6">
@@ -44,20 +44,6 @@
             <div class="stat-value"><%= @player.height %> cm</div>
           </div>
         </div>
-        <div class="d-flex gap-2">
-          <div class="mt-4">
-            <%= link_to edit_player_path(@player),
-                class: "btn btn-lg btn-outline-light",
-                data: {
-                  turbo_frame: "_top",
-                  bs_toggle: "tooltip",
-                  bs_placement: "top",
-                  bs_title: "Edit Player"
-                } do %>
-              <i class="fas fa-edit"></i> Edit Player
-            <% end %>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -69,19 +55,34 @@
           <div class="card chart-card p-4 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Performance</div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-primary active">All</button>
-                <button class="btn btn-outline-light">At home</button>
-                <button class="btn btn-outline-light">Away</button>
-              </div>
+              <span class="text-secondary">2024/2025</span>
             </div>
             <div>
-              <%= line_chart @performance_data, height: "220px", colors: ["#4dc9f6"] %>
+              <%= turbo_frame_tag "performance_chart" do %>
+                <%= line_chart [
+                    { name: @player.name, data: @player_performance_data },
+                    { name: @player.team.name, data: @performance_data }
+                  ],
+                  height: "220px",
+                  colors: ["#4dc9f6", "#f72585"],
+                  library: {
+                    plugins: {
+                      tooltip: {
+                        enabled: false
+                      },
+                      legend: {
+                        labels: {
+                          color: 'white'
+                        }
+                      }
+                    }
+                  } %>
+              <% end %>
             </div>
           </div>
         </div>
 
-        <!-- Minutes Per Game Chart -->
+        <!-- Overall Chart -->
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">

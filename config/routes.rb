@@ -40,7 +40,7 @@ Rails.application.routes.draw do
   # Pricing route
   get '/pricing', to: 'pages#pricing', as: :pricing
 
-  get 'profile', to: 'profiles#show', as: :profile
+  get 'profile', to: 'players#profile', as: :profile
 
   namespace :admin do
     resources :users

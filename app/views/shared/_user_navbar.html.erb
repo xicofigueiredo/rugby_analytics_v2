@@ -10,20 +10,7 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav mx-auto flex-row gap-0">
-        <% if user_signed_in? %>
-          <li class="nav-item">
-            <%= link_to matches_path, class: "nav-link text-white #{'active' if controller_name == 'matches'}" do %>
-              Matches
-            <% end %>
-          </li>
-          <li class="nav-item">
-            <%= link_to profile_path,
-                class: "nav-link text-white #{'active' if controller.class.name.start_with?('Players')}",
-                data: { turbo_frame: "main_content" } do %>
-              My Profile
-            <% end %>
-          </li>
-        <% end %>
+
       </ul>
 
       <ul class="navbar-nav">

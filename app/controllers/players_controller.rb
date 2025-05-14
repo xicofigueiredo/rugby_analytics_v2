@@ -52,7 +52,6 @@ class PlayersController < ApplicationController
   end
 
   def show
-
     @performance_data = {
       "CDUL" => 9,
       "CDUP" => 4,
@@ -90,6 +89,43 @@ class PlayersController < ApplicationController
       flash.now[:alert] = 'There was an error updating the player.'
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def profile
+    @player = current_user.player
+    @performance_data = {
+      "CDUL" => 9,
+      "CDUP" => 4,
+      "AAC" => 7,
+      "Bel" => 8,
+      "GDD" => 6
+    }
+
+    @player_performance_data = {
+      "CDUL" => 6,
+      "CDUP" => 6,
+      "AAC" => 4,
+      "Bel" => 8,
+      "GDD" => 8
+    }
+
+    @minutes_data = {
+      "CDUL" => 65,
+      "CDUP" => 72,
+      "AAC" => 50,
+      "Bel" => 78,
+      "GDD" => 58
+    }
+
+    @overall_data = {
+      "Attack" => 8,
+      "Defense" => 5,
+      "Work Rate" => 6,
+      "Discipline" => 8,
+      "Kicking" => 5,
+      "Set Piece" => 5,
+      "Breakdown" => 6
+    }
   end
 
   def all_stats

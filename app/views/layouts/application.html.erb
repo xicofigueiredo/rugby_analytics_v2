@@ -33,7 +33,19 @@
   </head>
 
   <body>
-    <%= render 'shared/admin_navbar' %>
+    <% if current_user %>
+      <% if current_user.role == "admin" %>
+        <%= render 'shared/admin_navbar' %>
+      <% elsif current_user.role == "player" %>
+      <%= render 'shared/player_navbar' %>
+    <% elsif current_user.role == "coach" %>
+      <%= render 'shared/coach_navbar' %>
+      <% elsif current_user.role == "fan" %>
+        <%= render 'shared/fan_navbar' %>
+      <% end %>
+    <% else %>
+      <%= render 'shared/user_navbar' %>
+    <% end %>
 
     <div class="container">
       <% if notice %>
