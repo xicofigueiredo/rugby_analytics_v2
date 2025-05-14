@@ -70,13 +70,13 @@ class PlayersController < ApplicationController
     }
 
     @overall_data = {
-      "Attack" => 6,
-      "Defense" => 7,
-      "Work Rate" => 8,
+      "Attack" => 8,
+      "Defense" => 5,
+      "Work Rate" => 6,
       "Discipline" => 8,
-      "Kicking" => 3,
-      "Set Piece" => 4,
-      "Breakdown" => 5
+      "Kicking" => 5,
+      "Set Piece" => 5,
+      "Breakdown" => 6
     }
   end
 
