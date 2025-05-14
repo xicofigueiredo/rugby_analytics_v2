@@ -38,6 +38,7 @@ class TeamsController < ApplicationController
       "Bel" => 8,
       "GDD" => 6
     }
+    @output = `python3 hello_world.py "#{@team.name}"`
   end
 
   def new

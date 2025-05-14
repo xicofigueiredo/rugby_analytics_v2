@@ -1,5 +1,4 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
 <div class="container">
 
   <div class="row g-4">
@@ -8,7 +7,7 @@
       <div class="card main-card p-4 h-100 d-flex justify-content-center align-items-center">
         <img src="<%= asset_path('cdul.jpg') %>" alt="<%= @team.name %>" class="profile-img mb-3" style="width: 150px; height: 150px; object-fit: cover;">
         <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
-          <%= @team.name %>
+          <%= @output %>
         </div>
         <div class="text-info fw-bold mb-3" style="font-size:1.2em;"><%= @team.players.count %> Players</div>
         <div class="d-flex align-items-center justify-content-between mb-3">
