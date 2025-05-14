@@ -141,16 +141,16 @@
     });
   });
 </script>
-<div class="text-info fw-bold mb-3" style="font-size:1.2em;">
+<%# <div class="text-info fw-bold mb-3" style="font-size:1.2em;">
   <% if @output.present? %>
-    Team with most players: <%= @output["team_with_most_players"] %><br>
-    Number of players: <%= @output["number_of_players"] %><br>
-    <br>
-    Players:<br>
+    <%# Team with most players: <%= @output["team_with_most_players"] %><br>
+    <%# Number of players: <%= @output["number_of_players"] %><br>
+    <%# <br>
+    <%# Players:<br>
     <% @output["players"].each do |player| %>
-      - <%= player %><br>
-    <% end %>
-  <% else %>
-    No output received from Python script
-  <% end %>
-</div>
+      <%# - <%= player %><br>
+    <%# <% end %>
+  <%# <% else %> %>
+    <%# No output received from Python script %>
+  <%# <% end %> %>
+<%# </div> %> 

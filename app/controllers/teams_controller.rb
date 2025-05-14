@@ -30,17 +30,26 @@ class TeamsController < ApplicationController
   def my_team_player
     @team = current_user.team
 
-    # Create a hash with team and player data
-    team_data = {
-      'teams': Team.all.map { |t| t.name },
-      'players': Team.all.map { |t| t.players.map { |p| p.name } }
+    # Format the data as a simple hash like in the player show
+    @team_performance_data = {
+      "CDUL" => 9,
+      "CDUP" => 4,
+      "AAC" => 7,
+      "Bel" => 8,
+      "GDD" => 6
     }
 
-    # Convert to JSON and pass to Python script
-    command = "python3 hello_world.py '#{team_data.to_json}'"
+    # # Create a hash with team and player data
+    # team_data = {
+    #   'teams': Team.all.map { |t| t.name },
+    #   'players': Team.all.map { |t| t.players.map { |p| p.name } }
+    # }
 
-    # Execute command and parse the JSON response
-    @output = JSON.parse(`#{command}`)
+    # # Convert to JSON and pass to Python script
+    # command = "python3 hello_world.py '#{team_data.to_json}'"
+
+    # # Execute command and parse the JSON response
+    # @output = JSON.parse(`#{command}`)
   end
 
   def new
