@@ -46,4 +46,6 @@ Rails.application.routes.draw do
     resources :users
   end
 
+  get 'my_team_player', to: 'teams#my_team_player', as: :my_team_player
+
 end

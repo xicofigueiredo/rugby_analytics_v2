@@ -1,7 +1,8 @@
 class PlayersController < ApplicationController
   before_action :authenticate_user!
   before_action :set_player, only: [:show, :edit, :update]
-  before_action :require_admin, only: [:new, :create]
+  before_action :require_admin, only: [:index,:new, :create]
+  before_action :skip_if_not_current_user, only: [:show, :edit, :update]
 
   def index
     if current_user.role == 'admin'
@@ -134,9 +135,15 @@ class PlayersController < ApplicationController
 
   private
 
+  def skip_if_not_current_user
+    unless @player == current_user.player || current_user.role == 'admin' || current_user.role == 'coach'
+      redirect_to players_path, alert: 'You are not authorized to perform this action.'
+    end
+  end
+
   def require_admin
     unless current_user.role == 'admin'
-      redirect_to players_path, alert: 'You are not authorized to perform this action.'
+      redirect_to my_team_player_path(current_user.team_id), alert: 'You are not authorized to perform this action.'
     end
   end
 

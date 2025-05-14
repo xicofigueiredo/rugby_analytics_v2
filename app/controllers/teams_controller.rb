@@ -1,7 +1,7 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_team, only: [:show, :edit, :update, :destroy]
-  before_action :require_admin
+  before_action :require_admin, except: [:my_team_player]
 
 
   def index
@@ -25,6 +25,19 @@ class TeamsController < ApplicationController
 
   def show
     @players = @team.players.order(name: :asc)
+  end
+
+  def my_team_player
+    @team = current_user.team
+
+    # Format the data as a simple hash like in the player show
+    @team_performance_data = {
+      "CDUL" => 9,
+      "CDUP" => 4,
+      "AAC" => 7,
+      "Bel" => 8,
+      "GDD" => 6
+    }
   end
 
   def new

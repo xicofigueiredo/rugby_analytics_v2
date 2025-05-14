@@ -1,0 +1,144 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container">
+
+  <div class="row g-4">
+    <!-- Team Profile Card -->
+    <div class="col-md-4">
+      <div class="card main-card p-4 h-100 d-flex justify-content-center align-items-center">
+        <img src="<%= asset_path('cdul.jpg') %>" alt="<%= @team.name %>" class="profile-img mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+        <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
+          <%= @team.name %>
+        </div>
+        <div class="text-info fw-bold mb-3" style="font-size:1.2em;"><%= @team.players.count %> Players</div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
+          <span class="me-2" style="color: white;">Portugal</span>
+        </div>
+        <div class="row mb-3">
+          <div class="col-6">
+            <div class="stat-label">Matches</div>
+            <div class="stat-value"><%= @team.matches.count %></div>
+          </div>
+          <div class="col-6">
+            <div class="stat-label">Home Games</div>
+            <div class="stat-value"><%= @team.home_matches.count %></div>
+          </div>
+          <div class="col-6 mt-2">
+            <div class="stat-label">Away Games</div>
+            <div class="stat-value"><%= @team.away_matches.count %></div>
+          </div>
+          <div class="col-6 mt-2">
+            <div class="stat-label">Competition</div>
+            <div class="stat-value">Top 12</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Stats -->
+    <div class="col-md-8">
+      <div class="row g-4">
+        <!-- Performance Chart -->
+        <div class="col-12">
+          <div class="card chart-card p-4 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Team Performance</div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-primary active">All</button>
+                <button class="btn btn-outline-light">Home</button>
+                <button class="btn btn-outline-light">Away</button>
+              </div>
+            </div>
+            <div>
+              <%= line_chart @team_performance_data, height: "220px", colors: ["#4dc9f6"] %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Stats -->
+        <div class="col-md-6">
+          <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Team Stats</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <canvas id="radarChart" width="400" height="400"></canvas>
+          </div>
+        </div>
+
+        <!-- Players List -->
+        <div class="col-md-6">
+          <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Players</div>
+              <span class="text-secondary"><%= @team.players.count %> Total</span>
+            </div>
+            <div class="list-group">
+              <% @team.players.each do |player| %>
+                <%= link_to player_path(player), class: "list-group-item list-group-item-action bg-dark text-white border-secondary" do %>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 class="mb-0"><%= player.name %></h6>
+                      <small class="text-muted"><%= player.positions.join(", ") %></small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill"><%= player.total_points %> pts</span>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    const radarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+        datasets: [{
+          data: [8, 7, 8, 6, 7, 8, 7],
+          fill: true,
+          backgroundColor: '#4dc9f67a',
+          borderColor: '#4dc9f6',
+          pointBackgroundColor: '#4dc9f6'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            angleLines: {
+              color: '#ccc'
+            },
+            grid: {
+              color: '#666'
+            },
+            pointLabels: {
+              color: '#eee'
+            },
+            ticks: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  });
+</script>

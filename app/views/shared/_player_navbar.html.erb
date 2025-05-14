@@ -17,6 +17,13 @@
             <% end %>
           </li>
           <li class="nav-item">
+            <%= link_to my_team_player_path(current_user.team_id),
+                class: "nav-link text-white #{'active' if controller.class.name.start_with?('Teams')}",
+                data: { turbo_frame: "main_content" } do %>
+              My Team
+            <% end %>
+          </li>
+          <li class="nav-item">
             <%= link_to profile_path,
                 class: "nav-link text-white #{'active' if controller.class.name.start_with?('Players')}",
                 data: { turbo_frame: "main_content" } do %>

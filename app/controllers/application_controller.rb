@@ -18,7 +18,7 @@ class ApplicationController < ActionController::Base
 
   def after_sign_in_path_for(resource)
     if resource.role == "admin"
-      profile_path
+      matches_path
     elsif resource.role == "player"
       profile_path
     else
