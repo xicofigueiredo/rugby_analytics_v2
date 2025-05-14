@@ -74,7 +74,9 @@ class PlayersController < ApplicationController
       "Defense" => 7,
       "Work Rate" => 8,
       "Discipline" => 8,
-      "Kicking" => 3
+      "Kicking" => 3,
+      "Set Piece" => 4,
+      "Breakdown" => 5
     }
   end
 
