@@ -43,11 +43,6 @@ class MatchesController < ApplicationController
 
   def show
     @general_stats = [
-      { name: "Lineouts", home: 64, away: 36 },
-      { name: "Mauls", home: 45, away: 55 },
-      { name: "Scrums", home: 40, away: 60 },
-      { name: "Rucks", home: 85, away: 55 },
-      { name: "Goal Kicks", home: 60, away: 90 },
       { name: "Carries", home: 63, away: 37 },
       { name: "Tackles", home: 50, away: 50 },
       { name: "Turnovers", home: 66, away: 34 },
@@ -59,10 +54,12 @@ class MatchesController < ApplicationController
 
     @setpiece_stats = [
       { name: "Lineouts", home: 64, away: 36 },
+      { name: "Lineouts*", home: 10, away: 5 },
       { name: "Mauls", home: 45, away: 55 },
+      { name: "Mauls*", home: 45, away: 55 },
       { name: "Scrums", home: 40, away: 60 },
-      { name: "Rucks", home: 85, away: 55 },
-      { name: "Goal Kicks", home: 60, away: 90 }
+      { name: "Scrums*", home: 40, away: 60 },
+      { name: "Rucks", home: 85, away: 55 }
     ]
 
     @negative_stats = [
