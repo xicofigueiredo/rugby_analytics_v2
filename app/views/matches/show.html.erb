@@ -26,34 +26,6 @@
           </dl>
         </div>
 
-        <div class="col-md-6">
-          <h4 class="border-bottom pb-2 mb-3 text-white">Teams</h4>
-          <div class="card bg-light">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="text-center flex-grow-1">
-                  <h5 class="mb-0"><%= @match.home_team.name  %></h5>
-                  <small class="text-muted">Home Team</small>
-                </div>
-                <div class="mx-3">
-                  <% if @match.result.present? %>
-                    <h4 class="mb-0"><%= @match.result %></h4>
-                  <% else %>
-                    <% if @match.date < Date.today %>
-                      <span class="badge bg-secondary">Analysis Pending</span>
-                    <% else %>
-                      <span class="badge bg-secondary">Upcoming</span>
-                    <% end %>
-                  <% end %>
-                </div>
-                <div class="text-center flex-grow-1">
-                  <h5 class="mb-0"><%= @match.away_team.name %></h5>
-                  <small class="text-muted">Away Team</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="mt-4">
@@ -73,6 +45,33 @@
   <div class="card mt-4" style="background-color: #23263a;">
     <div class="card-body">
       <div class="stat-block">
+        <div class="card text-white" style="background-color: #23263a;">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1 d-flex flex-column align-items-center">
+                  <span class="team-tag mb-1" style="background-color: <%= @match.home_team.main_color %>;">
+                    <%= @match.away_team.name %>
+                  </span>
+                </div>
+                <div class="mx-3">
+                  <% if @match.result.present? %>
+                    <h4 class="mb-0"><%= @match.result %></h4>
+                  <% else %>
+                    <% if @match.date < Date.today %>
+                      <span class="badge bg-secondary">Analysis Pending</span>
+                    <% else %>
+                      <span class="badge bg-secondary">Upcoming</span>
+                    <% end %>
+                  <% end %>
+                </div>
+                <div class="flex-grow-1 d-flex flex-column align-items-center">
+                  <span class="team-tag mb-1" style="background-color: <%= @match.away_team.main_color %>;">
+                    <%= @match.away_team.name %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         <br>
         <div class="toggle-buttons">
           <button class="toggle-button active" data-target="general-chart">General</button>
@@ -136,5 +135,17 @@
 
   .chart-section.active {
     display: block;
+  }
+
+  .team-tag {
+    display: inline-block;
+    padding: 0.35em 1em;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 1.5em;
+    letter-spacing: 0.02em;
+    vertical-align: middle;
+    margin: 0.25em 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
   }
 </style>

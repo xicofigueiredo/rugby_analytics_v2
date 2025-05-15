@@ -1,12 +1,74 @@
-<div class="row">
-  <div class="col-md-6">
-    <%= bar_chart(
-      [{ name: @match.home_team.name, data: stats.map { |s| [s[:name], -s[:home]] }.to_h }]
-    ) %>
-  </div>
-  <div class="col-md-6">
-    <%= bar_chart(
-      [{ name: @match.away_team.name, data: stats.map { |s| [s[:name], s[:away]] }.to_h }]
-    ) %>
-  </div>
-</div>
+    <div class="card-body">
+      <% stats.each do |stat| %>
+        <div class="stat-row d-flex align-items-center mb-3">
+          <!-- Home value -->
+          <div class="stat-value text-end pe-2" style="width: 60px; color: #fff;">
+            <%= stat[:percent] ? "#{stat[:home]}%" : stat[:home] %>
+            <% if stat[:home_detail] %>
+              <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
+            <% end %>
+          </div>
+          <!-- Home bar (fixed width column) -->
+          <div class="bar-col-home d-flex align-items-center justify-content-end" style="width: 40%; min-width: 60px;">
+            <div class="stat-bar stat-bar-home"
+              style="width: <%= stat[:home].to_f %>%;"></div>
+          </div>
+          <!-- Stat label centered -->
+          <div class="bar-col-label d-flex align-items-center justify-content-center" style="width: 12%; min-width: 80px;">
+            <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 0.9em;">
+              <%= stat[:name] %>
+            </span>
+          </div>
+          <!-- Away bar (fixed width column) -->
+          <div class="bar-col-away d-flex align-items-center justify-content-start" style="width: 40%; min-width: 60px;">
+            <div class="stat-bar stat-bar-away"
+              style="width: <%= stat[:away].to_f %>%;"></div>
+          </div>
+          <!-- Away value -->
+          <div class="stat-value ps-2" style="width: 60px; color: #fff;">
+            <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
+            <% if stat[:away_detail] %>
+              <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:away_detail] %>)</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+
+<style>
+.stat-bar-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+.bar-col-home, .bar-col-away {
+  min-width: 60px;
+  height: 100%;
+}
+.bar-col-label {
+  min-width: 80px;
+  height: 100%;
+}
+.stat-bar {
+  height: 12px;
+  border-radius: 6px;
+  opacity: 0.85;
+  transition: width 0.3s;
+}
+.stat-bar-home {
+  background: #e94a5a;
+}
+.stat-bar-away {
+  background: #fff;
+}
+.stat-label {
+  font-size: 1.1em;
+  white-space: nowrap;
+  font-weight: bold;
+}
+.stat-row {
+  min-height: 32px;
+}
+</style>
