@@ -70,14 +70,13 @@
                   <th class="text-center">Score</th>
                   <th class="text-center">Away Team</th>
                   <th class="text-center">Competition</th>
-                  <th class="text-end">Season</th>
                 </tr>
               </thead>
               <tbody>
                 <% @matches.each do |match| %>
                   <tr style="cursor: pointer;"
                       onclick="window.location.href='<%= match_path(match) %>'">
-                    <td class="text-start"><%= match.date.strftime("%B %d, %Y") %></td>
+                    <td class="text-start"><%= match.date.strftime("%B %d") %></td>
                     <td class="text-center">
                       <span class="badge" style="background-color: <%= match.home_team.main_color %>;">
                         <%= match.home_team&.name || 'Not assigned' %>
@@ -123,7 +122,6 @@
 
                     </td>
                     <td class="text-center"><%= match.competition %></td>
-                    <td class="text-end"><%= match.season %></td>
                   </tr>
                 <% end %>
               </tbody>

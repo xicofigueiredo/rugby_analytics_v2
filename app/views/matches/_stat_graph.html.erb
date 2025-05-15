@@ -18,29 +18,17 @@
             <% end %>
           </div>
           <!-- Centered bar container -->
-          <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; position: relative; background:rgba(0, 30, 41, 0.31)">
+          <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; background:rgba(0, 30, 41, 0.31)">
             <!-- Home bar (left, grows from center to left) -->
-            <div class="stat-bar stat-bar-home"
-              style="
-                position: absolute;
-                right: 50%;
-                width: calc(<%= stat[:home].to_f %>% / 2); background: #c80137;
-                ">
-            </div>
+            <div class="stat-bar stat-bar-home" style="width: <%= stat[:home].to_f %>%;"></div>
             <!-- Away bar (right, grows from center to right) -->
-            <div class="stat-bar stat-bar-away"
-              style="
-                position: absolute;
-                left: 50%;
-                width: calc(<%= stat[:away].to_f %>% / 2); background: white;
-                ">
-            </div>
+            <div class="stat-bar stat-bar-away" style="width: <%= stat[:away].to_f %>%;"></div>
           </div>
           <!-- Away value -->
           <div class="stat-value ps-2" style="width: 60px; color: #fff;">
             <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
             <% if stat[:away_detail] %>
-              <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:away_detail] %>)</span>
+              <span style="font-size: 0.8em; backgroung: #aaa;">(<%= stat[:away_detail] %>)</span>
             <% end %>
           </div>
         </div>
@@ -52,29 +40,30 @@
   .stats {
   }
 .stat-bar-center {
-  position: relative;
+  display: flex;
+  flex-direction: row;
   height: 14px;
-  background: #14212b; /* dark background for the bar track */
+  background: #14212b;
   border-radius: 7px;
   overflow: hidden;
 }
-.stat-bar {
-  height: 100%;
-  border-radius: 7px;
-  opacity: 0.95;
-  transition: width 0.3s;
-}
 .stat-bar-home {
   background: #e94a5a;
-  /* bar grows from center to left */
+  border-top-left-radius: 7px;
+  border-bottom-left-radius: 7px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  height: 100%;
+  transition: width 0.3s;
 }
 .stat-bar-away {
   background: #fff;
-  /* bar grows from center to right */
+  border-top-right-radius: 7px;
+  border-bottom-right-radius: 7px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+  height: 100%;
+  transition: width 0.3s;
 }
 .stat-label {
   font-size: 1em;
