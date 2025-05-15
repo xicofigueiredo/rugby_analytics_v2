@@ -9,8 +9,7 @@ class MatchesController < ApplicationController
     @role = current_user.role
 
     if @role != 'admin'
-      @matches = @matches.where(home_team_id: current_user.team_id)
-      @matches = @matches.or(@matches.where(away_team_id: current_user.team_id))
+      @matches = @matches.where("home_team_id = ? OR away_team_id = ?", current_user.team_id, current_user.team_id)
     end
 
     @current_team = current_user.team if current_user.team
