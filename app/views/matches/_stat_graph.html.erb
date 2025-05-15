@@ -1,6 +1,15 @@
-    <div class="card-body">
+    <div class="stats" >
       <% stats.each do |stat| %>
-        <div class="stat-row d-flex align-items-center mb-3">
+        <!-- Category name centered above -->
+        <div class="row">
+          <div class="col-12 text-center">
+            <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 1em;">
+              <%= stat[:name] %>
+            </span>
+          </div>
+        </div>
+        <!-- Bar row -->
+        <div class="stat-row d-flex align-items-center justify-content-center mb-3" style="margin-top: -2px;">
           <!-- Home value -->
           <div class="stat-value text-end pe-2" style="width: 60px; color: #fff;">
             <%= stat[:percent] ? "#{stat[:home]}%" : stat[:home] %>
@@ -8,21 +17,24 @@
               <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
             <% end %>
           </div>
-          <!-- Home bar (fixed width column) -->
-          <div class="bar-col-home d-flex align-items-center justify-content-end" style="width: 40%; min-width: 60px;">
+          <!-- Centered bar container -->
+          <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; position: relative; background:rgba(0, 30, 41, 0.31)">
+            <!-- Home bar (left, grows from center to left) -->
             <div class="stat-bar stat-bar-home"
-              style="width: <%= stat[:home].to_f %>%;"></div>
-          </div>
-          <!-- Stat label centered -->
-          <div class="bar-col-label d-flex align-items-center justify-content-center" style="width: 12%; min-width: 80px;">
-            <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 0.9em;">
-              <%= stat[:name] %>
-            </span>
-          </div>
-          <!-- Away bar (fixed width column) -->
-          <div class="bar-col-away d-flex align-items-center justify-content-start" style="width: 40%; min-width: 60px;">
+              style="
+                position: absolute;
+                right: 50%;
+                width: calc(<%= stat[:home].to_f %>% / 2); background: #c80137;
+                ">
+            </div>
+            <!-- Away bar (right, grows from center to right) -->
             <div class="stat-bar stat-bar-away"
-              style="width: <%= stat[:away].to_f %>%;"></div>
+              style="
+                position: absolute;
+                left: 50%;
+                width: calc(<%= stat[:away].to_f %>% / 2); background: white;
+                ">
+            </div>
           </div>
           <!-- Away value -->
           <div class="stat-value ps-2" style="width: 60px; color: #fff;">
@@ -37,38 +49,42 @@
 
 
 <style>
-.stat-bar-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 0.5rem;
-}
-.bar-col-home, .bar-col-away {
-  min-width: 60px;
-  height: 100%;
-}
-.bar-col-label {
-  min-width: 80px;
-  height: 100%;
+  .stats {
+  }
+.stat-bar-center {
+  position: relative;
+  height: 14px;
+  background: #14212b; /* dark background for the bar track */
+  border-radius: 7px;
+  overflow: hidden;
 }
 .stat-bar {
-  height: 12px;
-  border-radius: 6px;
-  opacity: 0.85;
+  height: 100%;
+  border-radius: 7px;
+  opacity: 0.95;
   transition: width 0.3s;
 }
 .stat-bar-home {
   background: #e94a5a;
+  /* bar grows from center to left */
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .stat-bar-away {
   background: #fff;
+  /* bar grows from center to right */
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 .stat-label {
-  font-size: 1.1em;
+  font-size: 1em;
   white-space: nowrap;
   font-weight: bold;
 }
 .stat-row {
   min-height: 32px;
+  width: 100%;
+  padding-left: 0.02em;
+  padding-right: 0.02em;
 }
 </style>
