@@ -5,6 +5,7 @@
     <!-- Profile Card -->
     <div class="col-md-4">
       <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
+        <br>
         <% if @player.id == 1 %>
           <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player.name %>" class="profile-img mb-3">
         <% elsif @player.id == 2 %>
@@ -13,8 +14,7 @@
         <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
           <%= @player.name %>
         </div>
-        <div class="text-info fw-bold mb-3" style="font-size:1.2em;"><%= @player.total_points %> pts</div>
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center justify-content-between">
           <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
           <span class="me-2" style="color: white;"><%= @player.country %></span>
           <span class="me-2"><img src="<%= asset_path('cdul.jpg') %>" alt="Team Logo" style="width:35px;height:35px;"></span>

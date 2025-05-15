@@ -69,4 +69,72 @@
       </div>
     </div>
   </div>
+
+  <div class="card mt-4" style="background-color: #23263a;">
+    <div class="card-body">
+      <div class="stat-block">
+        <br>
+        <div class="toggle-buttons">
+          <button class="toggle-button active" data-target="general-chart">General</button>
+          <button class="toggle-button" data-target="setpiece-chart">%</button>
+          <button class="toggle-button" data-target="negative-chart">Negative</button>
+        </div>
+        <br>
+        <div id="general-chart" class="chart-section active">
+          <%= render partial: 'stat_graph', locals: { stats: @general_stats } %>
+        </div>
+
+        <div id="setpiece-chart" class="chart-section">
+          <%= render partial: 'stat_graph', locals: { stats: @setpiece_stats } %>
+        </div>
+
+        <div id="negative-chart" class="chart-section">
+          <%= render partial: 'stat_graph', locals: { stats: @negative_stats } %>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+  document.querySelectorAll('.toggle-button').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      const target = button.dataset.target;
+      document.querySelectorAll('.chart-section').forEach(section => section.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+    });
+  });
+</script>
+
+<style>
+  .toggle-buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+  }
+
+  .toggle-button {
+    padding: 0.5rem 1rem;
+    background-color: #2c2f48;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .toggle-button.active {
+    background-color: rgb(222 53 69);
+  }
+
+  .chart-section {
+    display: none;
+  }
+
+  .chart-section.active {
+    display: block;
+  }
+</style>

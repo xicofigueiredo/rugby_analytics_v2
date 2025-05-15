@@ -6,8 +6,9 @@ class MatchesController < ApplicationController
 
   def index
     @matches = Match.all
+    @role = current_user.role
 
-    if current_user.role != 'admin'
+    if @role != 'admin'
       @matches = @matches.where(home_team_id: current_user.team_id)
       @matches = @matches.or(@matches.where(away_team_id: current_user.team_id))
     end
@@ -41,6 +42,35 @@ class MatchesController < ApplicationController
   end
 
   def show
+    @general_stats = [
+      { name: "Carries", home: 63, away: 37 },
+      { name: "Tackles", home: 50, away: 50 },
+      { name: "Turnovers", home: 66, away: 34 },
+      { name: "Passes", home: 34, away: 66 }
+    ]
+
+    @setpiece_stats = [
+      { name: "Lineouts", home: 64, away: 36 },
+      { name: "Mauls", home: 45, away: 55 },
+      { name: "Scrums", home: 40, away: 60 },
+      { name: "Rucks", home: 85, away: 55 },
+      { name: "Goal Kicks", home: 40, away: 60 }
+    ]
+
+    @negative_stats = [
+      { name: "Errors", home: 52, away: 48 },
+      { name: "Penalties", home: 62, away: 38 },
+      { name: "Cards", home: 0, away: 0 }
+    ]
+
+    @home_data = @general_stats.map { |s| [s[:name], s[:home]] }.to_h
+    @away_data = @general_stats.map { |s| [s[:name], s[:away]] }.to_h
+
+
+    @chartkick_data = [
+      { name: @match.home_team.name, data: @general_stats.map { |s| [s[:name], s[:home]] } },
+      { name: @match.away_team.name, data: @general_stats.map { |s| [s[:name], s[:away]] } }
+    ]
   end
 
   def new

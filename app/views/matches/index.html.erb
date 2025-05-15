@@ -6,13 +6,15 @@
           method: :get,
           class: "d-flex gap-2",
           data: { turbo_frame: "matches-table" } do %>
-        <%= select_tag :team_id,
-            options_from_collection_for_select(Team.all, :id, :name, params[:team_id]),
-            prompt: "All Teams",
-            class: "form-select form-select-sm",
-            style: "background-color: #23263a; color: white; border-color: white;",
-            onchange: "this.form.submit()"
-        %>
+        <% if @role == 'admin' %>
+          <%= select_tag :team_id,
+              options_from_collection_for_select(Team.all, :id, :name, params[:team_id]),
+              prompt: "All Teams",
+              class: "form-select form-select-sm",
+              style: "background-color: #23263a; color: white; border-color: white;",
+              onchange: "this.form.submit()"
+          %>
+        <% end %>
         <%= select_tag :season,
             options_for_select(Match.distinct.pluck(:season).sort.reverse, params[:season]),
             prompt: "All Seasons",
