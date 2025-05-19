@@ -41,6 +41,10 @@ class MatchesController < ApplicationController
   end
 
   def show
+    @players = PlayerMatch.where(match_id: @match.id).map(&:player)
+    @home_players += [nil, nil, nil, nil,nil,nil,nil,nil, nil, nil, nil,nil,nil,nil]
+    @away_players += [nil, nil, nil, nil,nil,nil,nil,nil, nil, nil, nil,nil,nil,nil]
+
     @general_stats = [
       { name: "Carries", home: 63, away: 37 },
       { name: "Tackles", home: 50, away: 50 },

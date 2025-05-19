@@ -53,12 +53,16 @@
 
       <% if @match.result.present? %>
         <div class="toggle-buttons">
-          <button class="toggle-button active" data-target="general-chart">General</button>
+          <button class="toggle-button active" data-target="formation-chart">Formations</button>
+          <button class="toggle-button" data-target="general-chart">General</button>
           <button class="toggle-button" data-target="setpiece-chart">Set Pieces</button>
           <button class="toggle-button" data-target="negative-chart">Negative</button>
         </div>
         <br>
-        <div id="general-chart" class="chart-section active">
+        <div id="formation-chart" class="chart-section active">
+          <%= render partial: 'formations', locals: { home_players: @home_players, away_players: @away_players } %>
+        </div>
+        <div id="general-chart" class="chart-section">
           <%= render partial: 'stat_graph', locals: { stats: @general_stats } %>
         </div>
 

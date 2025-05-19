@@ -1,0 +1,14 @@
+
+<h5 class="card-title">Formation 1</h5>
+<ul class="text-white">
+  <% @home_players.each_with_index do |player, index| %>
+    <li class="list-group-item"><%= index + 1 || player.player_matches.first.position %> - <%=  "test" || player.name%></li>
+  <% end %>
+</ul>
+
+<h5 class="card-title">Formation 2</h5>
+<ul class="text-white">
+  <% @away_players.each_with_index do |player, index| %>
+    <li class="list-group-item"><%= index + 1 || player.player_matches.first.position %> - <%=  "test" || player.name%></li>
+  <% end %>
+</ul>
