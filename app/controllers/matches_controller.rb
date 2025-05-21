@@ -42,8 +42,9 @@ class MatchesController < ApplicationController
 
   def show
     @players = PlayerMatch.where(match_id: @match.id).map(&:player)
-    @home_players += [nil, nil, nil, nil,nil,nil,nil,nil, nil, nil, nil,nil,nil,nil]
-    @away_players += [nil, nil, nil, nil,nil,nil,nil,nil, nil, nil, nil,nil,nil,nil]
+    @home_players = Team.second.players
+    @away_players = Team.first.players
+
 
     @general_stats = [
       { name: "Carries", home: 63, away: 37 },
@@ -79,6 +80,60 @@ class MatchesController < ApplicationController
       { name: @match.home_team.name, data: @general_stats.map { |s| [s[:name], s[:home]] } },
       { name: @match.away_team.name, data: @general_stats.map { |s| [s[:name], s[:away]] } }
     ]
+
+    @performance_data = {
+      "Tackles" => 5,
+      "Turnovers" => 4,
+      "Errors" => 7,
+      "Penalties" => 8,
+      "Cards" => 6,
+      "Carries" => 5,
+      "Passes" => 8,
+      "Scrums" => 3,
+      "Mauls" => 4,
+      "Lineouts" => 4
+    }
+
+    @average_player_performance_data = {
+      "Tackles" => 7,
+      "Turnovers" => 7,
+      "Errors" => 3,
+      "Penalties" => 7,
+      "Cards" => 7,
+      "Carries" => 7,
+      "Passes" => 6,
+      "Scrums" => 3,
+      "Mauls" => 6,
+      "Lineouts" => 7
+    }
+
+    @minutes_data = {
+      "CDUL" => 65,
+      "CDUP" => 72,
+      "AAC" => 50,
+      "Bel" => 78,
+      "GDD" => 58
+    }
+
+    @player_match_performance_data = {
+      "Attack" => 8.3,
+      "Defense" => 5.2,
+      "Work Rate" => 6.5,
+      "Discipline" => 8.1,
+      "Kicking" => 5.4,
+      "Set Piece" => 5.2,
+      "Breakdown" => 6.5
+    }
+
+    @player_season_average_performance_data = {
+      "Attack" => 7,
+      "Defense" => 6,
+      "Work Rate" => 7,
+      "Discipline" => 2,
+      "Kicking" => 6,
+      "Set Piece" => 6,
+      "Breakdown" => 7
+    }
   end
 
   def new

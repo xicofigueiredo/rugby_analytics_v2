@@ -1,14 +1,42 @@
-
-<h5 class="card-title">Formation 1</h5>
-<ul class="text-white">
-  <% @home_players.each_with_index do |player, index| %>
-    <li class="list-group-item"><%= index + 1 || player.player_matches.first.position %> - <%=  "test" || player.name%></li>
-  <% end %>
-</ul>
-
-<h5 class="card-title">Formation 2</h5>
-<ul class="text-white">
-  <% @away_players.each_with_index do |player, index| %>
-    <li class="list-group-item"><%= index + 1 || player.player_matches.first.position %> - <%=  "test" || player.name%></li>
-  <% end %>
-</ul>
+<h5 class="text-white text-center">Starting XV</h5>
+<div class="formation-container" style="display: flex; gap: 10rem; justify-content: center; font-size: 1rem;">
+  <div class="team-column" style="text-align: center;">
+    <ul class="text-white">
+      <% @home_players.first(15).each_with_index do |player, index| %>
+        <li class="list-group-item">
+          <%= index + 1 %> - <%= player.name %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <div class="team-column" style="text-align: center;">
+    <ul class="text-white">
+      <% @away_players.first(15).each_with_index do |player, index| %>
+        <li class="list-group-item">
+          <%= index + 1 %> - <%= player.name %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>
+<h5 class="text-white text-center">Reserves</h5>
+<div class="formation-container" style="display: flex; gap: 10rem; justify-content: center; font-size: 1.2rem;">
+  <div class="team-column" style="text-align: center;">
+    <ul class="text-white">
+      <% @home_players.last(8).each_with_index do |player, index| %>
+        <li class="list-group-item">
+          <%= index + 16 %> - <%= player.name %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <div class="team-column" style="text-align: center;">
+    <ul class="text-white">
+      <% @away_players.last(8).each_with_index do |player, index| %>
+        <li class="list-group-item">
+          <%= index + 16 %> - <%= player.name %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

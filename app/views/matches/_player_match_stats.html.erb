@@ -1,0 +1,218 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container">
+  <div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-md-4">
+      <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
+        <!-- Overall Chart -->
+        <div class="col-md-9">
+          <div class="card chart-card h-100">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+          </div>
+        </div>
+                <!-- General Info -->
+        <div class="col-md-12">
+          <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">General Info</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <div>
+              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
+            </div>
+            <br>
+            <ul class="list-unstyled stats-list">
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-clock"></i> Minutes played</span>
+                <span class="stat-value">64</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-bar-chart"></i>Tackles</span>
+                <span class="stat-value">14</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-people"></i> Starting lineup</span>
+                <span class="stat-value">13</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-trophy"></i> Tries</span>
+                <span class="stat-value">5</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
+                <span class="stat-value">2 / 0</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Stats -->
+    <div class="col-md-8">
+      <div class="row g-4">
+        <!-- Performance Chart -->
+        <div class="col-12">
+          <div class="card card main-card p-4 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Performance</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <div>
+              <%= turbo_frame_tag "performance_chart" do %>
+                <%= column_chart [
+                    { name: player.name, data: @performance_data },
+                    { name: "Team Average", data: @average_player_performance_data }
+                  ],
+                  height: "220px",
+                  colors: ["#4dc9f6", "#f72585"],
+                  library: {
+                    plugins: {
+                      tooltip: {
+                        enabled: false
+                      },
+                      legend: {
+                        labels: {
+                          color: 'white'
+                        }
+                      }
+                    },
+                    scales: {
+                      x: {
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                          color: 'white'
+                        }
+                      },
+                      y: {
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                          color: 'white'
+                        }
+                      }
+                    }
+                  } %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall Chart -->
+        <div class="col-md-6">
+          <div class="card card main-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Overall</div>
+              <span class="text-secondary">average</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- General Info -->
+        <div class="col-md-6">
+          <div class="card card main-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">General Info</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <div>
+              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
+            </div>
+            <br>
+            <ul class="list-unstyled stats-list">
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-clock"></i> Minutes played</span>
+                <span class="stat-value">65</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-bar-chart"></i></span>
+                <span class="stat-value">14</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-people"></i> Starting lineup</span>
+                <span class="stat-value">13</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-trophy"></i> Tries</span>
+                <span class="stat-value">5</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
+                <span class="stat-value">2 / 0</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    const radarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+        datasets: [{
+          label: "This Game",
+          data: [<%= @player_match_performance_data["Attack"] %>, <%= @player_match_performance_data["Defense"] %>, <%= @player_match_performance_data["Work Rate"] %>, <%= @player_season_average_performance_data["Discipline"] %>, <%= @player_match_performance_data["Kicking"] %>, <%= @player_match_performance_data["Set Piece"] %>, <%= @player_match_performance_data["Breakdown"] %>],
+          fill: true,
+          backgroundColor: '#4dc9f67a',
+          borderColor: '#4dc9f6',
+          pointBackgroundColor: '#4dc9f6'
+        },
+        {
+          label: "This Season",
+          data: [<%= @player_season_average_performance_data["Attack"] %>, <%= @player_season_average_performance_data["Defense"] %>, <%= @player_season_average_performance_data["Work Rate"] %>, <%= @player_season_average_performance_data["Discipline"] %>, <%= @player_season_average_performance_data["Kicking"] %>, <%= @player_season_average_performance_data["Set Piece"] %>, <%= @player_season_average_performance_data["Breakdown"] %>],
+          fill: true,
+          backgroundColor: '#f725857a',
+          borderColor: '#f72585',
+          pointBackgroundColor: '#f72585'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: 'white'
+            }
+          },
+          tooltip: {
+            enabled: true
+          },
+          labels: {
+            color: 'white'
+          }
+        },
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            angleLines: {
+              color: '#ccc'
+            },
+            grid: {
+              color: '#666'
+            },
+            pointLabels: {
+              color: '#eee'
+            },
+            ticks: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
