@@ -53,29 +53,19 @@
 
       <% if @match.result.present? %>
         <div class="toggle-buttons">
-          <button class="toggle-button" data-target="formation-chart">Formations</button>
-          <button class="toggle-button" data-target="general-chart">General</button>
-          <button class="toggle-button" data-target="setpiece-chart">Set Pieces</button>
-          <button class="toggle-button active" data-target="player-chart">My Stats</button>
+          <button class="toggle-button active" data-target="summary-chart">Summary</button>
+          <button class="toggle-button" data-target="player-chart">My Stats</button>
         </div>
         <br>
-        <div id="formation-chart" class="chart-section">
-          <%= render partial: 'formations', locals: { home_players: @home_players, away_players: @away_players } %>
-        </div>
-        <div id="general-chart" class="chart-section">
-          <%= render partial: 'stat_graph', locals: { stats: @general_stats } %>
+
+        <div id="summary-chart" class="chart-section active">
+          <%= render partial: 'stat_graph', locals: { general_stats: @general_stats, setpiece_stats: @setpiece_stats  } %>
         </div>
 
-        <div id="setpiece-chart" class="chart-section">
-          <%= render partial: 'stat_graph', locals: { stats: @setpiece_stats } %>
-          <div class="text-white text-center">
-            <p>* Opponent Ball</p>
-          </div>
-        </div>
-
-        <div id="player-chart" class="chart-section active">
+        <div id="player-chart" class="chart-section">
           <%= render partial: 'player_match_stats', locals: { player: current_user.player } %>
         </div>
+
       <% end %>
     </div>
   </div>

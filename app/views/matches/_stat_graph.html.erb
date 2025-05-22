@@ -1,6 +1,10 @@
-    <div class="stats" >
-      <% stats.each do |stat| %>
-        <!-- Category name centered above -->
+<div class="match-stats-container">
+  <!-- Stats Sections for mobile - will show side by side -->
+  <div class="stats-mobile-container d-md-none">
+    <!-- General Stats Section -->
+    <div class="stats-section mb-4" style="width: 50%;">
+      <h6 class="text-white text-center mb-3" style="font-size: 1.2em;">GENERAL</h6>
+      <% @general_stats.each do |stat| %>
         <div class="row">
           <div class="col-12 text-center">
             <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 1em;">
@@ -8,72 +12,379 @@
             </span>
           </div>
         </div>
-        <!-- Bar row -->
         <div class="stat-row d-flex align-items-center justify-content-center mb-3" style="margin-top: -2px;">
-          <!-- Home value -->
           <div class="stat-value text-end pe-2" style="width: 60px; color: #fff;">
             <%= stat[:percent] ? "#{stat[:home]}%" : stat[:home] %>
             <% if stat[:home_detail] %>
               <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
             <% end %>
           </div>
-          <!-- Centered bar container -->
           <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; background:rgba(0, 30, 41, 0.31)">
-            <!-- Home bar (left, grows from center to left) -->
             <div class="stat-bar stat-bar-home" style="width: <%= stat[:home].to_f %>%;"></div>
-            <!-- Away bar (right, grows from center to right) -->
             <div class="stat-bar stat-bar-away" style="width: <%= stat[:away].to_f %>%;"></div>
           </div>
-          <!-- Away value -->
           <div class="stat-value ps-2" style="width: 60px; color: #fff;">
             <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
             <% if stat[:away_detail] %>
-              <span style="font-size: 0.8em; backgroung: #aaa;">(<%= stat[:away_detail] %>)</span>
+              <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:away_detail] %>)</span>
             <% end %>
           </div>
         </div>
       <% end %>
     </div>
 
+    <!-- Set Pieces Stats Section -->
+    <div class="stats-section mb-4" style="width: 50%;">
+      <h6 class="text-white text-center mb-3" style="font-size: 1.2em;">SET PIECES</h6>
+      <% @setpiece_stats.each do |stat| %>
+        <div class="row">
+          <div class="col-12 text-center">
+            <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 1em;">
+              <%= stat[:name] %>
+            </span>
+          </div>
+        </div>
+        <div class="stat-row d-flex align-items-center justify-content-center mb-3" style="margin-top: -2px;">
+          <div class="stat-value text-end pe-2" style="width: 60px; color: #fff;">
+            <%= stat[:percent] ? "#{stat[:home]}%" : stat[:home] %>
+            <% if stat[:home_detail] %>
+              <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
+            <% end %>
+          </div>
+          <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; background:rgba(0, 30, 41, 0.31)">
+            <div class="stat-bar stat-bar-home" style="width: <%= stat[:home].to_f %>%;"></div>
+            <div class="stat-bar stat-bar-away" style="width: <%= stat[:away].to_f %>%;"></div>
+          </div>
+          <div class="stat-value ps-2" style="width: 60px; color: #fff;">
+            <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
+            <% if stat[:away_detail] %>
+              <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:away_detail] %>)</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Regular desktop layout -->
+  <div class="players-section d-flex justify-content-between mb-4 gap-2">
+    <!-- Home Team Players -->
+    <div class="team-column" style="width: 20%;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>STARTING PLAYERS</div>
+        <div>Min</div>
+      </div>
+      <ul class="player-list text-white">
+        <% @home_players.first(15).each_with_index do |player, index| %>
+          <li class="player-row d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center" style="width: 80%;">
+              <span class="player-number me-2"><%= index + 1 %></span>
+              <span class="player-name text-truncate"><%= player.name %></span>
+            </div>
+            <span class="player-minutes text-end"><%= rand(0..76) || player.minutes_played %>'</span>
+          </li>
+        <% end %>
+      </ul>
+
+      <br>
+      <br>
+
+      <ul class="player-list text-white">
+        <% @home_players.last(8).each_with_index do |player, index| %>
+          <li class="player-row d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center" style="width: 80%;">
+              <span class="player-number me-2"><%= index + 16 %></span>
+              <span class="player-name text-truncate"><%= player.name %></span>
+            </div>
+            <span class="player-minutes text-end"><%= rand(0..76) || player.minutes_played %>'</span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+
+    <!-- Stats Column (Middle) - hidden on mobile -->
+    <div class="stats d-none d-md-block" style="width: 40%;">
+      <!-- General Stats Section -->
+      <div class="stats-section mb-4">
+        <h6 class="text-white text-center mb-3" style="font-size: 1.2em; margin-top: -25px;">GENERAL</h6>
+        <% @general_stats.each do |stat| %>
+          <div class="row">
+            <div class="col-12 text-center">
+              <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 1em;">
+                <%= stat[:name] %>
+              </span>
+            </div>
+          </div>
+          <div class="stat-row d-flex align-items-center justify-content-center mb-3" style="margin-top: -2px;">
+            <div class="stat-value text-end pe-2" style="width: 60px; color: #fff;">
+              <%= stat[:percent] ? "#{stat[:home]}%" : stat[:home] %>
+              <% if stat[:home_detail] %>
+                <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
+              <% end %>
+            </div>
+            <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; background:rgba(0, 30, 41, 0.31)">
+              <div class="stat-bar stat-bar-home" style="width: <%= stat[:home].to_f %>%;"></div>
+              <div class="stat-bar stat-bar-away" style="width: <%= stat[:away].to_f %>%;"></div>
+            </div>
+            <div class="stat-value ps-2" style="width: 60px; color: #fff;">
+              <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
+              <% if stat[:away_detail] %>
+                <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:away_detail] %>)</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Set Pieces Stats Section -->
+      <div class="stats-section">
+        <h6 class="text-white text-center mb-3" style="font-size: 1.2em; margin-top: -25px;">SET PIECES</h6>
+        <% @setpiece_stats.each do |stat| %>
+          <div class="row">
+            <div class="col-12 text-center">
+              <span class="stat-label" style="color: #fff; font-weight: bold; font-size: 1em;">
+                <%= stat[:name] %>
+              </span>
+            </div>
+          </div>
+          <div class="stat-row d-flex align-items-center justify-content-center mb-3" style="margin-top: -2px;">
+            <div class="stat-value text-end pe-2" style="width: 60px; color: #fff;">
+              <%= stat[:percent] ? "#{stat[:home]}%" : stat[:home] %>
+              <% if stat[:home_detail] %>
+                <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
+              <% end %>
+            </div>
+            <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; background:rgba(0, 30, 41, 0.31)">
+              <div class="stat-bar stat-bar-home" style="width: <%= stat[:home].to_f %>%;"></div>
+              <div class="stat-bar stat-bar-away" style="width: <%= stat[:away].to_f %>%;"></div>
+            </div>
+            <div class="stat-value ps-2" style="width: 60px; color: #fff;">
+              <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
+              <% if stat[:away_detail] %>
+                <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:away_detail] %>)</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Away Team Players -->
+    <div class="team-column" style="width: 20%;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>STARTING PLAYERS</div>
+        <div>Min</div>
+      </div>
+      <ul class="player-list text-white">
+        <% @away_players.first(15).each_with_index do |player, index| %>
+          <li class="player-row d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center" style="width: 80%;">
+              <span class="player-number me-2"><%= index + 1 %></span>
+              <span class="player-name text-truncate"><%= player.name %></span>
+            </div>
+            <span class="player-minutes text-end"><%= rand(0..76) || player.minutes_played %></span>
+          </li>
+        <% end %>
+      </ul>
+
+      <br>
+      <br>
+
+      <ul class="player-list text-white">
+        <% @away_players.last(8).each_with_index do |player, index| %>
+          <li class="player-row d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center" style="width: 80%;">
+              <span class="player-number me-2"><%= index + 16 %></span>
+              <span class="player-name text-truncate"><%= player.name %></span>
+            </div>
+            <span class="player-minutes text-end"><%= rand(0..76) || player.minutes_played %></span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</div>
 
 <style>
-  .stats {
-  }
+.stats {
+}
+
 .stat-bar-center {
   display: flex;
   flex-direction: row;
   height: 14px;
-  background: #14212b;
   border-radius: 7px;
   overflow: hidden;
 }
-.stat-bar-home {
-  background: rgb(247 37 133 / 70%);
-  border-top-left-radius: 7px;
-  border-bottom-left-radius: 7px;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  height: 100%;
-  transition: width 0.3s;
-}
-.stat-bar-away {
-  background: rgb(77 201 246 / 70%);
-  border-top-right-radius: 7px;
-  border-bottom-right-radius: 7px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  height: 100%;
-  transition: width 0.3s;
-}
-.stat-label {
-  font-size: 1em;
-  white-space: nowrap;
-  font-weight: bold;
-}
+
+
 .stat-row {
   min-height: 32px;
   width: 100%;
   padding-left: 0.02em;
   padding-right: 0.02em;
+}
+
+.match-stats-container {
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-row {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+}
+
+.player-number {
+  min-width: 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.player-name {
+  margin-right: 8px;
+}
+
+.player-minutes {
+  min-width: 30px;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.team-column > div:first-child {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+}
+
+.stat-bar-container {
+  width: 100px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stat-bar-container.home {
+  direction: rtl;
+}
+
+.stat-bar-home {
+  background: rgba(247, 37, 132, 0.7);
+  height: 100%;
+}
+
+.stat-bar-away {
+  background: rgba(77, 201, 246, 0.7);
+  height: 100%;
+}
+
+.stat-value {
+  min-width: 40px;
+  text-align: center;
+}
+
+.stat-label {
+  min-width: 120px;
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+h6 {
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stats-section {
+  padding: 1rem 0;
+}
+
+.stats-section h6 {
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+/* Add a subtle divider between sections */
+.stats-section:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile specific styles */
+@media (max-width: 768px) {
+  .match-stats-container {
+    padding: 1rem;
+  }
+
+  .stats-mobile-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .team-column {
+    width: 50% !important;
+    font-size: 0.9em;
+  }
+
+  .player-row {
+    font-size: 0.9em;
+  }
+
+  .stat-bar-center {
+    min-width: 100px !important;
+  }
+
+  .stat-value {
+    min-width: 30px;
+    font-size: 0.9em;
+  }
+
+  .stat-label {
+    font-size: 0.8em;
+  }
+}
+
+/* Make sure the stats sections are properly sized on mobile */
+@media (max-width: 768px) {
+  .stats-section {
+    padding: 0.5rem;
+  }
+
+  .stats-section h6 {
+    font-size: 1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-row {
+    min-height: 24px;
+  }
+}
+
+/* Adjust spacing for very small screens */
+@media (max-width: 480px) {
+  .stats-mobile-container {
+    gap: 0.5rem;
+  }
+
+  .team-column {
+    font-size: 0.8em;
+  }
+
+  .player-minutes {
+    margin-left: 4px !important;
+  }
 }
 </style>

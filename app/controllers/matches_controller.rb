@@ -60,9 +60,7 @@ class MatchesController < ApplicationController
       { name: "Lineouts", home: 64, away: 36 },
       { name: "Lineouts*", home: 60, away: 40 },
       { name: "Mauls", home: 45, away: 55 },
-      { name: "Mauls*", home: 45, away: 55 },
       { name: "Scrums", home: 40, away: 60 },
-      { name: "Scrums*", home: 40, away: 60 },
       { name: "Rucks", home: 85, away: 55 }
     ]
 
