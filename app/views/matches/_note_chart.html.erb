@@ -1,64 +1,57 @@
 <div class="notes-container">
-  <!-- Match Coach Notes -->
-  <div class="note-section">
-    <h6 class="text-white mb-3">COACH TEAM NOTES</h6>
-    <div class="note-card">
-      <% if match.coach_notes.present? %>
-        <p class="note-text"><%= match.coach_notes %></p>
-      <% else %>
-        <p class="note-text text-secondary">No match notes from coach</p>
-      <% end %>
-      <% if current_user&.admin? %>
-        <div class="note-actions">
-          <%= link_to "Edit Match Notes", edit_match_path(match, anchor: 'coach_notes'),
-              class: "btn btn-sm btn-outline-primary" %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-
-  <!-- Player-specific Coach Notes -->
-  <div class="note-section mt-4">
-    <h6 class="text-white mb-3">COACH NOTES TO YOU</h6>
-    <div class="note-cards-grid">
-        <div class="note-card">
-          <div class="note-header">
-            <strong class="text-white"><%= player.name || player_match.player.name %></strong>
-          </div>
-          <% if player_match %>
-            <p class="note-text"><%= player_match.coach_notes %></p>
+  <div class="row">
+    <!-- Top row with two equal columns -->
+    <div class="col-md-6 mb-4">
+      <!-- Match Coach Notes -->
+      <div class="note-section h-100">
+        <h6 class="text-white mb-3">COACH TEAM NOTES</h6>
+        <div class="note-card h-100">
+          <% if match.coach_notes.present? %>
+            <p class="note-text"><%= match.coach_notes %></p>
           <% else %>
-            <p class="note-text text-muted">No match notes from coach</p>
+            <p class="note-text text-secondary">No match notes from coach</p>
           <% end %>
-          <% if current_user&.coach? %>
+          <% if current_user&.admin? %>
             <div class="note-actions">
-              <%= link_to "Add/Edit Notes", edit_player_match_path(player_match),
+              <%= link_to "Edit Match Notes", edit_match_path(match, anchor: 'coach_notes'),
                   class: "btn btn-sm btn-outline-primary" %>
             </div>
           <% end %>
         </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Player Self Notes -->
-  <div class="note-section mt-4">
-    <h6 class="text-white mb-3">MY NOTES</h6>
-    <% if current_user&.player? %>
-      <% player_match = @match.player_matches.find_by(player: current_user.player) %>
-      <% if player_match %>
-        <div class="note-card">
-          <% if player_match.player_notes.present? %>
-            <p class="note-text"><%= player_match.player_notes %></p>
+    <div class="col-md-6 mb-4">
+      <!-- Player-specific Coach Notes -->
+      <div class="note-section h-100">
+        <h6 class="text-white mb-3">COACH NOTES TO YOU</h6>
+        <div class="note-card h-100">
+          <% if match.coach_notes.present? %>
+            <p class="note-text"><%= match.coach_notes %></p>
           <% else %>
-            <p class="note-text text-muted">You haven't added any notes yet</p>
+            <p class="note-text text-secondary">No match notes from coach</p>
           <% end %>
-          <div class="note-actions">
-            <%= link_to "Add/Edit My Notes", edit_player_match_path(player_match),
-                class: "btn btn-sm btn-outline-primary" %>
-          </div>
+          <% if current_user&.admin? %>
+            <div class="note-actions">
+              <%= link_to "Edit Match Notes", edit_match_path(match, anchor: 'coach_notes'),
+                  class: "btn btn-sm btn-outline-primary" %>
+            </div>
+          <% end %>
         </div>
-      <% end %>
-    <% end %>
+      </div>
+    </div>
+
+    <!-- Full width bottom row -->
+    <div class="col-md-12">
+      <!-- Player Self Notes -->
+      <div class="note-section">
+        <br>
+        <h6 class="text-white mb-3">MY NOTES</h6>
+        <div class="note-card h-100">
+          <p class="note-text text-secondary">No match notes from you</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -77,17 +70,13 @@
   opacity: 0.8;
 }
 
-.note-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
 .note-card {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .note-header {
@@ -100,11 +89,13 @@
   color: #fff;
   margin-bottom: 1rem;
   white-space: pre-wrap;
+  flex-grow: 1;
 }
 
 .note-actions {
   display: flex;
   justify-content: flex-end;
+  margin-top: auto;
 }
 
 @media (max-width: 768px) {
