@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_08_091414) do
+ActiveRecord::Schema[7.1].define(version: 2025_05_28_201325) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -24,6 +24,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_08_091414) do
     t.datetime "updated_at", null: false
     t.bigint "home_team_id"
     t.bigint "away_team_id"
+    t.text "coach_notes"
   end
 
   create_table "player_matches", force: :cascade do |t|
@@ -35,6 +36,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_08_091414) do
     t.datetime "updated_at", null: false
     t.boolean "on_field", default: false, null: false
     t.integer "position"
+    t.text "coach_notes"
+    t.text "player_notes"
     t.index ["match_id"], name: "index_player_matches_on_match_id"
     t.index ["player_id"], name: "index_player_matches_on_player_id"
   end

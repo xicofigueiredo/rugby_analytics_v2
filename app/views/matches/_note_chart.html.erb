@@ -1,0 +1,115 @@
+<div class="notes-container">
+  <!-- Match Coach Notes -->
+  <div class="note-section">
+    <h6 class="text-white mb-3">COACH TEAM NOTES</h6>
+    <div class="note-card">
+      <% if match.coach_notes.present? %>
+        <p class="note-text"><%= match.coach_notes %></p>
+      <% else %>
+        <p class="note-text text-secondary">No match notes from coach</p>
+      <% end %>
+      <% if current_user&.admin? %>
+        <div class="note-actions">
+          <%= link_to "Edit Match Notes", edit_match_path(match, anchor: 'coach_notes'),
+              class: "btn btn-sm btn-outline-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Player-specific Coach Notes -->
+  <div class="note-section mt-4">
+    <h6 class="text-white mb-3">COACH NOTES TO YOU</h6>
+    <div class="note-cards-grid">
+        <div class="note-card">
+          <div class="note-header">
+            <strong class="text-white"><%= player.name || player_match.player.name %></strong>
+          </div>
+          <% if player_match %>
+            <p class="note-text"><%= player_match.coach_notes %></p>
+          <% else %>
+            <p class="note-text text-muted">No match notes from coach</p>
+          <% end %>
+          <% if current_user&.coach? %>
+            <div class="note-actions">
+              <%= link_to "Add/Edit Notes", edit_player_match_path(player_match),
+                  class: "btn btn-sm btn-outline-primary" %>
+            </div>
+          <% end %>
+        </div>
+    </div>
+  </div>
+
+  <!-- Player Self Notes -->
+  <div class="note-section mt-4">
+    <h6 class="text-white mb-3">MY NOTES</h6>
+    <% if current_user&.player? %>
+      <% player_match = @match.player_matches.find_by(player: current_user.player) %>
+      <% if player_match %>
+        <div class="note-card">
+          <% if player_match.player_notes.present? %>
+            <p class="note-text"><%= player_match.player_notes %></p>
+          <% else %>
+            <p class="note-text text-muted">You haven't added any notes yet</p>
+          <% end %>
+          <div class="note-actions">
+            <%= link_to "Add/Edit My Notes", edit_player_match_path(player_match),
+                class: "btn btn-sm btn-outline-primary" %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+.notes-container {
+  padding: 1rem;
+}
+
+.note-section {
+  margin-bottom: 2rem;
+}
+
+.note-section h6 {
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.note-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.note-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.note-header {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.note-text {
+  color: #fff;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+}
+
+.note-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .note-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

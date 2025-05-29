@@ -55,6 +55,7 @@
         <div class="toggle-buttons">
           <button class="toggle-button active" data-target="summary-chart">Summary</button>
           <button class="toggle-button" data-target="player-chart">My Stats</button>
+          <button class="toggle-button" data-target="note-chart">Notes</button>
         </div>
         <br>
 
@@ -64,6 +65,10 @@
 
         <div id="player-chart" class="chart-section">
           <%= render partial: 'player_match_stats', locals: { player: current_user.player } %>
+        </div>
+
+        <div id="note-chart" class="chart-section">
+          <%= render partial: 'note_chart', locals: { match: @match, player: current_user.player, player_match: @player_match } %>
         </div>
 
       <% end %>

@@ -19,6 +19,9 @@ class Match < ApplicationRecord
     message: "must be in format 'number - number' (e.g., '23 - 22')"
   }, allow_blank: true
 
+  # Add the coach_notes field to the match model
+  validates :coach_notes, length: { maximum: 2000 } # adjust max length as needed
+
   scope :for_team, ->(team_id) {
     where('home_team_id = ? OR away_team_id = ?', team_id, team_id)
   }

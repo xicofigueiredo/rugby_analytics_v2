@@ -44,6 +44,7 @@ class MatchesController < ApplicationController
     @players = PlayerMatch.where(match_id: @match.id).map(&:player)
     @home_players = Team.second.players
     @away_players = Team.first.players
+    @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
 
 
     @general_stats = [
@@ -186,7 +187,7 @@ class MatchesController < ApplicationController
       :away_team_id,
       :result,
       :description,
-      player_matches_attributes: [:id, :player_id, :position, :_destroy]
+      player_matches_attributes: [:id, :player_id, :position, :_destroy, :coach_notes, :player_notes]
     )
   end
 
@@ -200,5 +201,12 @@ class MatchesController < ApplicationController
     unless current_user.team
       redirect_to teams_path, alert: 'You need to be part of a team to create matches.'
     end
+  end
+
+  def player_match_params
+    params.require(:player_match).permit(
+      :coach_notes,
+      :player_notes
+    )
   end
 end
