@@ -94,28 +94,49 @@ class PlayersController < ApplicationController
 
   def profile
     @player = current_user.player
+
+    # Fetch attack stats per month
+    @attack_stats = {
+      carries: 14,
+      passes: 8
+    }
+
+    # Fetch defense stats per month
+    @defense_stats = {
+      tackles: 37,
+      turnovers: 4
+    }
+
+    # Fetch kicking stats per month
+    @kicking_stats = {
+      kicks: 1
+    }
+
     @performance_data = {
       "CDUL" => 9,
       "CDUP" => 4,
       "AAC" => 7,
-      "Bel" => 8,
-      "GDD" => 6
+      "Bel" => 6,
+      "GDD" => 8,
+      "SLB" => 7
     }
 
     @player_performance_data = {
       "CDUL" => 6,
-      "CDUP" => 6,
+      "CDUP" => 7,
       "AAC" => 4,
-      "Bel" => 8,
-      "GDD" => 8
+      "Bel" => 6,
+      "GDD" => 7,
+      "SLB" => 8
     }
 
-    @minutes_data = {
-      "CDUL" => 65,
-      "CDUP" => 72,
-      "AAC" => 50,
-      "Bel" => 78,
-      "GDD" => 58
+    @group_performance_data = {
+      "CDUL" => 8,
+      "CDUP" => 4,
+      "AAC" => 6,
+      "Bel" => 5,
+      "GDD" => 9,
+      "SLB" => 6
     }
 
     @overall_data = {

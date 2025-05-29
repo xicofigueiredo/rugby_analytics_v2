@@ -20,7 +20,6 @@
           <span class="me-2"><img src="<%= asset_path('cdul.jpg') %>" alt="Team Logo" style="width:35px;height:35px;"></span>
           <span style="color: white;"><%= @player.team.name %></span>
         </div>
-        <!-- Overall Chart -->
         <div class="col-md-12">
           <div class="card chart-card h-100">
             <canvas id="radarChart" width="400" height="400"></canvas>
@@ -60,16 +59,14 @@
             <div>
               <%= turbo_frame_tag "performance_chart" do %>
                 <%= line_chart [
-                    { name: @player.name, data: @player_performance_data },
-                    { name: @player.team.name, data: @performance_data }
+                    { name: "You", data: @player_performance_data },
+                    { name: @player.team.name, data: @performance_data },
+                    { name: "Back Row", data: @group_performance_data }
                   ],
                   height: "220px",
-                  colors: ["#4dc9f6", "#f72585"],
+                  colors: ["#4dc9f6", "#f72585", "#ffd166"],
                   library: {
                     plugins: {
-                      tooltip: {
-                        enabled: false
-                      },
                       legend: {
                         labels: {
                           color: 'white'
@@ -82,14 +79,20 @@
           </div>
         </div>
 
-        <!-- Overall Chart -->
+        <!-- Recent Stats Chart -->
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Overall</div>
-              <span class="text-secondary">average</span>
+              <div class="h5 text-white mb-0">Stats</div>
+              <div class="d-flex align-items-center gap-2">
+                <select id="statsSelector" class="form-select form-select-sm" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
+                  <option value="attack">Attack</option>
+                  <option value="defense">Defense</option>
+                  <option value="kicking">Kicking</option>
+                </select>
+              </div>
             </div>
-            <canvas id="radarChart" width="400" height="400"></canvas>
+            <canvas id="lineChart" width="400" height="400"></canvas>
             <br>
             <%= link_to all_stats_player_path(@player),
                 class: "btn btn-primary btn-action btn-sm d-block mx-auto",
@@ -107,9 +110,6 @@
               <div class="h5 text-white mb-0">General Info</div>
               <span class="text-secondary">2024/2025</span>
             </div>
-            <div>
-              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
-            </div>
             <br>
             <ul class="list-unstyled stats-list">
               <li class="d-flex justify-content-between align-items-center mb-2">
@@ -121,16 +121,34 @@
                 <span class="stat-value">14</span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-people"></i> Starting lineup</span>
+                <span><i class="bi bi-person-plus"></i> Starting lineup</span>
                 <span class="stat-value">13</span>
               </li>
+              <br>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-trophy"></i> Tries</span>
+                <span><i class="bi bi-bullseye"></i> Tries</span>
                 <span class="stat-value">5</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-people"></i> Try Assists</span>
+                <span class="stat-value">1</span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
                 <span class="stat-value">2 / 0</span>
+              </li>
+              <br>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-trophy"></i>  MVP</span>
+                <span class="stat-value">0</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-lightning"></i> Impact Player</span>
+                <span class="stat-value">3</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-star"></i> Average Rating</span>
+                <span class="stat-value">6.33</span>
               </li>
             </ul>
           </div>
@@ -184,6 +202,127 @@
           }
         }
       }
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    let lineChart;
+
+    // Define your datasets with multiple statistics per category
+    const datasets = {
+      attack: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Carries',
+            data: [12, 15, 13, 14, 16, 15],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Passes',
+            data: [25, 28, 24, 27, 29, 26],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      },
+      defense: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Tackles',
+            data: [18, 20, 22, 19, 21, 23],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Turnovers',
+            data: [3, 4, 2, 5, 3, 4],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      },
+      kicking: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Kicks',
+            data: [8, 7, 9, 8, 10, 9],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          }
+        ]
+      }
+    };
+
+    function createChart(type) {
+      if (lineChart) {
+        lineChart.destroy();
+      }
+
+      lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: datasets[type].labels,
+          datasets: datasets[type].datasets
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#eee',
+                padding: 10
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#666'
+              },
+              ticks: {
+                color: '#eee'
+              }
+            },
+            x: {
+              grid: {
+                color: '#666'
+              },
+              ticks: {
+                color: '#eee'
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Initial chart creation
+    createChart('attack');
+
+    // Event listener for dropdown changes
+    document.getElementById('statsSelector').addEventListener('change', function(e) {
+      createChart(e.target.value);
     });
   });
 </script>
