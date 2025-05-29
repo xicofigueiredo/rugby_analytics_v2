@@ -102,51 +102,26 @@
           </div>
         </div>
 
-        <!-- Overall Chart -->
+        <!-- absolute stats -->
         <div class="col-md-6">
           <div class="card card main-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Overall</div>
+              <div class="h5 text-white mb-0">Absolute</div>
               <span class="text-secondary">average</span>
             </div>
           </div>
         </div>
 
-        <!-- General Info -->
+        <!-- relative stats -->
         <div class="col-md-6">
           <div class="card card main-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">General Info</div>
-              <span class="text-secondary">2024/2025</span>
+              <div class="h5 text-white mb-0">Relative</div>
+              <span class="text-secondary">average</span>
             </div>
-            <div>
-              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
-            </div>
-            <br>
-            <ul class="list-unstyled stats-list">
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-clock"></i> Minutes played</span>
-                <span class="stat-value">65</span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-bar-chart"></i></span>
-                <span class="stat-value">14</span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-people"></i> Starting lineup</span>
-                <span class="stat-value">13</span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-trophy"></i> Tries</span>
-                <span class="stat-value">5</span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
-                <span class="stat-value">2 / 0</span>
-              </li>
-            </ul>
           </div>
         </div>
+
       </div>
     </div>
   </div>
