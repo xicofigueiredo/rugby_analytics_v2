@@ -1,0 +1,253 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container">
+  <!-- Player Selector -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card main-card p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="text-white mb-0">Select Player</h5>
+          <select id="playerSelector" class="form-select" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
+            <% (@home_players + @away_players).each do |player| %>
+              <option value="<%= player.id %>" <%= 'selected' if player == @player %>>
+                <%= player.name %> (<%= player.team.name %>)
+              </option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-md-4">
+      <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
+        <!-- Overall Chart -->
+        <div class="col-md-9">
+          <div class="card chart-card h-100">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+          </div>
+        </div>
+        <!-- General Info -->
+        <div class="col-md-12">
+          <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">General Info</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <div>
+              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
+            </div>
+            <br>
+            <ul class="list-unstyled stats-list">
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-clock"></i> Minutes played</span>
+                <span class="stat-value"><%= @minutes_data["Minutes"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-bar-chart"></i>Tackles</span>
+                <span class="stat-value"><%= @performance_data["Tackles"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-people"></i> Starting lineup</span>
+                <span class="stat-value">13</span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-trophy"></i> Tries</span>
+                <span class="stat-value"><%= rand(0..3) %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
+                <span class="stat-value"><%= @performance_data["Cards"] %> / 0</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Stats -->
+    <div class="col-md-8">
+      <div class="row g-4">
+        <!-- Performance Chart -->
+        <div class="col-12">
+          <div class="card card main-card p-4 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Performance</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <div>
+              <%= turbo_frame_tag "performance_chart" do %>
+                <%= column_chart [
+                    { name: player.name, data: @performance_data },
+                    { name: "Team Average", data: @average_player_performance_data }
+                  ],
+                  height: "220px",
+                  colors: ["#4dc9f6", "#f72585"],
+                  library: {
+                    plugins: {
+                      tooltip: {
+                        enabled: false
+                      },
+                      legend: {
+                        labels: {
+                          color: 'white'
+                        }
+                      }
+                    },
+                    scales: {
+                      x: {
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                          color: 'white'
+                        }
+                      },
+                      y: {
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                          color: 'white'
+                        }
+                      }
+                    }
+                  } %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- absolute stats -->
+        <div class="col-md-6">
+          <div class="card card main-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Absolute</div>
+              <span class="text-secondary">average</span>
+            </div>
+            <ul class="list-unstyled stats-list">
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Carries</span>
+                <span class="stat-value"><%= @performance_data["Carries"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Passes</span>
+                <span class="stat-value"><%= @performance_data["Passes"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Turnovers</span>
+                <span class="stat-value"><%= @performance_data["Turnovers"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Errors</span>
+                <span class="stat-value"><%= @performance_data["Errors"] %></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- relative stats -->
+        <div class="col-md-6">
+          <div class="card card main-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Relative</div>
+              <span class="text-secondary">average</span>
+            </div>
+            <ul class="list-unstyled stats-list">
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Scrums</span>
+                <span class="stat-value"><%= @performance_data["Scrums"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Mauls</span>
+                <span class="stat-value"><%= @performance_data["Mauls"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Lineouts</span>
+                <span class="stat-value"><%= @performance_data["Lineouts"] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Penalties</span>
+                <span class="stat-value"><%= @performance_data["Penalties"] %></span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    const radarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+        datasets: [{
+          label: "This Game",
+          data: [<%= player_match_performance_data["Attack"] %>, <%= player_match_performance_data["Defense"] %>, <%= player_match_performance_data["Work Rate"] %>, <%= player_match_performance_data["Discipline"] %>, <%= player_match_performance_data["Kicking"] %>, <%= player_match_performance_data["Set Piece"] %>, <%= player_match_performance_data["Breakdown"] %>],
+          fill: true,
+          backgroundColor: '#4dc9f67a',
+          borderColor: '#4dc9f6',
+          pointBackgroundColor: '#4dc9f6'
+        },
+        {
+          label: "This Season",
+          data: [<%= player_season_average_performance_data["Attack"] %>, <%= player_season_average_performance_data["Defense"] %>, <%= player_season_average_performance_data["Work Rate"] %>, <%= player_season_average_performance_data["Discipline"] %>, <%= player_season_average_performance_data["Kicking"] %>, <%= player_season_average_performance_data["Set Piece"] %>, <%= player_season_average_performance_data["Breakdown"] %>],
+          fill: true,
+          backgroundColor: '#f725857a',
+          borderColor: '#f72585',
+          pointBackgroundColor: '#f72585'
+        }]
+      },
+      options: {
+        scales: {
+          r: {
+            angleLines: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            },
+            pointLabels: {
+              color: 'white'
+            },
+            ticks: {
+              color: 'white',
+              backdropColor: 'transparent'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: 'white'
+            }
+          }
+        }
+      }
+    });
+
+    // Add event listener for player selection
+    document.getElementById('playerSelector').addEventListener('change', function() {
+      const playerId = this.value;
+      // Make an AJAX request to update the stats
+      fetch(`/matches/<%= @match.id %>/player_stats?player_id=${playerId}`, {
+        headers: {
+          'Accept': 'text/html',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.text())
+      .then(html => {
+        // Update the stats section with the new data
+        document.querySelector('.container').innerHTML = html;
+      });
+    });
+  });
+</script>

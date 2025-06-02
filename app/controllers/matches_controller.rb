@@ -46,7 +46,12 @@ class MatchesController < ApplicationController
     @away_players = Team.first.players
     @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
 
+    if current_user.role == "player"
+      @player = current_user.player
 
+    elsif current_user.role == "coach"
+      @player = @match.player_matches.first.player
+    end
     @general_stats = [
       { name: "Carries", home: 63, away: 37 },
       { name: "Tackles", home: 50, away: 50 },
@@ -166,6 +171,69 @@ class MatchesController < ApplicationController
   def destroy
     @match.destroy
     redirect_to matches_url, notice: 'Match was successfully deleted.'
+  end
+
+  def player_stats
+    @match = Match.find(params[:id])
+    @player = Player.find(params[:player_id])
+    @player_match = PlayerMatch.where(match_id: @match.id, player_id: @player.id).first
+
+    # Mock data for player stats
+    @performance_data = {
+      "Tackles" => rand(5..15),
+      "Turnovers" => rand(2..8),
+      "Errors" => rand(1..5),
+      "Penalties" => rand(0..3),
+      "Cards" => rand(0..1),
+      "Carries" => rand(5..20),
+      "Passes" => rand(10..30),
+      "Scrums" => rand(2..8),
+      "Mauls" => rand(3..10),
+      "Lineouts" => rand(2..6)
+    }
+
+    # Mock data for team average
+    @average_player_performance_data = {
+      "Tackles" => 10,
+      "Turnovers" => 5,
+      "Errors" => 3,
+      "Penalties" => 2,
+      "Cards" => 0.5,
+      "Carries" => 12,
+      "Passes" => 20,
+      "Scrums" => 5,
+      "Mauls" => 6,
+      "Lineouts" => 4
+    }
+
+    # Mock data for minutes played
+    @minutes_data = {
+      "Minutes" => rand(40..80)
+    }
+
+    # Mock data for performance ratings
+    @player_match_performance_data = {
+      "Attack" => rand(5.0..9.0).round(1),
+      "Defense" => rand(5.0..9.0).round(1),
+      "Work Rate" => rand(5.0..9.0).round(1),
+      "Discipline" => rand(5.0..9.0).round(1),
+      "Kicking" => rand(5.0..9.0).round(1),
+      "Set Piece" => rand(5.0..9.0).round(1),
+      "Breakdown" => rand(5.0..9.0).round(1)
+    }
+
+    # Mock data for season averages
+    @player_season_average_performance_data = {
+      "Attack" => 7.2,
+      "Defense" => 6.8,
+      "Work Rate" => 7.5,
+      "Discipline" => 6.9,
+      "Kicking" => 6.5,
+      "Set Piece" => 7.1,
+      "Breakdown" => 6.7
+    }
+
+    render partial: 'coach_match_stats', locals: { player: @player }
   end
 
   private
