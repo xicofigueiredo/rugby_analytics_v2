@@ -48,4 +48,10 @@ Rails.application.routes.draw do
 
   get 'my_team_player', to: 'teams#my_team_player', as: :my_team_player
 
+  resources :matches do
+    member do
+      get 'player_stats'
+    end
+  end
+
 end
