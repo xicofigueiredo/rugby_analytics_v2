@@ -17,7 +17,7 @@
             <br>
             <ul class="list-unstyled stats-list">
               <li class="d-flex justify-content-center align-items-center mb-2">
-                <h5>Best Stats</h5>
+                <h5 class="text-secondary">Best</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span>Gain Line Sucess Rate</span>
@@ -32,7 +32,7 @@
                 <span class="stat-value">5 <span class="text-secondary">(1º)</span></span>
               </li>
               <li class="d-flex justify-content-center align-items-center mb-2">
-                <h5>Worse Stats</h5>
+                <h5 class="text-secondary">Worse</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span>Penalties Conceded</span>
@@ -109,8 +109,20 @@
         <div class="col-md-6">
           <div class="card card main-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Absolute</div>
-              <span class="text-secondary">average</span>
+              <div class="h5 text-white mb-0">Stats</div>
+              <div class="d-flex justify-content-end w-50">
+                <%= select_tag "absolute_stats_dropdown", options_for_select(@stats_dropdown_options), class: "form-select" %>
+              </div>
+            </div>
+            <br>
+            <div class="d-flex justify-content-between text-white">
+              <ul class="list-unstyled">
+                <li>1º - <%= Player.find(9).name %> (12)</li>
+                <li>2º - <%= Player.find(8).name %> (10)</li>
+                <li>3º - <%= Player.second.name %> (8)</li>
+                <li>4º - <%= Player.find(7).name %> (6)</li>
+                <li>5º - <%= Player.fifth.name %> (4)</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -119,8 +131,20 @@
         <div class="col-md-6">
           <div class="card card main-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Relative</div>
-              <span class="text-secondary">average</span>
+              <div class="h5 text-white mb-0">Metrics</div>
+              <div class="d-flex justify-content-end w-50">
+                <%= select_tag "absolute_stats_dropdown", options_for_select(@metrics_dropdown_options), class: "form-select" %>
+              </div>
+            </div>
+            <br>
+            <div class="d-flex justify-content-between text-white">
+              <ul class="list-unstyled">
+                <li>1º - <%= Player.find(6).name %> (50%)</li>
+                <li>2º - <%= Player.find(8).name %> (35%)</li>
+                <li>3º - <%= Player.find(9).name %> (25%)</li>
+                <li>4º - <%= Player.find(14).name %> (20%)</li>
+                <li>5º - <%= Player.find(7).name %> (18%)</li>
+              </ul>
             </div>
           </div>
         </div>

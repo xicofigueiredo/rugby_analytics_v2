@@ -138,6 +138,31 @@ class MatchesController < ApplicationController
       "Set Piece" => 6,
       "Breakdown" => 7
     }
+
+    @stats_dropdown_options = [
+      "Tackles",
+      "Turnovers",
+      "Errors",
+      "Penalties",
+      "Cards",
+      "Carries",
+      "Turnovers",
+      "Penalties Conceded",
+      "Passes"
+    ]
+
+    @metrics_dropdown_options = [
+      "Tackle Dominance Rate",
+      "Tackle Assist Rate",
+      "Gain Line Sucess Rate",
+      "Carry Effectiveness/ Ratio",
+      "Pass Success Rate",
+      "Pass Completion Rate",
+      "Recovered Kicks",
+      "Goal Kick Success Rate",
+      "Linebreak per carry/rate",
+      "Turnover per minute"
+    ]
   end
 
   def new
