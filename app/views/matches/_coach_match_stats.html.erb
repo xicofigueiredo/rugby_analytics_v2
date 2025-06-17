@@ -190,7 +190,7 @@
         labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
         datasets: [{
           label: "This Game",
-          data: [<%= player_match_performance_data["Attack"] %>, <%= player_match_performance_data["Defense"] %>, <%= player_match_performance_data["Work Rate"] %>, <%= player_match_performance_data["Discipline"] %>, <%= player_match_performance_data["Kicking"] %>, <%= player_match_performance_data["Set Piece"] %>, <%= player_match_performance_data["Breakdown"] %>],
+          data: [<%= @player_match_performance_data["Attack"] %>, <%= @player_match_performance_data["Defense"] %>, <%= @player_match_performance_data["Work Rate"] %>, <%= @player_match_performance_data["Discipline"] %>, <%= @player_match_performance_data["Kicking"] %>, <%= @player_match_performance_data["Set Piece"] %>, <%= @player_match_performance_data["Breakdown"] %>],
           fill: true,
           backgroundColor: '#4dc9f67a',
           borderColor: '#4dc9f6',
@@ -198,7 +198,7 @@
         },
         {
           label: "This Season",
-          data: [<%= player_season_average_performance_data["Attack"] %>, <%= player_season_average_performance_data["Defense"] %>, <%= player_season_average_performance_data["Work Rate"] %>, <%= player_season_average_performance_data["Discipline"] %>, <%= player_season_average_performance_data["Kicking"] %>, <%= player_season_average_performance_data["Set Piece"] %>, <%= player_season_average_performance_data["Breakdown"] %>],
+          data: [<%= @player_season_average_performance_data["Attack"] %>, <%= @player_season_average_performance_data["Defense"] %>, <%= @player_season_average_performance_data["Work Rate"] %>, <%= @player_season_average_performance_data["Discipline"] %>, <%= @player_season_average_performance_data["Kicking"] %>, <%= @player_season_average_performance_data["Set Piece"] %>, <%= @player_season_average_performance_data["Breakdown"] %>],
           fill: true,
           backgroundColor: '#f725857a',
           borderColor: '#f72585',

@@ -14,34 +14,37 @@
                 <!-- General Info -->
         <div class="col-md-12">
           <div class="card chart-card p-4 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">General Info</div>
-              <span class="text-secondary">2024/2025</span>
-            </div>
-            <div>
-              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
-            </div>
             <br>
             <ul class="list-unstyled stats-list">
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-clock"></i> Minutes played</span>
-                <span class="stat-value">64</span>
+              <li class="d-flex justify-content-center align-items-center mb-2">
+                <h5>Best Stats</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-bar-chart"></i>Tackles</span>
-                <span class="stat-value">14</span>
+                <span>Gain Line Sucess Rate</span>
+                <span class="stat-value">70% <span class="text-secondary">(4º)</span></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-people"></i> Starting lineup</span>
-                <span class="stat-value">13</span>
+                <span>Carries</span>
+                <span class="stat-value">10 <span class="text-secondary">(2º)</span></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-trophy"></i> Tries</span>
-                <span class="stat-value">5</span>
+                <span>Turnovers</span>
+                <span class="stat-value">5 <span class="text-secondary">(1º)</span></span>
+              </li>
+              <li class="d-flex justify-content-center align-items-center mb-2">
+                <h5>Worse Stats</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
-                <span class="stat-value">2 / 0</span>
+                <span>Penalties Conceded</span>
+                <span class="stat-value">3 <span class="text-secondary">(12º)</span></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Tackle Dominance Rate</span>
+                <span class="stat-value">10% <span class="text-secondary">(14º)</span></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span>Passes</span>
+                <span class="stat-value">2 <span class="text-secondary">(18º)</span></span>
               </li>
             </ul>
           </div>
