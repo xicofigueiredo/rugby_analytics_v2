@@ -154,6 +154,98 @@ class PlayersController < ApplicationController
     @player = Player.find(params[:id])
   end
 
+  def head_to_head
+    # Ensure only coaches can access this
+    unless current_user.role == 'coach'
+      redirect_to root_path, alert: 'Only coaches can access the head-to-head comparison tool.'
+    end
+
+    # Get all players from the coach's team with error handling
+    if current_user.team.present?
+      @team_players = current_user.team.players.order(:name)
+    else
+      redirect_to root_path, alert: 'You are not assigned to a team. Please contact an administrator.'
+    end
+
+    # Get selected players for comparison
+    @player1_id = params[:player1_id]
+    @player2_id = params[:player2_id]
+
+    if @player1_id.present? && @player2_id.present?
+      @player1 = Player.find(@player1_id)
+      @player2 = Player.find(@player2_id)
+
+      # Generate mock comparison data for both players
+      @player1_stats = {
+        "Tackles" => rand(5..15),
+        "Turnovers" => rand(2..8),
+        "Errors" => rand(1..5),
+        "Penalties" => rand(0..3),
+        "Cards" => rand(0..1),
+        "Carries" => rand(5..20),
+        "Passes" => rand(10..30),
+        "Scrums" => rand(2..8),
+        "Mauls" => rand(3..10),
+        "Lineouts" => rand(2..6)
+      }
+
+      @player2_stats = {
+        "Tackles" => rand(5..15),
+        "Turnovers" => rand(2..8),
+        "Errors" => rand(1..5),
+        "Penalties" => rand(0..3),
+        "Cards" => rand(0..1),
+        "Carries" => rand(5..20),
+        "Passes" => rand(10..30),
+        "Scrums" => rand(2..8),
+        "Mauls" => rand(3..10),
+        "Lineouts" => rand(2..6)
+      }
+
+      # Performance ratings for radar chart
+      @player1_performance = {
+        "Attack" => rand(5.0..9.0).round(1),
+        "Defense" => rand(5.0..9.0).round(1),
+        "Work Rate" => rand(5.0..9.0).round(1),
+        "Discipline" => rand(5.0..9.0).round(1),
+        "Kicking" => rand(5.0..9.0).round(1),
+        "Set Piece" => rand(5.0..9.0).round(1),
+        "Breakdown" => rand(5.0..9.0).round(1)
+      }
+
+      @player2_performance = {
+        "Attack" => rand(5.0..9.0).round(1),
+        "Defense" => rand(5.0..9.0).round(1),
+        "Work Rate" => rand(5.0..9.0).round(1),
+        "Discipline" => rand(5.0..9.0).round(1),
+        "Kicking" => rand(5.0..9.0).round(1),
+        "Set Piece" => rand(5.0..9.0).round(1),
+        "Breakdown" => rand(5.0..9.0).round(1)
+      }
+
+      # Season averages
+      @player1_season_avg = {
+        "Attack" => 7.2,
+        "Defense" => 6.8,
+        "Work Rate" => 7.5,
+        "Discipline" => 6.9,
+        "Kicking" => 6.5,
+        "Set Piece" => 7.1,
+        "Breakdown" => 6.7
+      }
+
+      @player2_season_avg = {
+        "Attack" => 6.8,
+        "Defense" => 7.2,
+        "Work Rate" => 6.9,
+        "Discipline" => 7.1,
+        "Kicking" => 7.0,
+        "Set Piece" => 6.8,
+        "Breakdown" => 7.3
+      }
+    end
+  end
+
   private
 
   def skip_if_not_current_user

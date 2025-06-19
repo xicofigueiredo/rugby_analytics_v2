@@ -1,0 +1,360 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card main-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="text-white mb-0">
+            <i class="fas fa-users me-2"></i>Head-to-Head Comparison
+          </h4>
+          <span class="text-secondary">Select two players to compare</span>
+        </div>
+
+        <%= form_with url: head_to_head_path, method: :get, local: true, class: "row g-3" do |f| %>
+          <% if @team_players.any? %>
+            <div class="col-md-5">
+              <label class="form-label text-white">Player 1</label>
+              <%= f.select :player1_id,
+                  options_from_collection_for_select(@team_players, :id, :name, @player1_id),
+                  { include_blank: "Select Player 1" },
+                  { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
+              <small class="text-muted">Available players: <%= @team_players.count %></small>
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label text-white">Player 2</label>
+              <%= f.select :player2_id,
+                  options_from_collection_for_select(@team_players, :id, :name, @player2_id),
+                  { include_blank: "Select Player 2" },
+                  { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
+              <small class="text-muted">Available players: <%= @team_players.count %></small>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+              <%= f.submit "Compare", class: "btn btn-primary w-100" %>
+            </div>
+          <% else %>
+            <div class="col-12">
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No players found in your team. Please contact an administrator to add players to your team.
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @player1 && @player2 %>
+    <!-- Player Cards -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card main-card p-4">
+          <div class="d-flex align-items-center mb-3">
+            <div class="me-3">
+              <% if @player1.id == 1 %>
+                <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player1.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+              <% elsif @player1.id == 2 %>
+                <img src="<%= asset_path('puto.png') %>" alt="<%= @player1.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+              <% else %>
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                  <i class="fas fa-user text-white"></i>
+                </div>
+              <% end %>
+            </div>
+            <div>
+              <h5 class="text-white mb-1"><%= @player1.name %></h5>
+              <small class="text-muted"><%= @player1.positions.join(", ") %></small>
+            </div>
+          </div>
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="text-info fw-bold"><%= @player1.age %></div>
+              <small class="text-muted">Age</small>
+            </div>
+            <div class="col-4">
+              <div class="text-info fw-bold"><%= @player1.height %>cm</div>
+              <small class="text-muted">Height</small>
+            </div>
+            <div class="col-4">
+              <div class="text-info fw-bold"><%= @player1.weight %>kg</div>
+              <small class="text-muted">Weight</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card main-card p-4">
+          <div class="d-flex align-items-center mb-3">
+            <div class="me-3">
+              <% if @player2.id == 1 %>
+                <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player2.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+              <% elsif @player2.id == 2 %>
+                <img src="<%= asset_path('puto.png') %>" alt="<%= @player2.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+              <% else %>
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                  <i class="fas fa-user text-white"></i>
+                </div>
+              <% end %>
+            </div>
+            <div>
+              <h5 class="text-white mb-1"><%= @player2.name %></h5>
+              <small class="text-muted"><%= @player2.positions.join(", ") %></small>
+            </div>
+          </div>
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="text-info fw-bold"><%= @player2.age %></div>
+              <small class="text-muted">Age</small>
+            </div>
+            <div class="col-4">
+              <div class="text-info fw-bold"><%= @player2.height %>cm</div>
+              <small class="text-muted">Height</small>
+            </div>
+            <div class="col-4">
+              <div class="text-info fw-bold"><%= @player2.weight %>kg</div>
+              <small class="text-muted">Weight</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Comparison Chart -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card main-card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-white mb-0">Performance Comparison</h5>
+            <span class="text-secondary">2024/2025 Season</span>
+          </div>
+          <div style="height: 400px;">
+            <%= column_chart [
+                { name: @player1.name, data: @player1_stats },
+                { name: @player2.name, data: @player2_stats }
+              ],
+              height: "350px",
+              colors: ["#4dc9f6", "#f72585"],
+              library: {
+                plugins: {
+                  legend: {
+                    labels: {
+                      color: 'white'
+                    }
+                  }
+                },
+                scales: {
+                  x: {
+                    grid: {
+                      color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                      color: 'white'
+                    }
+                  },
+                  y: {
+                    grid: {
+                      color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                      color: 'white'
+                    }
+                  }
+                }
+              } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar Charts -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card main-card p-4">
+          <h5 class="text-white mb-3"><%= @player1.name %> - Performance Ratings</h5>
+          <div style="height: 300px;">
+            <canvas id="radarChart1" width="300" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card main-card p-4">
+          <h5 class="text-white mb-3"><%= @player2.name %> - Performance Ratings</h5>
+          <div style="height: 300px;">
+            <canvas id="radarChart2" width="300" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Stats Table -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card main-card p-4">
+          <h5 class="text-white mb-3">Detailed Statistics Comparison</h5>
+          <div class="table-responsive">
+            <table class="table table-hover table-dark-custom">
+              <thead>
+                <tr>
+                  <th class="text-white">Statistic</th>
+                  <th class="text-center text-white"><%= @player1.name %></th>
+                  <th class="text-center text-white"><%= @player2.name %></th>
+                  <th class="text-center text-white">Difference</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @player1_stats.each do |stat, value1| %>
+                  <% value2 = @player2_stats[stat] %>
+                  <% diff = value1 - value2 %>
+                  <tr>
+                    <td class="text-white"><%= stat %></td>
+                    <td class="text-center text-white"><%= value1 %></td>
+                    <td class="text-center text-white"><%= value2 %></td>
+                    <td class="text-center">
+                      <% if diff > 0 %>
+                        <span>
+                          <span style="color: #4dc9f6"><%= @player1.name %></span> (+<%= diff %>)
+                        </span>
+                      <% elsif diff < 0 %>
+                        <span>
+                          <span style="color: #f72585"><%= @player2.name %></span> (+<%= diff.abs %>)
+                        </span>
+                      <% else %>
+                        <span class="text-warning">
+                          Tie
+                        </span>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Radar Chart for Player 1
+      const ctx1 = document.getElementById('radarChart1').getContext('2d');
+      new Chart(ctx1, {
+        type: 'radar',
+        data: {
+          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+          datasets: [{
+            label: "This Season",
+            data: [<%= @player1_performance["Attack"] %>, <%= @player1_performance["Defense"] %>, <%= @player1_performance["Work Rate"] %>, <%= @player1_performance["Discipline"] %>, <%= @player1_performance["Kicking"] %>, <%= @player1_performance["Set Piece"] %>, <%= @player1_performance["Breakdown"] %>],
+            fill: true,
+            backgroundColor: '#4dc9f67a',
+            borderColor: '#4dc9f6',
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: "Season Average",
+            data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Kicking"] %>, <%= @player1_season_avg["Set Piece"] %>, <%= @player1_season_avg["Breakdown"] %>],
+            fill: true,
+            backgroundColor: '#f725857a',
+            borderColor: '#f72585',
+            pointBackgroundColor: '#f72585'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white'
+              }
+            }
+          },
+          scales: {
+            r: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              angleLines: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              pointLabels: {
+                color: 'white'
+              },
+              ticks: {
+                color: 'white',
+                backdropColor: 'transparent'
+              }
+            }
+          }
+        }
+      });
+
+      // Radar Chart for Player 2
+      const ctx2 = document.getElementById('radarChart2').getContext('2d');
+      new Chart(ctx2, {
+        type: 'radar',
+        data: {
+          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+          datasets: [{
+            label: "This Season",
+            data: [<%= @player2_performance["Attack"] %>, <%= @player2_performance["Defense"] %>, <%= @player2_performance["Work Rate"] %>, <%= @player2_performance["Discipline"] %>, <%= @player2_performance["Kicking"] %>, <%= @player2_performance["Set Piece"] %>, <%= @player2_performance["Breakdown"] %>],
+            fill: true,
+            backgroundColor: '#4dc9f67a',
+            borderColor: '#4dc9f6',
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: "Season Average",
+            data: [<%= @player2_season_avg["Attack"] %>, <%= @player2_season_avg["Defense"] %>, <%= @player2_season_avg["Work Rate"] %>, <%= @player2_season_avg["Discipline"] %>, <%= @player2_season_avg["Kicking"] %>, <%= @player2_season_avg["Set Piece"] %>, <%= @player2_season_avg["Breakdown"] %>],
+            fill: true,
+            backgroundColor: '#f725857a',
+            borderColor: '#f72585',
+            pointBackgroundColor: '#f72585'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white'
+              }
+            }
+          },
+          scales: {
+            r: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              angleLines: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              pointLabels: {
+                color: 'white'
+              },
+              ticks: {
+                color: 'white',
+                backdropColor: 'transparent'
+              }
+            }
+          }
+        }
+      });
+    </script>
+  <% else %>
+    <!-- Empty State -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card main-card p-5 text-center">
+          <i class="fas fa-users fa-3x text-muted mb-3"></i>
+          <h4 class="text-white mb-3">Select Two Players to Compare</h4>
+          <p class="text-muted">Choose two players from your team to see a detailed head-to-head comparison of their performance statistics.</p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -42,6 +42,9 @@ Rails.application.routes.draw do
 
   get 'profile', to: 'players#profile', as: :profile
 
+  # Head-to-head comparison tool for coaches
+  get 'head_to_head', to: 'players#head_to_head', as: :head_to_head
+
   namespace :admin do
     resources :users
   end
