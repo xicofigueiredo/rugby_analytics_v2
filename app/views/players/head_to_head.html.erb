@@ -10,7 +10,7 @@
           </h4>
           <span class="text-secondary">Select two players to compare</span>
         </div>
-
+        <br>
         <%= form_with url: head_to_head_path, method: :get, local: true, class: "row g-3" do |f| %>
           <% if @team_players.any? %>
             <div class="col-md-5">
@@ -31,7 +31,8 @@
               <small class="text-muted">Available players: <%= @team_players.count %></small>
             </div>
 
-            <div class="col-md-2 d-flex align-items-end">
+            <div class="col-md-2">
+              <label class="form-label text-white">&nbsp;</label>
               <%= f.submit "Compare", class: "btn btn-primary w-100" %>
             </div>
           <% else %>
@@ -282,9 +283,7 @@
                 }
               },
               ticks: {
-                color: 'white',
-                backdropColor: 'transparent',
-                stepSize: 2
+                display: false
               }
             }
           }
