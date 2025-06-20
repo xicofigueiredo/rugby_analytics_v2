@@ -45,13 +45,13 @@ class MatchesController < ApplicationController
     @home_players = Team.second.players
     @away_players = Team.first.players
     @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
+    @player = current_user.player
+    # if current_user.role == "player"
+    #   @player = current_user.player
 
-    if current_user.role == "player"
-      @player = current_user.player
-
-    elsif current_user.role == "coach"
-      @player = @match.player_matches.first.player
-    end
+    # elsif current_user.role == "coach"
+    #   @player = @match.player_matches.first.player
+    # end
     @general_stats = [
       { name: "Carries", home: 63, away: 37 },
       { name: "Tackles", home: 50, away: 50 },

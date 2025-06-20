@@ -74,9 +74,9 @@
           <%= render partial: 'player_match_stats', locals: { player: current_user.player } %>
         </div>
 
-        <div id="coach-chart" class="chart-section">
+        <%# <div id="coach-chart" class="chart-section">
           <%= render partial: 'coach_match_stats', locals: { player: @player} %>
-        </div>
+        <%# </div> %>
 
         <div id="note-chart" class="chart-section">
           <%= render partial: 'note_chart', locals: { match: @match, player: current_user.player, player_match: @player_match } %>
