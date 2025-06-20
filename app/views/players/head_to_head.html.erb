@@ -19,7 +19,6 @@
                   options_from_collection_for_select(@team_players, :id, :name, @player1_id),
                   { include_blank: "Select Player 1" },
                   { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
-              <small class="text-muted">Available players: <%= @team_players.count %></small>
             </div>
 
             <div class="col-md-5">
@@ -28,7 +27,6 @@
                   options_from_collection_for_select(@team_players, :id, :name, @player2_id),
                   { include_blank: "Select Player 2" },
                   { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
-              <small class="text-muted">Available players: <%= @team_players.count %></small>
             </div>
 
             <div class="col-md-2">
@@ -67,21 +65,21 @@
             </div>
             <div>
               <h5 class="text-white mb-1"><%= @player1.name %></h5>
-              <small class="text-muted"><%= @player1.positions.join(", ") %></small>
+              <small class="text-white"><%= @player1.positions.join(", ") %></small>
             </div>
           </div>
           <div class="row text-center">
             <div class="col-4">
               <div class="text-info fw-bold"><%= @player1.age %></div>
-              <small class="text-muted">Age</small>
+              <small class="text-white">Age</small>
             </div>
             <div class="col-4">
               <div class="text-info fw-bold"><%= @player1.height %>cm</div>
-              <small class="text-muted">Height</small>
+              <small class="text-white">Height</small>
             </div>
             <div class="col-4">
               <div class="text-info fw-bold"><%= @player1.weight %>kg</div>
-              <small class="text-muted">Weight</small>
+              <small class="text-white">Weight</small>
             </div>
           </div>
         </div>
@@ -103,21 +101,21 @@
             </div>
             <div>
               <h5 class="text-white mb-1"><%= @player2.name %></h5>
-              <small class="text-muted"><%= @player2.positions.join(", ") %></small>
+              <small class="text-white"><%= @player2.positions.join(", ") %></small>
             </div>
           </div>
           <div class="row text-center">
             <div class="col-4">
               <div class="text-info fw-bold"><%= @player2.age %></div>
-              <small class="text-muted">Age</small>
+              <small class="text-white">Age</small>
             </div>
             <div class="col-4">
               <div class="text-info fw-bold"><%= @player2.height %>cm</div>
-              <small class="text-muted">Height</small>
+              <small class="text-white">Height</small>
             </div>
             <div class="col-4">
               <div class="text-info fw-bold"><%= @player2.weight %>kg</div>
-              <small class="text-muted">Weight</small>
+              <small class="text-white">Weight</small>
             </div>
           </div>
         </div>
@@ -295,9 +293,9 @@
     <div class="row">
       <div class="col-12">
         <div class="card main-card p-5 text-center">
-          <i class="fas fa-users fa-3x text-muted mb-3"></i>
+          <i class="fas fa-users fa-3x text-white mb-3"></i>
           <h4 class="text-white mb-3">Select Two Players to Compare</h4>
-          <p class="text-muted">Choose two players from your team to see a detailed head-to-head comparison of their performance statistics.</p>
+          <p class="text-white">Choose two players from your team to see a detailed head-to-head comparison of their performance statistics.</p>
         </div>
       </div>
     </div>
