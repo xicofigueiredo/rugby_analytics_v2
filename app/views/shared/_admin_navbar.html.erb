@@ -22,7 +22,7 @@
             <% end %>
           </li>
           <li class="nav-item">
-            <%= link_to players_path, class: "nav-link text-white #{'active' if controller_name == 'players'}" do %>
+            <%= link_to players_path, class: "nav-link text-white #{'active' if controller_name == 'players' && controller.action_name != 'head_to_head' && controller.action_name != 'profile'}" do %>
               Players
             <% end %>
           </li>
@@ -32,14 +32,13 @@
             <% end %>
           </li>
           <li class="nav-item">
-            <%= link_to profile_path, class: "nav-link text-white #{'active' if controller_name == 'players'}" do %>
+            <%= link_to profile_path, class: "nav-link text-white #{'active' if controller_name == 'players' && controller.action_name == 'profile'}" do %>
               My Profile
             <% end %>
           </li>
           <li class="nav-item">
             <%= link_to head_to_head_path,
-                class: "nav-link text-white #{'active' if controller.action_name == 'head_to_head'}",
-                data: { turbo_frame: "main_content" } do %>
+                class: "nav-link text-white #{'active' if controller.action_name == 'head_to_head'}" do %>
               H2H
             <% end %>
           </li>
