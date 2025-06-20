@@ -156,7 +156,7 @@ class PlayersController < ApplicationController
 
   def head_to_head
     # Ensure only coaches can access this
-    unless current_user.role == 'coach'
+    unless current_user.role == 'coach' || current_user.role == 'admin'
       redirect_to root_path, alert: 'Only coaches can access the head-to-head comparison tool.'
     end
 

@@ -36,6 +36,13 @@
               My Profile
             <% end %>
           </li>
+          <li class="nav-item">
+            <%= link_to head_to_head_path,
+                class: "nav-link text-white #{'active' if controller.action_name == 'head_to_head'}",
+                data: { turbo_frame: "main_content" } do %>
+              H2H
+            <% end %>
+          </li>
         <% end %>
       </ul>
 
