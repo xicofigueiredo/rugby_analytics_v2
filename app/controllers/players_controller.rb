@@ -229,8 +229,8 @@ class PlayersController < ApplicationController
         "Defense" => 6.8,
         "Work Rate" => 7.5,
         "Discipline" => 6.9,
-        "Kicking" => 6.5,
-        "Set Piece" => 7.1,
+        "Kicking" => 3.5,
+        "Set Piece" => 8.1,
         "Breakdown" => 6.7
       }
 
@@ -238,10 +238,10 @@ class PlayersController < ApplicationController
         "Attack" => 6.8,
         "Defense" => 7.2,
         "Work Rate" => 6.9,
-        "Discipline" => 7.1,
-        "Kicking" => 7.0,
+        "Discipline" => 7.7,
+        "Kicking" => 3.0,
         "Set Piece" => 6.8,
-        "Breakdown" => 7.3
+        "Breakdown" => 8.2
       }
     end
   end

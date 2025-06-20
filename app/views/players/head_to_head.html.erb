@@ -123,7 +123,7 @@
       </div>
     </div>
 
-    <!-- Performance Comparison Chart -->
+    <!-- Performance Comparison Chart (Bar Chart) -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card main-card p-4">
@@ -170,22 +170,13 @@
       </div>
     </div>
 
-    <!-- Radar Charts -->
+    <!-- Combined Radar Chart -->
     <div class="row mb-4">
-      <div class="col-md-6">
+      <div class="col-12">
         <div class="card main-card p-4">
-          <h5 class="text-white mb-3"><%= @player1.name %> - Performance Ratings</h5>
-          <div style="height: 300px;">
-            <canvas id="radarChart1" width="300" height="300"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card main-card p-4">
-          <h5 class="text-white mb-3"><%= @player2.name %> - Performance Ratings</h5>
-          <div style="height: 300px;">
-            <canvas id="radarChart2" width="300" height="300"></canvas>
+          <h5 class="text-white mb-3">Skills Radar - Season Average</h5>
+          <div style="height: 400px;">
+            <canvas id="radarChart" width="400" height="400"></canvas>
           </div>
         </div>
       </div>
@@ -239,75 +230,21 @@
     </div>
 
     <script>
-      // Radar Chart for Player 1
-      const ctx1 = document.getElementById('radarChart1').getContext('2d');
-      new Chart(ctx1, {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      new Chart(ctx, {
         type: 'radar',
         data: {
           labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
           datasets: [{
-            label: "This Season",
-            data: [<%= @player1_performance["Attack"] %>, <%= @player1_performance["Defense"] %>, <%= @player1_performance["Work Rate"] %>, <%= @player1_performance["Discipline"] %>, <%= @player1_performance["Kicking"] %>, <%= @player1_performance["Set Piece"] %>, <%= @player1_performance["Breakdown"] %>],
-            fill: true,
-            backgroundColor: '#4dc9f67a',
-            borderColor: '#4dc9f6',
-            pointBackgroundColor: '#4dc9f6'
-          },
-          {
-            label: "Season Average",
+            label: "<%= @player1.name %>",
             data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Kicking"] %>, <%= @player1_season_avg["Set Piece"] %>, <%= @player1_season_avg["Breakdown"] %>],
             fill: true,
-            backgroundColor: '#f725857a',
-            borderColor: '#f72585',
-            pointBackgroundColor: '#f72585'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              labels: {
-                color: 'white'
-              }
-            }
-          },
-          scales: {
-            r: {
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              angleLines: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              pointLabels: {
-                color: 'white'
-              },
-              ticks: {
-                color: 'white',
-                backdropColor: 'transparent'
-              }
-            }
-          }
-        }
-      });
-
-      // Radar Chart for Player 2
-      const ctx2 = document.getElementById('radarChart2').getContext('2d');
-      new Chart(ctx2, {
-        type: 'radar',
-        data: {
-          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
-          datasets: [{
-            label: "This Season",
-            data: [<%= @player2_performance["Attack"] %>, <%= @player2_performance["Defense"] %>, <%= @player2_performance["Work Rate"] %>, <%= @player2_performance["Discipline"] %>, <%= @player2_performance["Kicking"] %>, <%= @player2_performance["Set Piece"] %>, <%= @player2_performance["Breakdown"] %>],
-            fill: true,
             backgroundColor: '#4dc9f67a',
             borderColor: '#4dc9f6',
             pointBackgroundColor: '#4dc9f6'
           },
           {
-            label: "Season Average",
+            label: "<%= @player2.name %>",
             data: [<%= @player2_season_avg["Attack"] %>, <%= @player2_season_avg["Defense"] %>, <%= @player2_season_avg["Work Rate"] %>, <%= @player2_season_avg["Discipline"] %>, <%= @player2_season_avg["Kicking"] %>, <%= @player2_season_avg["Set Piece"] %>, <%= @player2_season_avg["Breakdown"] %>],
             fill: true,
             backgroundColor: '#f725857a',
@@ -321,12 +258,17 @@
           plugins: {
             legend: {
               labels: {
-                color: 'white'
+                color: 'white',
+                font: {
+                  size: 14
+                }
               }
             }
           },
           scales: {
             r: {
+              min: 0,
+              max: 10,
               grid: {
                 color: 'rgba(255, 255, 255, 0.1)'
               },
@@ -334,11 +276,15 @@
                 color: 'rgba(255, 255, 255, 0.1)'
               },
               pointLabels: {
-                color: 'white'
+                color: 'white',
+                font: {
+                  size: 14
+                }
               },
               ticks: {
                 color: 'white',
-                backdropColor: 'transparent'
+                backdropColor: 'transparent',
+                stepSize: 2
               }
             }
           }
