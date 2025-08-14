@@ -170,10 +170,12 @@ class PlayersController < ApplicationController
     # Get selected players for comparison
     @player1_id = params[:player1_id]
     @player2_id = params[:player2_id]
+    @player3_id = params[:player3_id]
 
     if @player1_id.present? && @player2_id.present?
       @player1 = Player.find(@player1_id)
       @player2 = Player.find(@player2_id)
+      @player3 = Player.find(@player3_id) if @player3_id.present?
 
       # Generate mock comparison data for both players
       @player1_stats = {
@@ -202,6 +204,22 @@ class PlayersController < ApplicationController
         "Lineouts" => rand(2..6)
       }
 
+      # Generate mock data for third player if present
+      if @player3.present?
+        @player3_stats = {
+          "Tackles" => rand(5..15),
+          "Turnovers" => rand(2..8),
+          "Errors" => rand(1..5),
+          "Penalties" => rand(0..3),
+          "Cards" => rand(0..1),
+          "Carries" => rand(5..20),
+          "Passes" => rand(10..30),
+          "Scrums" => rand(2..8),
+          "Mauls" => rand(3..10),
+          "Lineouts" => rand(2..6)
+        }
+      end
+
       # Performance ratings for radar chart
       @player1_performance = {
         "Attack" => rand(5.0..9.0).round(1),
@@ -223,6 +241,19 @@ class PlayersController < ApplicationController
         "Breakdown" => rand(5.0..9.0).round(1)
       }
 
+      # Performance data for third player if present
+      if @player3.present?
+        @player3_performance = {
+          "Attack" => rand(5.0..9.0).round(1),
+          "Defense" => rand(5.0..9.0).round(1),
+          "Work Rate" => rand(5.0..9.0).round(1),
+          "Discipline" => rand(5.0..9.0).round(1),
+          "Kicking" => rand(5.0..9.0).round(1),
+          "Set Piece" => rand(5.0..9.0).round(1),
+          "Breakdown" => rand(5.0..9.0).round(1)
+        }
+      end
+
       # Season averages
       @player1_season_avg = {
         "Attack" => 7.2,
@@ -243,6 +274,19 @@ class PlayersController < ApplicationController
         "Set Piece" => 6.8,
         "Breakdown" => 8.2
       }
+
+      # Season averages for third player if present
+      if @player3.present?
+        @player3_season_avg = {
+          "Attack" => 7.5,
+          "Defense" => 6.5,
+          "Work Rate" => 7.8,
+          "Discipline" => 6.2,
+          "Kicking" => 4.5,
+          "Set Piece" => 7.9,
+          "Breakdown" => 7.1
+        }
+      end
     end
   end
 

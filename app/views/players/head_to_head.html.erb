@@ -8,12 +8,12 @@
           <h4 class="text-white mb-0">
             <i class="fas fa-users me-2"></i>Head-to-Head Comparison
           </h4>
-          <span class="text-secondary">Select two players to compare</span>
+          <span class="text-secondary">Select up to three players to compare</span>
         </div>
         <br>
         <%= form_with url: head_to_head_path, method: :get, local: true, class: "row g-3" do |f| %>
           <% if @team_players.any? %>
-            <div class="col-md-5">
+            <div class="col-md-3">
               <label class="form-label text-white">Player 1</label>
               <%= f.select :player1_id,
                   options_from_collection_for_select(@team_players, :id, :name, @player1_id),
@@ -21,7 +21,7 @@
                   { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
             </div>
 
-            <div class="col-md-5">
+            <div class="col-md-3">
               <label class="form-label text-white">Player 2</label>
               <%= f.select :player2_id,
                   options_from_collection_for_select(@team_players, :id, :name, @player2_id),
@@ -29,7 +29,15 @@
                   { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-3">
+              <label class="form-label text-white">Player 3</label>
+              <%= f.select :player3_id,
+                  options_from_collection_for_select(@team_players, :id, :name, @player3_id),
+                  { include_blank: "Select Player 3" },
+                  { class: "form-select", style: "background-color: #2a2a2a; color: white; border-color: #666;" } %>
+            </div>
+
+            <div class="col-md-3">
               <label class="form-label text-white">&nbsp;</label>
               <%= f.submit "Compare", class: "btn btn-primary w-100" %>
             </div>
@@ -49,7 +57,7 @@
   <% if @player1 && @player2 %>
     <!-- Player Cards -->
     <div class="row mb-4">
-      <div class="col-md-6">
+      <div class="<%= @player3.present? ? 'col-md-4' : 'col-md-6' %>">
         <div class="card main-card p-4">
           <div class="d-flex align-items-center mb-3">
             <div class="me-3">
@@ -85,7 +93,7 @@
         </div>
       </div>
 
-      <div class="col-md-6">
+      <div class="<%= @player3.present? ? 'col-md-4' : 'col-md-6' %>">
         <div class="card main-card p-4">
           <div class="d-flex align-items-center mb-3">
             <div class="me-3">
@@ -120,6 +128,44 @@
           </div>
         </div>
       </div>
+
+      <% if @player3.present? %>
+        <div class="col-md-4">
+          <div class="card main-card p-4">
+            <div class="d-flex align-items-center mb-3">
+              <div class="me-3">
+                <% if @player3.id == 1 %>
+                  <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player3.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <% elsif @player3.id == 2 %>
+                  <img src="<%= asset_path('puto.png') %>" alt="<%= @player3.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <% else %>
+                  <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                <% end %>
+              </div>
+              <div>
+                <h5 class="text-white mb-1"><%= @player3.name %></h5>
+                <small class="text-white"><%= @player3.positions.join(", ") %></small>
+              </div>
+            </div>
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="text-info fw-bold"><%= @player3.age %></div>
+                <small class="text-white">Age</small>
+              </div>
+              <div class="col-4">
+                <div class="text-info fw-bold"><%= @player3.height %>cm</div>
+                <small class="text-white">Height</small>
+              </div>
+              <div class="col-4">
+                <div class="text-info fw-bold"><%= @player3.weight %>kg</div>
+                <small class="text-white">Weight</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
     </div>
 
     <!-- Performance Comparison Chart (Bar Chart) -->
@@ -134,9 +180,9 @@
             <%= column_chart [
                 { name: @player1.name, data: @player1_stats },
                 { name: @player2.name, data: @player2_stats }
-              ],
+              ].concat(@player3.present? ? [{ name: @player3.name, data: @player3_stats }] : []),
               height: "350px",
-              colors: ["#4dc9f6", "#f72585"],
+              colors: @player3.present? ? ["#4dc9f6", "#f72585", "#28a745"] : ["#4dc9f6", "#f72585"],
               library: {
                 plugins: {
                   legend: {
@@ -193,30 +239,56 @@
                   <th class="text-white">Statistic</th>
                   <th class="text-center text-white"><%= @player1.name %></th>
                   <th class="text-center text-white"><%= @player2.name %></th>
-                  <th class="text-center text-white">Difference</th>
+                  <% if @player3.present? %>
+                    <th class="text-center text-white"><%= @player3.name %></th>
+                  <% end %>
+                  <th class="text-center text-white"><%= @player3.present? ? 'Best Performance' : 'Difference' %></th>
                 </tr>
               </thead>
               <tbody>
                 <% @player1_stats.each do |stat, value1| %>
                   <% value2 = @player2_stats[stat] %>
-                  <% diff = value1 - value2 %>
+                  <% value3 = @player3.present? ? @player3_stats[stat] : nil %>
                   <tr>
                     <td class="text-white"><%= stat %></td>
                     <td class="text-center text-white"><%= value1 %></td>
                     <td class="text-center text-white"><%= value2 %></td>
+                    <% if @player3.present? %>
+                      <td class="text-center text-white"><%= value3 %></td>
+                    <% end %>
                     <td class="text-center">
-                      <% if diff > 0 %>
-                        <span>
-                          <span style="color: #4dc9f6"><%= @player1.name %></span> (+<%= diff %>)
-                        </span>
-                      <% elsif diff < 0 %>
-                        <span>
-                          <span style="color: #f72585"><%= @player2.name %></span> (+<%= diff.abs %>)
-                        </span>
+                      <% if @player3.present? %>
+                        <% values = { @player1.name => value1, @player2.name => value2, @player3.name => value3 } %>
+                        <% sorted_values = values.sort_by { |k, v| -v } %>
+                        <% best_player = sorted_values.first %>
+                        <% second_best = sorted_values.length > 1 ? sorted_values[1] : nil %>
+
+                        <% if values.values.uniq.length == 1 %>
+                          <span class="text-warning">All Tied</span>
+                        <% elsif second_best && best_player[1] == second_best[1] %>
+                          <span class="text-warning">
+                            Multiple tied for first (<%= best_player[1] %>)
+                          </span>
+                        <% else %>
+                          <% difference = second_best ? (best_player[1] - second_best[1]) : 0 %>
+                          <span style="color: <%= best_player[0] == @player1.name ? '#4dc9f6' : (best_player[0] == @player2.name ? '#f72585' : '#28a745') %>">
+                            <%= best_player[0] %>
+                          </span>
+                          <% if difference > 0 %>
+                            <br><small class="text-secondary">+<%= difference %> ahead</small>
+                          <% end %>
+                        <% end %>
                       <% else %>
-                        <span class="text-warning">
-                          Tie
-                        </span>
+                        <% diff = value1 - value2 %>
+                        <% if diff > 0 %>
+                          <span style="color: #4dc9f6"><%= @player1.name %></span>
+                          <br><small class="text-secondary">+<%= diff %> ahead</small>
+                        <% elsif diff < 0 %>
+                          <span style="color: #f72585"><%= @player2.name %></span>
+                          <br><small class="text-secondary">+<%= diff.abs %> ahead</small>
+                        <% else %>
+                          <span class="text-warning">Tie</span>
+                        <% end %>
                       <% end %>
                     </td>
                   </tr>
@@ -249,7 +321,15 @@
             backgroundColor: '#f725857a',
             borderColor: '#f72585',
             pointBackgroundColor: '#f72585'
-          }]
+          }<% if @player3.present? %>,
+          {
+            label: "<%= @player3.name %>",
+            data: [<%= @player3_season_avg["Attack"] %>, <%= @player3_season_avg["Defense"] %>, <%= @player3_season_avg["Work Rate"] %>, <%= @player3_season_avg["Discipline"] %>, <%= @player3_season_avg["Kicking"] %>, <%= @player3_season_avg["Set Piece"] %>, <%= @player3_season_avg["Breakdown"] %>],
+            fill: true,
+            backgroundColor: '#28a7457a',
+            borderColor: '#28a745',
+            pointBackgroundColor: '#28a745'
+          }<% end %>]
         },
         options: {
           responsive: true,
@@ -294,8 +374,8 @@
       <div class="col-12">
         <div class="card main-card p-5 text-center">
           <i class="fas fa-users fa-3x text-white mb-3"></i>
-          <h4 class="text-white mb-3">Select Two Players to Compare</h4>
-          <p class="text-white">Choose two players from your team to see a detailed head-to-head comparison of their performance statistics.</p>
+          <h4 class="text-white mb-3">Select Players to Compare</h4>
+          <p class="text-white">Choose two or three players from your team to see a detailed comparison of their performance statistics.</p>
         </div>
       </div>
     </div>
