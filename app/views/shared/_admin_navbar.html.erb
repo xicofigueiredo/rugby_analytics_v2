@@ -32,6 +32,11 @@
             <% end %>
           </li>
           <li class="nav-item">
+            <%= link_to team_profile_path, class: "nav-link text-white #{'active' if controller.class.name.start_with?('Teams') && action_name == 'team_profile'}" do %>
+              Team Profile
+            <% end %>
+          </li>
+          <li class="nav-item">
             <%= link_to profile_path, class: "nav-link text-white #{'active' if controller_name == 'players' && controller.action_name == 'profile'}" do %>
               My Profile
             <% end %>

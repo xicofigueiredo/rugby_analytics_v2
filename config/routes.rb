@@ -50,6 +50,7 @@ Rails.application.routes.draw do
   end
 
   get 'my_team_player', to: 'teams#my_team_player', as: :my_team_player
+  get 'team_profile', to: 'teams#team_profile', as: :team_profile
 
   resources :matches do
     member do

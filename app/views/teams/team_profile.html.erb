@@ -1,0 +1,334 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container">
+  <div class="row g-4">
+    <!-- Team Profile Card -->
+    <div class="col-md-4">
+      <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
+        <br>
+        <img src="<%= asset_path('cdul.jpg') %>" alt="<%= @team.name %>" class="profile-img mb-3" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
+        <div class="h4 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
+          <%= @team.name %>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
+          <span class="me-2" style="color: white;"><%= @team.country || 'Portugal' %></span>
+          <span class="me-2" style="color: white;">Level: <%= @team.level %></span>
+        </div>
+        <div class="col-md-12 mt-3">
+          <div class="card chart-card h-100">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+          </div>
+        </div>
+        <div class="row mb-3 mt-3">
+          <div class="col-6">
+            <div class="stat-label">Total Players</div>
+            <div class="stat-value"><%= @team_stats[:total_players] %></div>
+          </div>
+          <div class="col-6">
+            <div class="stat-label">Active Players</div>
+            <div class="stat-value"><%= @team_stats[:active_players] %></div>
+          </div>
+          <div class="col-6 mt-2">
+            <div class="stat-label">Avg Age</div>
+            <div class="stat-value"><%= @team_stats[:average_age] %> years</div>
+          </div>
+          <div class="col-6 mt-2">
+            <div class="stat-label">Avg Height</div>
+            <div class="stat-value"><%= @team_stats[:average_height] %> cm</div>
+          </div>
+          <div class="col-6 mt-2">
+            <div class="stat-label">Avg Weight</div>
+            <div class="stat-value"><%= @team_stats[:average_weight] %> kg</div>
+          </div>
+          <div class="col-6 mt-2">
+            <div class="stat-label">Level</div>
+            <div class="stat-value"><%= @team.level %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Stats -->
+    <div class="col-md-8">
+      <div class="row g-4">
+        <!-- Performance Chart -->
+        <div class="col-12">
+          <div class="card chart-card p-4 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Team Performance</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <div>
+              <%= turbo_frame_tag "performance_chart" do %>
+                <%= line_chart [
+                    { name: @team.name, data: @team_performance_data },
+                    { name: "Forwards", data: @league_performance_data },
+                    { name: "Backs", data: @performance_data }
+                  ],
+                  height: "220px",
+                  colors: ["#4dc9f6", "#ffd166", "#f72585"],
+                  library: {
+                    plugins: {
+                      legend: {
+                        labels: {
+                          color: 'white'
+                        }
+                      }
+                    }
+                  } %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Stats Chart -->
+        <div class="col-md-6">
+          <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Season Stats</div>
+              <div class="d-flex align-items-center gap-2">
+                <select id="statsSelector" class="form-select form-select-sm" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
+                  <option value="attack">Attack</option>
+                  <option value="defense">Defense</option>
+                  <option value="general">General</option>
+                </select>
+              </div>
+            </div>
+            <canvas id="lineChart" width="400" height="400"></canvas>
+          </div>
+        </div>
+
+        <!-- Team General Info -->
+        <div class="col-md-6">
+          <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Season Overview</div>
+              <span class="text-secondary">2024/2025</span>
+            </div>
+            <br>
+            <ul class="list-unstyled stats-list">
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-calendar fa-lg fa-fw text-secondary"></i> Matches played</span>
+                <span class="stat-value"><%= @team_stats[:matches_played] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-trophy fa-lg fa-fw text-secondary"></i> Wins</span>
+                <span class="stat-value"><%= @team_stats[:wins] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-times fa-lg fa-fw text-secondary"></i> Losses</span>
+                <span class="stat-value"><%= @team_stats[:losses] %></span>
+              </li>
+              <br>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-bullseye fa-lg fa-fw text-secondary"></i> Tries scored</span>
+                <span class="stat-value"><%= @team_stats[:tries_scored] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-shield fa-lg fa-fw text-secondary"></i> Tries conceded</span>
+                <span class="stat-value"><%= @team_stats[:tries_conceded] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-plus fa-lg fa-fw text-secondary"></i> Points scored</span>
+                <span class="stat-value"><%= @team_stats[:total_points] %></span>
+              </li>
+              <br>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-minus fa-lg fa-fw text-secondary"></i> Points conceded</span>
+                <span class="stat-value"><%= @team_stats[:points_conceded] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-chart-line fa-lg fa-fw text-secondary"></i> Points difference</span>
+                <span class="stat-value <%= @team_stats[:total_points] - @team_stats[:points_conceded] > 0 ? 'text-success' : 'text-danger' %>">
+                  <%= @team_stats[:total_points] - @team_stats[:points_conceded] > 0 ? '+' : '' %><%= @team_stats[:total_points] - @team_stats[:points_conceded] %>
+                </span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-percentage fa-lg fa-fw text-secondary"></i> Win rate</span>
+                <span class="stat-value"><%= ((@team_stats[:wins].to_f / @team_stats[:matches_played]) * 100).round(1) %>%</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    const radarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+        datasets: [{
+          data: [<%= @overall_data["Attack"] %>, <%= @overall_data["Defense"] %>, <%= @overall_data["Work Rate"] %>, <%= @overall_data["Discipline"] %>, <%= @overall_data["Kicking"] %>, <%= @overall_data["Set Piece"] %>, <%= @overall_data["Breakdown"] %>],
+          fill: true,
+          backgroundColor: '#4dc9f67a',
+          borderColor: '#4dc9f6',
+          pointBackgroundColor: '#4dc9f6'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            angleLines: {
+              color: '#ccc'
+            },
+            grid: {
+              color: '#666'
+            },
+            pointLabels: {
+              color: '#eee'
+            },
+            ticks: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    let lineChart;
+
+    // Define your datasets with team statistics per category
+    const datasets = {
+      attack: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Avg Carries',
+            data: [15, 18, 16, 17, 19, 18],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Avg Passes',
+            data: [145, 156, 138, 152, 161, 149],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      },
+      defense: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Avg Tackles',
+            data: [89, 95, 103, 91, 98, 105],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Avg Turnovers',
+            data: [8, 11, 7, 12, 9, 10],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      },
+      general: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Points Scored',
+            data: [28, 15, 21, 24, 18, 32],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Points Conceded',
+            data: [12, 8, 18, 15, 21, 14],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      }
+    };
+
+    function createChart(type) {
+      if (lineChart) {
+        lineChart.destroy();
+      }
+
+      lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: datasets[type].labels,
+          datasets: datasets[type].datasets
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#eee',
+                padding: 10
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#666'
+              },
+              ticks: {
+                color: '#eee'
+              }
+            },
+            x: {
+              grid: {
+                color: '#666'
+              },
+              ticks: {
+                color: '#eee'
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Initial chart creation
+    createChart('attack');
+
+    // Event listener for dropdown changes
+    document.getElementById('statsSelector').addEventListener('change', function(e) {
+      createChart(e.target.value);
+    });
+  });
+</script>

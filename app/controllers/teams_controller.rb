@@ -52,6 +52,71 @@ class TeamsController < ApplicationController
     # @output = JSON.parse(`#{command}`)
   end
 
+  def team_profile
+    @team = current_user.team
+    @players = @team.players.includes(:user)
+
+    # Calculate team averages (mock data for now, similar to player profile)
+    # In a real app, you'd calculate these from actual player stats
+
+    # Team performance over time (average of all players)
+    @team_performance_data = {
+      "CDUL" => 7.2,
+      "CDUP" => 6.8,
+      "AAC" => 6.5,
+      "Bel" => 7.0,
+      "GDD" => 6.9,
+      "SLB" => 7.1
+    }
+
+    # Performance compared to other teams
+    @performance_data = {
+      "CDUL" => 9,
+      "CDUP" => 4,
+      "AAC" => 7,
+      "Bel" => 8,
+      "GDD" => 6,
+      "SLB" => 7
+    }
+
+    # League average performance
+    @league_performance_data = {
+      "CDUL" => 6.5,
+      "CDUP" => 6.8,
+      "AAC" => 6.2,
+      "Bel" => 6.9,
+      "GDD" => 6.7,
+      "SLB" => 6.6
+    }
+
+    # Team overall radar chart data (averages)
+    @overall_data = {
+      "Attack" => 7.2,
+      "Defense" => 6.8,
+      "Work Rate" => 7.5,
+      "Discipline" => 7.1,
+      "Kicking" => 5.8,
+      "Set Piece" => 7.3,
+      "Breakdown" => 6.9
+    }
+
+    # Team stats aggregated
+    @team_stats = {
+      total_players: @players.count,
+      active_players: @players.joins(:user).count,
+      average_age: @players.average(:age)&.round(1) || 0,
+      average_height: @players.average(:height)&.round(1) || 0,
+      average_weight: @players.average(:weight)&.round(1) || 0,
+      matches_played: 14, # Mock data
+      wins: 9,
+      losses: 5,
+      tries_scored: 42,
+      tries_conceded: 28,
+      total_points: 156,
+      points_conceded: 98
+    }
+  end
+
   def new
     @team = Team.new
   end
