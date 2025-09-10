@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_28_201325) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_10_215055) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "actions", force: :cascade do |t|
+    t.bigint "player_match_id", null: false
+    t.string "action_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action_type"], name: "index_actions_on_action_type"
+    t.index ["player_match_id", "action_type"], name: "index_actions_on_player_match_id_and_action_type"
+    t.index ["player_match_id"], name: "index_actions_on_player_match_id"
+  end
 
   create_table "matches", force: :cascade do |t|
     t.string "season"
@@ -70,6 +80,24 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_28_201325) do
     t.string "country", default: "Portugal", null: false
   end
 
+  create_table "teamstats", force: :cascade do |t|
+    t.bigint "match_id", null: false
+    t.bigint "team_id", null: false
+    t.integer "lineouts_won", default: 0, null: false
+    t.integer "lineouts_lost", default: 0, null: false
+    t.integer "lineouts_stolen", default: 0, null: false
+    t.integer "lineouts_not_stolen", default: 0, null: false
+    t.integer "scrums_won", default: 0, null: false
+    t.integer "scrums_lost", default: 0, null: false
+    t.integer "scrums_stolen", default: 0, null: false
+    t.integer "scrums_not_stolen", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["match_id", "team_id"], name: "index_teamstats_on_match_id_and_team_id", unique: true
+    t.index ["match_id"], name: "index_teamstats_on_match_id"
+    t.index ["team_id"], name: "index_teamstats_on_team_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -88,10 +116,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_28_201325) do
     t.index ["team_id"], name: "index_users_on_team_id"
   end
 
+  add_foreign_key "actions", "player_matches"
   add_foreign_key "matches", "teams", column: "away_team_id"
   add_foreign_key "matches", "teams", column: "home_team_id"
   add_foreign_key "player_matches", "matches"
   add_foreign_key "player_matches", "players"
   add_foreign_key "players", "teams"
+  add_foreign_key "teamstats", "matches"
+  add_foreign_key "teamstats", "teams"
   add_foreign_key "users", "teams"
 end
