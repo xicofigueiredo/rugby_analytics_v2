@@ -4,7 +4,7 @@ class Action < ApplicationRecord
   # Define valid action types
   VALID_TYPES = %w[
     try assist tackle missed_tackle lineout_turnover turnover
-    penalty offload linebreak knock-on yellow red
+    penalty offload linebreak knock-on yellow red carry
   ].freeze
 
   validates :action_type, presence: true, inclusion: { in: VALID_TYPES }
@@ -17,7 +17,7 @@ class Action < ApplicationRecord
 
   # Helper methods
   def positive?
-    %w[try assist tackle offload linebreak].include?(action_type)
+    %w[try assist tackle offload linebreak carry].include?(action_type)
   end
 
   def negative?

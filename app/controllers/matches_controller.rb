@@ -86,29 +86,27 @@ class MatchesController < ApplicationController
     ]
 
     @performance_data = {
-      "Tackles" => 5,
-      "Turnovers" => 4,
-      "Errors" => 7,
-      "Penalties" => 8,
-      "Cards" => 6,
-      "Carries" => 5,
-      "Passes" => 8,
-      "Scrums" => 3,
-      "Mauls" => 4,
-      "Lineouts" => 4
+      "Tackles" => @player_match.actions.where(action_type: 'tackle').count,
+      "Missed Tackles" => @player_match.actions.where(action_type: 'missed_tackle').count,
+      "Turnovers" => @player_match.actions.where(action_type: 'turnover').count,
+      "Penalties" => @player_match.actions.where(action_type: 'penalty').count,
+      "Offloads" => @player_match.actions.where(action_type: 'offload').count,
+      "Linebreaks" => @player_match.actions.where(action_type: 'linebreak').count,
+      "Knock-ons" => @player_match.actions.where(action_type: 'knock-on').count,
+      "Carries" => @player_match.actions.where(action_type: 'carry').count,
+      "Cards" => @player_match.actions.where(action_type: 'yellow').count + @player_match.actions.where(action_type: 'red').count,
     }
 
     @average_player_performance_data = {
-      "Tackles" => 7,
-      "Turnovers" => 7,
-      "Errors" => 3,
-      "Penalties" => 7,
-      "Cards" => 7,
-      "Carries" => 7,
-      "Passes" => 6,
-      "Scrums" => 3,
-      "Mauls" => 6,
-      "Lineouts" => 7
+      "Tackles" => @match.actions.where(action_type: 'tackle').count/@match.player_matches.count.to_f,
+      "Missed Tackles" => @match.actions.where(action_type: 'missed_tackle').count/@match.player_matches.count.to_f,
+      "Turnovers" => @match.actions.where(action_type: 'turnover').count/@match.player_matches.count.to_f,
+      "Penalties" => @match.actions.where(action_type: 'penalty').count/@match.player_matches.count.to_f,
+      "Offloads" => @match.actions.where(action_type: 'offload').count/@match.player_matches.count.to_f,
+      "Linebreaks" => @match.actions.where(action_type: 'linebreak').count/@match.player_matches.count.to_f,
+      "Knock-ons" => @match.actions.where(action_type: 'knock-on').count/@match.player_matches.count.to_f,
+      "Carries" => @match.actions.where(action_type: 'carry').count/@match.player_matches.count.to_f,
+      "Cards" => @match.actions.where(action_type: 'yellow').count + @match.actions.where(action_type: 'red').count/@match.player_matches.count.to_f,
     }
 
     @minutes_data = {

@@ -3,6 +3,7 @@ class Player < ApplicationRecord
   has_one :user
   has_many :player_matches
   has_many :matches, through: :player_matches
+  has_many :actions, through: :player_matches
 
   # Validations
   validates :age, presence: true, numericality: { only_integer: true, greater_than: 13, less_than: 50 }
