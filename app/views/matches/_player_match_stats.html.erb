@@ -64,10 +64,11 @@
             </div>
             <div>
               <%= turbo_frame_tag "performance_chart" do %>
-                <%= column_chart [
-                    { name: player.name, data: @performance_data },
-                    { name: "Team Average", data: @average_player_performance_data }
-                  ],
+                <% if player.present? %>
+                  <%= column_chart [
+                      { name: player.name, data: @performance_data },
+                      { name: "Team Average", data: @average_player_performance_data }
+                    ],
                   height: "220px",
                   colors: ["#4dc9f6", "#f72585"],
                   library: {
@@ -100,6 +101,12 @@
                       }
                     }
                   } %>
+                <% else %>
+                  <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No player data available. Please contact an administrator.
+                  </div>
+                <% end %>
               <% end %>
             </div>
           </div>
