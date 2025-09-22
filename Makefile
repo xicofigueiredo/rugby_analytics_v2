@@ -40,6 +40,12 @@ load-test:
 backup:
 		rsync -av -e "ssh" rugby-server:~/rugby_analytics_v2/data ./databackup
 
+backup-full: ## Complete backup of database and files
+	mkdir -p ./databackup/$(shell date +%Y%m%d_%H%M%S)
+	rsync -av -e "ssh" rugby-server:~/rugby_analytics_v2/data ./databackup/$(shell date +%Y%m%d_%H%M%S)/
+	rsync -av -e "ssh" rugby-server:~/rugby_analytics_v2/storage ./databackup/$(shell date +%Y%m%d_%H%M%S)/
+
+
 restore:
 	#rsync -av -e "ssh" ./databackup/data/* rugby-server:~/rugby_analytics_v2/data
 
