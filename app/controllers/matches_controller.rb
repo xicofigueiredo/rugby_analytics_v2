@@ -1,8 +1,10 @@
+require 'csv'
+
 class MatchesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_match, only: [:show, :edit, :update, :destroy]
   before_action :set_opponents, only: [:new, :edit, :create, :update]
-  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
+  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy, :upload_csv]
 
   def index
     @matches = Match.all
@@ -85,7 +87,7 @@ class MatchesController < ApplicationController
       { name: @match.away_team.name, data: @general_stats.map { |s| [s[:name], s[:away]] } }
     ]
 
-    if current_user.team_id != 3
+    if current_user.team.name != "Sport Rugby"
       @performance_data = {
         "Tackles" => 5,
         "Turnovers" => 4,
@@ -287,6 +289,23 @@ class MatchesController < ApplicationController
     render partial: 'coach_match_stats', locals: { player: @player }
   end
 
+  def upload_csv
+    uploaded_file = params[:csv_file]
+
+    if uploaded_file.nil?
+      redirect_to matches_path, alert: 'Please select a CSV file to upload.'
+      return
+    end
+
+    begin
+      csv_data = CSV.read(uploaded_file.path, headers: true)
+      process_match_csv(csv_data)
+      redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
+    rescue => e
+      redirect_to matches_path, alert: "Error processing CSV: #{e.message}"
+    end
+  end
+
   private
 
   def set_match
@@ -327,5 +346,106 @@ class MatchesController < ApplicationController
       :coach_notes,
       :player_notes
     )
+  end
+
+  def process_match_csv(csv_data)
+    return if csv_data.empty?
+
+    # Get match data from first row (excluding totals)
+    first_row = csv_data.first
+
+    # Extract match information from the row - using correct column names from your CSV
+    date_str = first_row['Data']
+    home_team_name = first_row['Equipa Casa']
+    away_team_name = first_row['Equipa Fora']
+    result = first_row['Resultado']
+    competition = first_row['Competição']
+    season = first_row['Época']
+
+    # Parse date
+    date = Date.parse(date_str)
+
+    # Find teams
+    home_team = Team.find_by(name: home_team_name&.strip)
+    away_team = Team.find_by(name: away_team_name&.strip)
+
+    raise "Home team '#{home_team_name}' not found" unless home_team
+    raise "Away team '#{away_team_name}' not found" unless away_team
+
+    # Check if match already exists with same attributes
+    existing_match = Match.find_by(
+      date: date,
+      home_team: home_team,
+      away_team: away_team,
+      result: result,
+      competition: competition,
+      season: season
+    )
+
+    if existing_match
+      raise "Match already exists: #{home_team.name} vs #{away_team.name} on #{date.strftime('%d/%m/%Y')} in #{competition} #{season}"
+    end
+
+    # Create match
+    match = Match.create!(
+      season: season,
+      competition: competition,
+      date: date,
+      home_team: home_team,
+      away_team: away_team,
+      result: result
+    )
+
+    # Process each player row (excluding totals row)
+    csv_data.each do |row|
+      player_name = row['NOME']
+
+      # Skip totals row or empty names
+      next if player_name.blank? || player_name.include?('TOTAL') || player_name.include?('vs')
+
+      # Find player by name
+      player = Player.find_by(name: player_name)
+
+      if player.nil?
+        Rails.logger.warn "Player '#{player_name}' not found, skipping..."
+        next
+      end
+
+      # Create player match
+      player_match = match.player_matches.create!(player: player)
+
+      # Create actions based on stats
+      create_actions_from_stats(player_match, row, csv_data.headers)
+    end
+  end
+
+  def create_actions_from_stats(player_match, row, headers)
+    # Map CSV columns to action types based on your actual CSV format
+    action_mapping = {
+      'ENSAIOS' => 'try',
+      'ASSISTÊNCIA' => 'assist',
+      'PLACAGENS' => 'tackle',
+      'PLAC. FALHADAS' => 'missed_tackle',
+      'RECUPERAÇÃO  AL' => 'lineout_turnover',
+      'TURNOVERS' => 'turnover',
+      'PENALIDADES' => 'penalty',
+      'OFFLOADS' => 'offload',
+      'Q. LINHA' => 'linebreak',
+      'CARRIES' => 'carry',
+      'AMARELO' => 'yellow',
+      'VERMELHO' => 'red'
+    }
+
+    action_mapping.each do |csv_column, action_type|
+      # Try to find the column by name
+      value = row[csv_column]
+
+      next if value.blank? || value.to_i <= 0
+
+      # Create the specified number of actions
+      value.to_i.times do
+        player_match.actions.create!(action_type: action_type)
+      end
+    end
   end
 end

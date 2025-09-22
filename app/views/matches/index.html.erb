@@ -36,7 +36,14 @@
         <%= hidden_field_tag :sort_direction, @sort_direction %>
       <% end %>
       <% if @role == 'admin' %>
-        <div class="d-flex justify-content-end p-3" style="background-color: #23263a;">
+        <div class="d-flex justify-content-end gap-2 p-3" style="background-color: #23263a;">
+          <!-- CSV Upload Button -->
+          <%= button_tag class: "btn btn-outline-warning",
+                         type: "button",
+                         data: { bs_toggle: "modal", bs_target: "#uploadModal" } do %>
+            <i class="fas fa-upload me-1"></i> Upload Match
+          <% end %>
+
           <%= link_to new_match_path,
               class: "btn btn-outline-light" do %>
             <i class="fas fa-plus me-1"></i> Add Match
@@ -134,5 +141,39 @@
         <% end %>
       </div>
     <% end %>
+  </div>
+</div>
+
+<!-- CSV Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background-color: #23263a; color: white;">
+      <div class="modal-header" style="border-bottom: 1px solid #444;">
+        <h5 class="modal-title" id="uploadModalLabel">Upload Match CSV</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <%= form_with url: upload_csv_matches_path, multipart: true, local: true do |form| %>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="csv_file" class="form-label">Select CSV File</label>
+            <%= form.file_field :csv_file,
+                                class: "form-control",
+                                accept: ".csv",
+                                required: true,
+                                style: "background-color: #333; color: white; border-color: #555;" %>
+          </div>
+          <div class="alert alert-info" style="background-color: #1e3a5f; border-color: #3498db; color: #85c1e0;">
+            <small>
+              <strong>CSV Format Expected:</strong><br>
+              Headers: NOME, MIN, ENSAIOS, ASSISTÊNCIA, PLACAGENS, PLAC. FALHADAS, RECUPERAÇÃO AL, TURNOVERS, PENALIDADES, OFFLOADS, Q. LINHA, AVANTS, CARRIES, AMARELO, VERMELHO, Data, Opponent, Casa, Result, Competition, Season
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #444;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <%= form.submit "Upload", class: "btn btn-warning" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

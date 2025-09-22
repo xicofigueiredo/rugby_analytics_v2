@@ -53,6 +53,9 @@ Rails.application.routes.draw do
   get 'team_profile', to: 'teams#team_profile', as: :team_profile
 
   resources :matches do
+    collection do
+      post 'upload_csv'
+    end
     member do
       get 'player_stats'
     end
