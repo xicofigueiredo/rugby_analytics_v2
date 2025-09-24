@@ -1,7 +1,7 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_team, only: [:show, :edit, :update, :destroy]
-  before_action :require_admin, except: [:my_team_player]
+  before_action :require_admin, except: [:my_team_player, :team_profile]
 
 
   def index
