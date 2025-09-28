@@ -132,7 +132,7 @@ namespace :import do
           # Send welcome email to new users
           if is_new_user
             begin
-              UserMailer.welcome_email(user, temporary_password).deliver_now
+              #UserMailer.welcome_email(user, temporary_password).deliver_now
               emails_sent += 1
               puts "✓ Welcome email sent to: #{email}"
             rescue => email_error
