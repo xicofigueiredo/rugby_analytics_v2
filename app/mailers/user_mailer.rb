@@ -1,5 +1,5 @@
 class UserMailer < ApplicationMailer
-  default from: 'admin@breakdownlab.me'
+  default from: "_mainaccount@breakdownlab.me"   # or "admin@breakdownlab.me" if that mailbox exists
 
   def welcome_email(user, temporary_password)
     @user = user

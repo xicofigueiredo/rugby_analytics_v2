@@ -116,6 +116,9 @@ GEM
       responders
       warden (~> 1.2.3)
     dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.1)
     ed25519 (1.4.0)
     error_highlight (0.7.0)
@@ -326,6 +329,7 @@ DEPENDENCIES
   capybara
   chartkick (~> 5.1)
   devise
+  dotenv-rails
   error_highlight (>= 0.4.0)
   groupdate (~> 6.6)
   importmap-rails

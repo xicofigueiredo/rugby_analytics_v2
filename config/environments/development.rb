@@ -74,18 +74,20 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
 
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address:              'webdomain02.dnscpanel.com',
-    port:                 25,
-    domain:               'breakdownlab.me',
-    authentication:       'login',
-    user_name:            ENV['EMAIL_USERNAME'],
-    password:             ENV['EMAIL_PASSWORD'],
-    open_timeout:         30,
-    read_timeout:         300,
-    enable_starttls_auto: true}
-
+# config/environments/development.rb
+config.action_mailer.delivery_method = :smtp
+config.action_mailer.smtp_settings = {
+  address:        "webdomain02.dnscpanel.com",
+  port:           465,                       # implicit SSL
+  domain:         "breakdownlab.me",
+  user_name:      ENV["EMAIL_USERNAME"],     # MUST be "_mainaccount@breakdownlab.me"
+  password:       ENV["EMAIL_PASSWORD"],     # put in .env.local, quoted if it has special chars
+  authentication: :plain,                    # :plain also works on many cPanel hosts
+  ssl:            true,                      # <-- required for 465
+  enable_starttls_auto: true,                # harmless to keep; mainly for 587
+  open_timeout:   30,
+  read_timeout:   30
+}
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
