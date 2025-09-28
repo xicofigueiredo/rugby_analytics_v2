@@ -72,7 +72,7 @@ namespace :import do
         ActiveRecord::Base.transaction do
           # Check if user already exists
           user = User.find_by(email: email)
-          temporary_password = SecureRandom.hex(6)
+          temporary_password = 123456
           is_new_user = false
 
           if user
