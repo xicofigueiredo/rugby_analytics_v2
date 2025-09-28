@@ -115,27 +115,30 @@ class MatchesController < ApplicationController
       }
     else
       @performance_data = {
-        "Tackles" => @player_match.actions.where(action_type: 'tackle').count,
-        "Missed Tackles" => @player_match.actions.where(action_type: 'missed_tackle').count,
-        "Turnovers" => @player_match.actions.where(action_type: 'turnover').count,
-        "Penalties" => @player_match.actions.where(action_type: 'penalty').count,
-        "Offloads" => @player_match.actions.where(action_type: 'offload').count,
-        "Linebreaks" => @player_match.actions.where(action_type: 'linebreak').count,
-        "Knock-ons" => @player_match.actions.where(action_type: 'knock-on').count,
-        "Carries" => @player_match.actions.where(action_type: 'carry').count,
-        "Cards" => @player_match.actions.where(action_type: 'yellow').count + @player_match.actions.where(action_type: 'red').count,
+        "Tackles" => (@player_match.positive_tackle || 0) + (@player_match.neutral_tackle || 0) + (@player_match.negative_tackle || 0) + (@player_match.assist_tackle || 0),
+        "Missed Tackles" => @player_match.missed_tackle || 0,
+        "Turnovers" => @player_match.turnover || 0,
+        "Penalties" => (@player_match.pen_offside || 0) + (@player_match.pen_breakdown || 0) + (@player_match.pen_scrum || 0) + (@player_match.pen_others || 0),
+        "Offloads" => (@player_match.positive_offload || 0) + (@player_match.negative_offload || 0),
+        "Linebreaks" => @player_match.linebreak || 0,
+        "Knock-ons" => @player_match.knock_on || 0,
+        "Carries" => @player_match.carries || 0,
+        "Cards" => (@player_match.yellow || 0) + (@player_match.red || 0),
       }
 
+      player_matches = @match.player_matches
+      player_count = player_matches.count.to_f
+
       @average_player_performance_data = {
-        "Tackles" => @match.actions.where(action_type: 'tackle').count/@match.player_matches.count.to_f,
-        "Missed Tackles" => @match.actions.where(action_type: 'missed_tackle').count/@match.player_matches.count.to_f,
-        "Turnovers" => @match.actions.where(action_type: 'turnover').count/@match.player_matches.count.to_f,
-        "Penalties" => @match.actions.where(action_type: 'penalty').count/@match.player_matches.count.to_f,
-        "Offloads" => @match.actions.where(action_type: 'offload').count/@match.player_matches.count.to_f,
-        "Linebreaks" => @match.actions.where(action_type: 'linebreak').count/@match.player_matches.count.to_f,
-        "Knock-ons" => @match.actions.where(action_type: 'knock-on').count/@match.player_matches.count.to_f,
-        "Carries" => @match.actions.where(action_type: 'carry').count/@match.player_matches.count.to_f,
-        "Cards" => @match.actions.where(action_type: 'yellow').count + @match.actions.where(action_type: 'red').count/@match.player_matches.count.to_f,
+        "Tackles" => player_matches.sum { |pm| (pm.positive_tackle || 0) + (pm.neutral_tackle || 0) + (pm.negative_tackle || 0) + (pm.assist_tackle || 0) } / player_count,
+        "Missed Tackles" => player_matches.sum { |pm| pm.missed_tackle || 0 } / player_count,
+        "Turnovers" => player_matches.sum { |pm| pm.turnover || 0 } / player_count,
+        "Penalties" => player_matches.sum { |pm| (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0) } / player_count,
+        "Offloads" => player_matches.sum { |pm| (pm.positive_offload || 0) + (pm.negative_offload || 0) } / player_count,
+        "Linebreaks" => player_matches.sum { |pm| pm.linebreak || 0 } / player_count,
+        "Knock-ons" => player_matches.sum { |pm| pm.knock_on || 0 } / player_count,
+        "Carries" => player_matches.sum { |pm| pm.carries || 0 } / player_count,
+        "Cards" => player_matches.sum { |pm| (pm.yellow || 0) + (pm.red || 0) } / player_count,
       }
     end
 
@@ -369,8 +372,13 @@ class MatchesController < ApplicationController
     home_team = Team.find_by(name: home_team_name&.strip)
     away_team = Team.find_by(name: away_team_name&.strip)
 
-    raise "Home team '#{home_team_name}' not found" unless home_team
-    raise "Away team '#{away_team_name}' not found" unless away_team
+    if home_team.nil?
+      Team.create!(name: home_team_name&.strip, level: 'Senior', classification: 5, main_color: '#000000', secondary_color: '#000000')
+    end
+
+    if away_team.nil?
+      Team.create!(name: away_team_name&.strip, level: 'Senior', classification: 5, main_color: '#000000', secondary_color: '#000000')
+    end
 
     # Check if match already exists with same attributes
     existing_match = Match.find_by(
@@ -397,11 +405,28 @@ class MatchesController < ApplicationController
     )
 
     # Process each player row (excluding totals row)
+    team_stats_data = nil
     csv_data.each do |row|
       player_name = row['NOME']
 
-      # Skip totals row or empty names
-      next if player_name.blank? || player_name.include?('TOTAL') || player_name.include?('vs')
+      # Skip totals row or empty names, but capture team stats from first row
+      if player_name.blank? || player_name.include?('TOTAL') || player_name.include?('vs')
+        next
+      end
+
+      # Capture team-level stats from the first player row (they're the same for all rows)
+      if team_stats_data.nil?
+        team_stats_data = {
+          lineouts_won: row['ALINHAMENTO GANHOS SPORT'].to_i,
+          lineouts_lost: row['ALINHAMENTO TOTAIS SPORT'].to_i - row['ALINHAMENTO GANHOS SPORT'].to_i,
+          lineouts_stolen: row['ALINHAMENTO GANHOS ADVERSARIO'].to_i,
+          lineouts_not_stolen: row['ALINHAMENTO TOTAIS ADVERSARIO'].to_i - row['ALINHAMENTO GANHOS ADVERSARIO'].to_i,
+          scrums_won: row['FO GANHAS SPORT'].to_i,
+          scrums_lost: row['FO TOTAIS SPORT'].to_i - row['FO GANHAS SPORT'].to_i,
+          scrums_stolen: row['FO GANHAS ADVERSARIO'].to_i,
+          scrums_not_stolen: row['FO TOTAIS ADVERSARIO'].to_i - row['FO GANHAS ADVERSARIO'].to_i
+        }
+      end
 
       # Find player by name
       player = Player.find_by(name: player_name)
@@ -417,35 +442,107 @@ class MatchesController < ApplicationController
       # Create actions based on stats
       create_actions_from_stats(player_match, row, csv_data.headers)
     end
+
+    # Create team stats after processing all players
+    create_team_stats(match, team_stats_data) if team_stats_data
   end
 
   def create_actions_from_stats(player_match, row, headers)
-    # Map CSV columns to action types based on your actual CSV format
-    action_mapping = {
+    # Map CSV columns to PlayerMatch field names based on your actual CSV format
+    field_mapping = {
+      'MIN' => 'time_played',
       'ENSAIOS' => 'try',
-      'ASSISTÊNCIA' => 'assist',
-      'PLACAGENS' => 'tackle',
-      'PLAC. FALHADAS' => 'missed_tackle',
-      'RECUPERAÇÃO  AL' => 'lineout_turnover',
+      'CONVERSÕES FEITAS' => 'conversion',
+      'CONVERSÕES TOTAL' => nil, # We only track made conversions
+      'PEN POSTES CONVERTIDAS' => 'penalty_kick_goal',
+      'PEN POSTES TOTAL' => nil, # We only track made penalty kicks
+      'DROPS CONVERTIDOS' => 'drop_goal',
+      'DROPS TOTAL' => nil, # We only track made drops
+      'ASSISTÊNCIA' => 'try_assist',
+      'PL. OFENSIVA' => 'positive_tackle',
+      'PL. NEUTRA' => 'neutral_tackle',
+      'PL. DEFENSIVA' => 'negative_tackle',
+      'PLAC. ASSISTENTE' => 'assist_tackle',
+      'PL. FALHADA' => 'missed_tackle',
+      'RECUPERAÇÃO AL.' => 'lineout_turnover',
+      'AL. SPORT COM SALTO' => 'lineout_won_jump',
+      'AL. SPORT SEM SALTO' => 'lineout_won_no_jump',
+      'INTRODUÇÕES GANHAS' => 'introduction_won',
+      'INTRODUÇÕES TOTAIS' => nil, # We calculate lost as total - won
       'TURNOVERS' => 'turnover',
-      'PENALIDADES' => 'penalty',
-      'OFFLOADS' => 'offload',
-      'Q. LINHA' => 'linebreak',
-      'CARRIES' => 'carry',
-      'AMARELO' => 'yellow',
-      'VERMELHO' => 'red'
+      'PEN - Fora de Jogo' => 'pen_offside',
+      'PEN - Jogo no Chão' => 'pen_breakdown',
+      'PEN - F.O.' => 'pen_scrum',
+      'PEN - Outros' => 'pen_others',
+      'DUELOS AEREOS (+)' => 'aerial_duel_won',
+      'DUELOS AEREOS (–)' => 'aerial_duel_lost',
+      'OFFLOADS (+)' => 'positive_offload',
+      'OFFLOADS (–)' => 'negative_offload',
+      'QUEBRAS DE LINHA' => 'linebreak',
+      'AVANTS' => 'knock_on',
+      'CARRIES (+)' => 'positive_carry',
+      'CARRIES' => 'carries'
     }
 
-    action_mapping.each do |csv_column, action_type|
-      # Try to find the column by name
+    # Update player_match with stats from CSV
+    update_attributes = {}
+
+    field_mapping.each do |csv_column, field_name|
+      next if field_name.nil?
+
       value = row[csv_column]
+      next if value.blank?
 
-      next if value.blank? || value.to_i <= 0
-
-      # Create the specified number of actions
-      value.to_i.times do
-        player_match.actions.create!(action_type: action_type)
-      end
+      # Convert to integer, default to 0 if conversion fails
+      numeric_value = value.to_s.strip.to_i
+      update_attributes[field_name] = numeric_value
     end
+
+    # Handle calculated fields
+    introduções_totais = row['INTRODUÇÕES TOTAIS'].to_s.strip.to_i
+    introduções_ganhas = row['INTRODUÇÕES GANHAS'].to_s.strip.to_i
+    if introduções_totais > 0 && introduções_ganhas >= 0
+      update_attributes['introduction_lost'] = introduções_totais - introduções_ganhas
+    end
+
+    # Handle missed conversions if we have totals
+    conversões_totais = row['CONVERSÕES TOTAL'].to_s.strip.to_i
+    conversões_feitas = row['CONVERSÕES FEITAS'].to_s.strip.to_i
+    if conversões_totais > 0 && conversões_feitas >= 0
+      update_attributes['missed_conversion'] = conversões_totais - conversões_feitas
+    end
+
+    # Handle missed penalty kicks if we have totals
+    pen_totais = row['PEN POSTES TOTAL'].to_s.strip.to_i
+    pen_convertidas = row['PEN POSTES CONVERTIDAS'].to_s.strip.to_i
+    if pen_totais > 0 && pen_convertidas >= 0
+      update_attributes['missed_penalty_kick_goals'] = pen_totais - pen_convertidas
+    end
+
+    # Handle missed drops if we have totals
+    drops_totais = row['DROPS TOTAL'].to_s.strip.to_i
+    drops_convertidos = row['DROPS CONVERTIDOS'].to_s.strip.to_i
+    if drops_totais > 0 && drops_convertidos >= 0
+      update_attributes['missed_drop_goals'] = drops_totais - drops_convertidos
+    end
+
+    # Update the player_match with all the stats
+    player_match.update!(update_attributes) if update_attributes.any?
+  end
+
+  def create_team_stats(match, team_stats_data)
+    # Create home team stats
+    home_teamstat = match.teamstat.create!(
+      lineouts_won: team_stats_data[:lineouts_won],
+      lineouts_lost: team_stats_data[:lineouts_lost],
+      lineouts_stolen: team_stats_data[:lineouts_stolen],
+      lineouts_not_stolen: team_stats_data[:lineouts_not_stolen],
+      scrums_won: team_stats_data[:scrums_won],
+      scrums_lost: team_stats_data[:scrums_lost],
+      scrums_stolen: team_stats_data[:scrums_stolen],
+      scrums_not_stolen: team_stats_data[:scrums_not_stolen]
+    )
+
+    Rails.logger.info "Created home team stats: #{home_teamstat.inspect}"
   end
 end
