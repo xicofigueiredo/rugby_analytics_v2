@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_10_215055) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_28_170221) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -48,6 +48,40 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_10_215055) do
     t.integer "position"
     t.text "coach_notes"
     t.text "player_notes"
+    t.integer "time_played"
+    t.integer "try"
+    t.integer "conversion"
+    t.integer "missed_conversion"
+    t.integer "penalty_kick_goal"
+    t.integer "missed_penalty_kick_goals"
+    t.integer "drop_goal"
+    t.integer "missed_drop_goals"
+    t.integer "try_assist"
+    t.integer "positive_tackle"
+    t.integer "neutral_tackle"
+    t.integer "negative_tackle"
+    t.integer "assist_tackle"
+    t.integer "missed_tackle"
+    t.integer "lineout_turnover"
+    t.integer "lineout_won_jump"
+    t.integer "lineout_won_no_jump"
+    t.integer "introduction_won"
+    t.integer "introduction_lost"
+    t.integer "turnover"
+    t.integer "pen_offside"
+    t.integer "pen_breakdown"
+    t.integer "pen_scrum"
+    t.integer "pen_others"
+    t.integer "aerial_duel_won"
+    t.integer "aerial_duel_lost"
+    t.integer "positive_offload"
+    t.integer "negative_offload"
+    t.integer "linebreak"
+    t.integer "knock_on"
+    t.integer "positive_carry"
+    t.integer "carries"
+    t.integer "yellow"
+    t.integer "red"
     t.index ["match_id"], name: "index_player_matches_on_match_id"
     t.index ["player_id"], name: "index_player_matches_on_player_id"
   end
