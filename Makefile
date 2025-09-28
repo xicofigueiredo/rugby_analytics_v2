@@ -49,5 +49,5 @@ backup-full: ## Complete backup of database and files
 restore:
 	#rsync -av -e "ssh" ./databackup/data/* rugby-server:~/rugby_analytics_v2/data
 
-parent:
-	docker exec -it rugby-container bash -c "RAILS_ENV=production bundle exec rake db:create_parents"
+sport:
+	docker exec -it rugby_analytics_v2-server-1 bash -c "RAILS_ENV=production bundle exec rake import:sport_cp_players"
