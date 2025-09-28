@@ -82,7 +82,7 @@ Rails.application.configure do
     authentication:       'login',
     user_name:            ENV['EMAIL_USERNAME'],
     password:             ENV['EMAIL_PASSWORD'],
-    open_timeout:         30, 
+    open_timeout:         30,
     read_timeout:         300,
     enable_starttls_auto: true}
 
