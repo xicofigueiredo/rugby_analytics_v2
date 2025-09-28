@@ -39,7 +39,7 @@ class TeamsController < ApplicationController
       "GDD" => 6
     }
 
-    # # Create a hash with team and player data
+    # # Create hash with team and player data
     # team_data = {
     #   'teams': Team.all.map { |t| t.name },
     #   'players': Team.all.map { |t| t.players.map { |p| p.name } }
