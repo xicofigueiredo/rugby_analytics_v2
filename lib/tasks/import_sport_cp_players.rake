@@ -14,7 +14,7 @@ namespace :import do
     puts "=" * 50
 
     # Find or create Sport CP team
-    team = Team.find_by(name: 'Sport CP')
+    team = Team.find_by(name: 'Sport Rugby')
 
     puts "Using team: #{team.name} (ID: #{team.id})"
 
@@ -119,7 +119,6 @@ namespace :import do
               email: email,
               password: temporary_password,
               password_confirmation: temporary_password,
-              confirmed_at: Time.now,
               role: 'player',
               team: team,
               player: player
