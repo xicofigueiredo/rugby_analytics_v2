@@ -6,6 +6,7 @@ class Player < ApplicationRecord
   has_many :actions, through: :player_matches
 
   # Validations
+  validates :name, presence: true, length: { minimum: 2 }
   validates :age, presence: true, numericality: { only_integer: true, greater_than: 13, less_than: 50 }
   validates :height, presence: true, numericality: { only_integer: true, greater_than: 150, less_than: 220 }
   validates :weight, presence: true, numericality: { greater_than: 40, less_than: 170 }

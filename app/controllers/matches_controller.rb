@@ -301,7 +301,8 @@ class MatchesController < ApplicationController
     end
 
     begin
-      csv_data = CSV.read(uploaded_file.path, headers: true)
+      # Read CSV with semicolon delimiter since the file uses ';' not ','
+      csv_data = CSV.read(uploaded_file.path, headers: true, col_sep: ';')
       process_match_csv(csv_data)
       redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
     rescue => e
@@ -354,100 +355,228 @@ class MatchesController < ApplicationController
   def process_match_csv(csv_data)
     return if csv_data.empty?
 
-    # Get match data from first row (excluding totals)
-    first_row = csv_data.first
+    ActiveRecord::Base.transaction do
+      # Get match data from first row (excluding totals)
+      first_row = csv_data.first
 
-    # Extract match information from the row - using correct column names from your CSV
-    date_str = first_row['Data']
-    home_team_name = first_row['Equipa Casa']
-    away_team_name = first_row['Equipa Fora']
-    result = first_row['Resultado']
-    competition = first_row['Competição']
-    season = first_row['Época']
+      # Extract match information from the row - using correct column names from your CSV
+      date_str = first_row['DATA']&.strip
+      home_team_name = first_row['EQUIPA CASA']&.strip
+      away_team_name = first_row['EQUIPA FORA']&.strip
+      home_points = first_row['PONTOS CASA']&.strip
+      away_points = first_row['PONTOS FORA']&.strip
+      result = "#{home_points} - #{away_points}" if home_points.present? && away_points.present?
+      competition = first_row['COMPETIÇÃO']&.strip
+      season = Date.current.year.to_s # Default to current year since not in CSV
 
-    # Parse date
-    date = Date.parse(date_str)
+      # Debug logging
+      Rails.logger.info "Extracted match data:"
+      Rails.logger.info "Date: '#{date_str}'"
+      Rails.logger.info "Home team: '#{home_team_name}'"
+      Rails.logger.info "Away team: '#{away_team_name}'"
+      Rails.logger.info "Competition: '#{competition}'"
 
-    # Find teams
-    home_team = Team.find_by(name: home_team_name&.strip)
-    away_team = Team.find_by(name: away_team_name&.strip)
-
-    if home_team.nil?
-      Team.create!(name: home_team_name&.strip, level: 'Senior', classification: 5, main_color: '#000000', secondary_color: '#000000')
-    end
-
-    if away_team.nil?
-      Team.create!(name: away_team_name&.strip, level: 'Senior', classification: 5, main_color: '#000000', secondary_color: '#000000')
-    end
-
-    # Check if match already exists with same attributes
-    existing_match = Match.find_by(
-      date: date,
-      home_team: home_team,
-      away_team: away_team,
-      result: result,
-      competition: competition,
-      season: season
-    )
-
-    if existing_match
-      raise "Match already exists: #{home_team.name} vs #{away_team.name} on #{date.strftime('%d/%m/%Y')} in #{competition} #{season}"
-    end
-
-    # Create match
-    match = Match.create!(
-      season: season,
-      competition: competition,
-      date: date,
-      home_team: home_team,
-      away_team: away_team,
-      result: result
-    )
-
-    # Process each player row (excluding totals row)
-    team_stats_data = nil
-    csv_data.each do |row|
-      player_name = row['NOME']
-
-      # Skip totals row or empty names, but capture team stats from first row
-      if player_name.blank? || player_name.include?('TOTAL') || player_name.include?('vs')
-        next
+      # Parse date
+      Rails.logger.info "Parsing date from: '#{date_str}'"
+      begin
+        # Handle the format "27-Sep" by adding current year
+        if date_str&.match?(/\d{1,2}-\w{3}/)
+          date = Date.parse("#{date_str}-#{Date.current.year}")
+        else
+          date = Date.parse(date_str) if date_str
+        end
+      rescue Date::Error => e
+        Rails.logger.error "Failed to parse date '#{date_str}': #{e.message}"
+        date = Date.current # Default to today
       end
 
-      # Capture team-level stats from the first player row (they're the same for all rows)
-      if team_stats_data.nil?
-        team_stats_data = {
-          lineouts_won: row['ALINHAMENTO GANHOS SPORT'].to_i,
-          lineouts_lost: row['ALINHAMENTO TOTAIS SPORT'].to_i - row['ALINHAMENTO GANHOS SPORT'].to_i,
-          lineouts_stolen: row['ALINHAMENTO GANHOS ADVERSARIO'].to_i,
-          lineouts_not_stolen: row['ALINHAMENTO TOTAIS ADVERSARIO'].to_i - row['ALINHAMENTO GANHOS ADVERSARIO'].to_i,
-          scrums_won: row['FO GANHAS SPORT'].to_i,
-          scrums_lost: row['FO TOTAIS SPORT'].to_i - row['FO GANHAS SPORT'].to_i,
-          scrums_stolen: row['FO GANHAS ADVERSARIO'].to_i,
-          scrums_not_stolen: row['FO TOTAIS ADVERSARIO'].to_i - row['FO GANHAS ADVERSARIO'].to_i
-        }
+      # Validate team names before proceeding
+      if home_team_name.blank? || away_team_name.blank?
+        raise "Invalid team names: Home team: '#{home_team_name}', Away team: '#{away_team_name}'"
       end
 
-      # Find player by name
-      player = Player.find_by(name: player_name)
-
-      if player.nil?
-        Rails.logger.warn "Player '#{player_name}' not found, skipping..."
-        next
+      # Find or create teams with error handling
+      begin
+        home_team = Team.find_or_create_by!(name: home_team_name) do |team|
+          team.level = 'Senior'
+          team.classification = 5
+          team.main_color = '#000000'
+          team.secondary_color = '#000000'
+          Rails.logger.info "Created home team: #{team.name}"
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "Failed to create home team '#{home_team_name}': #{e.message}"
+        raise "Failed to create home team '#{home_team_name}': #{e.message}"
       end
 
-      # Create player match
-      player_match = match.player_matches.create!(player: player)
+      begin
+        away_team = Team.find_or_create_by!(name: away_team_name) do |team|
+          team.level = 'Senior'
+          team.classification = 5
+          team.main_color = '#000000'
+          team.secondary_color = '#000000'
+          Rails.logger.info "Created away team: #{team.name}"
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "Failed to create away team '#{away_team_name}': #{e.message}"
+        raise "Failed to create away team '#{away_team_name}': #{e.message}"
+      end
 
-      # Create actions based on stats
-      create_actions_from_stats(player_match, row, csv_data.headers)
-    end
+      # Debug: Verify teams were created/found successfully
+      Rails.logger.info "Home team: #{home_team.inspect}"
+      Rails.logger.info "Away team: #{away_team.inspect}"
+      Rails.logger.info "Home team valid?: #{home_team.valid?}"
+      Rails.logger.info "Away team valid?: #{away_team.valid?}"
 
-    # Create team stats after processing all players
-    create_team_stats(match, team_stats_data) if team_stats_data
+      if home_team.nil? || away_team.nil?
+        raise "Failed to create/find teams: Home team: #{home_team.inspect}, Away team: #{away_team.inspect}"
+      end
+
+      if !home_team.valid?
+        Rails.logger.error "Home team validation errors: #{home_team.errors.full_messages}"
+        raise "Home team validation failed: #{home_team.errors.full_messages.join(', ')}"
+      end
+
+      if !away_team.valid?
+        Rails.logger.error "Away team validation errors: #{away_team.errors.full_messages}"
+        raise "Away team validation failed: #{away_team.errors.full_messages.join(', ')}"
+      end
+
+      # Check if match already exists with same attributes
+      existing_match = Match.find_by(
+        date: date,
+        home_team: home_team,
+        away_team: away_team,
+        result: result,
+        competition: competition,
+        season: season
+      )
+
+      if existing_match
+        raise "Match already exists: #{home_team.name} vs #{away_team.name} on #{date.strftime('%d/%m/%Y')} in #{competition} #{season}"
+      end
+
+      # Create match with detailed error handling
+      Rails.logger.info "Creating match with:"
+      Rails.logger.info "Season: '#{season}'"
+      Rails.logger.info "Competition: '#{competition}'"
+      Rails.logger.info "Date: #{date}"
+      Rails.logger.info "Home team: #{home_team.inspect}"
+      Rails.logger.info "Away team: #{away_team.inspect}"
+      Rails.logger.info "Result: '#{result}'"
+
+      begin
+        match = Match.create!(
+          season: season,
+          competition: competition,
+          date: date,
+          home_team_id: home_team.id,
+          away_team_id: away_team.id,
+          result: result
+        )
+        Rails.logger.info "Match created successfully: #{match.inspect}"
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.error "Match creation failed: #{e.message}"
+        Rails.logger.error "Match errors: #{e.record.errors.full_messages}"
+        Rails.logger.error "Match attributes being saved:"
+        Rails.logger.error "  season: #{season}"
+        Rails.logger.error "  competition: #{competition}"
+        Rails.logger.error "  date: #{date}"
+        Rails.logger.error "  home_team_id: #{home_team.id}"
+        Rails.logger.error "  away_team_id: #{away_team.id}"
+        Rails.logger.error "  result: #{result}"
+        raise e
+      end
+
+      # Process each player row (excluding totals row)
+      team_stats_data = nil
+
+      # Debug: Print CSV headers
+      Rails.logger.info "CSV Headers: #{csv_data.headers}"
+
+      csv_data.each_with_index do |row, index|
+        player_name = row['NOME']&.strip
+
+        # Skip totals row, empty names, or invalid names, but capture team stats from first row
+        if player_name.blank? ||
+           player_name.length < 2 ||
+           player_name.upcase.include?('TOTAL') ||
+           player_name.include?('vs') ||
+           player_name.match?(/^\s*;/) # Skip rows that start with semicolon (like ";TOTAL")
+          Rails.logger.info "Skipping invalid player name: '#{player_name}'"
+          next
+        end
+
+        # Capture team-level stats from the first player row (they're the same for all rows)
+        if team_stats_data.nil?
+          # Helper method to safely convert to integer
+          safe_to_i = ->(value) { value.to_s.strip.to_i }
+
+          # Debug: Print the raw values
+          Rails.logger.info "Raw CSV values for team stats:"
+          Rails.logger.info "ALINHAMENTO GANHOS SPORT: '#{row['ALINHAMENTO GANHOS SPORT']}'"
+          Rails.logger.info "ALINHAMENTO TOTAIS SPORT: '#{row['ALINHAMENTO TOTAIS SPORT']}'"
+          Rails.logger.info "ALINHAMENTO GANHOS ADVERSARIO: '#{row['ALINHAMENTO GANHOS ADVERSARIO']}'"
+          Rails.logger.info "ALINHAMENTO TOTAIS ADVERSARIO: '#{row['ALINHAMENTO TOTAIS ADVERSARIO']}'"
+          Rails.logger.info "FO GANHAS SPORT: '#{row['FO GANHAS SPORT']}'"
+          Rails.logger.info "FO TOTAIS SPORT: '#{row['FO TOTAIS SPORT']}'"
+          Rails.logger.info "FO GANHAS ADVERSARIO: '#{row['FO GANHAS ADVERSARIO']}'"
+          Rails.logger.info "FO TOTAIS ADVERSARIO: '#{row['FO TOTAIS ADVERSARIO']}'"
+
+          lineouts_ganhos_sport = safe_to_i.call(row['ALINHAMENTO GANHOS SPORT'])
+          lineouts_totais_sport = safe_to_i.call(row['ALINHAMENTO TOTAIS SPORT'])
+          lineouts_ganhos_adversario = safe_to_i.call(row['ALINHAMENTO GANHOS ADVERSARIO'])
+          lineouts_totais_adversario = safe_to_i.call(row['ALINHAMENTO TOTAIS ADVERSARIO'])
+          scrums_ganhos_sport = safe_to_i.call(row['FO GANHAS SPORT'])
+          scrums_totais_sport = safe_to_i.call(row['FO TOTAIS SPORT'])
+          scrums_ganhos_adversario = safe_to_i.call(row['FO GANHAS ADVERSARIO'])
+          scrums_totais_adversario = safe_to_i.call(row['FO TOTAIS ADVERSARIO'])
+
+          team_stats_data = {
+            lineouts_won: lineouts_ganhos_sport,
+            lineouts_lost: [lineouts_totais_sport - lineouts_ganhos_sport, 0].max,
+            lineouts_stolen: lineouts_ganhos_adversario,
+            lineouts_not_stolen: [lineouts_totais_adversario - lineouts_ganhos_adversario, 0].max,
+            scrums_won: scrums_ganhos_sport,
+            scrums_lost: [scrums_totais_sport - scrums_ganhos_sport, 0].max,
+            scrums_stolen: scrums_ganhos_adversario,
+            scrums_not_stolen: [scrums_totais_adversario - scrums_ganhos_adversario, 0].max
+          }
+
+          Rails.logger.info "Extracted team stats: #{team_stats_data}"
+        end
+
+        # Find player by name
+        player = Player.find_by(name: player_name)
+
+        if player.nil?
+          Rails.logger.warn "Player '#{player_name}' not found, skipping..."
+          next
+        end
+
+        # Create player match with error handling
+        begin
+          player_match = match.player_matches.create!(player: player)
+        rescue ActiveRecord::RecordInvalid => e
+          Rails.logger.error "Failed to create player_match for '#{player_name}': #{e.message}"
+          next
+        end
+
+        # Create actions based on stats with error handling
+        begin
+          create_actions_from_stats(player_match, row, csv_data.headers, index)
+        rescue ActiveRecord::RecordInvalid => e
+          Rails.logger.error "Failed to create stats for player '#{player_name}': #{e.message}"
+          # Continue processing other players even if one fails
+        end
+      end
+
+      # Create team stats after processing all players
+      create_team_stats(match, team_stats_data) if team_stats_data
+    end # End transaction
   end
 
-  def create_actions_from_stats(player_match, row, headers)
+  def create_actions_from_stats(player_match, row, headers, index)
     # Map CSV columns to PlayerMatch field names based on your actual CSV format
     field_mapping = {
       'MIN' => 'time_played',
@@ -486,6 +615,10 @@ class MatchesController < ApplicationController
 
     # Update player_match with stats from CSV
     update_attributes = {}
+
+    if index < 16
+      update_attributes['started'] = true
+    end
 
     field_mapping.each do |csv_column, field_name|
       next if field_name.nil?
@@ -531,8 +664,9 @@ class MatchesController < ApplicationController
   end
 
   def create_team_stats(match, team_stats_data)
-    # Create home team stats
+    # Create home team stats (the stats appear to be for the home team based on CSV structure)
     home_teamstat = match.teamstat.create!(
+      team_id: match.home_team.id,
       lineouts_won: team_stats_data[:lineouts_won],
       lineouts_lost: team_stats_data[:lineouts_lost],
       lineouts_stolen: team_stats_data[:lineouts_stolen],
