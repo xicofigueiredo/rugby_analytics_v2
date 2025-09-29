@@ -43,11 +43,14 @@ class MatchesController < ApplicationController
   end
 
   def show
-    @players = PlayerMatch.where(match_id: @match.id).map(&:player)
-    @home_players = Team.second.players
-    @away_players = Team.first.players
+    @team = current_user.team
+    @players = PlayerMatch.where(match_id: @match.id)
+    @starting_players = @players.where(started: true)
+    @bench_players = @players.where(started: false)
+    @scorer_players = @players.where("try > 0 OR conversion > 0 OR penalty_kick_goal > 0 OR drop_goal > 0")
     @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
     @player = current_user.player
+    @staff = @team.users.where.not(role: ["player", "fan"])
     # if current_user.role == "player"
     #   @player = current_user.player
 
@@ -64,13 +67,85 @@ class MatchesController < ApplicationController
       { name: "Cards", home: 50, away: 50 }
     ]
 
-    @setpiece_stats = [
-      { name: "Lineouts", home: 64, away: 36 },
-      { name: "Lineouts*", home: 60, away: 40 },
-      { name: "Mauls", home: 45, away: 55 },
-      { name: "Scrums", home: 40, away: 60 },
-      { name: "Rucks", home: 85, away: 55 }
-    ]
+    lineouts_won = @match.teamstat.first.lineouts_won
+    lineouts_lost = @match.teamstat.first.lineouts_lost
+    lineouts_total = lineouts_won + lineouts_lost
+    lineouts_percentage = lineouts_total > 0 ? (lineouts_won.to_f / lineouts_total * 100).round : 0
+
+    lineouts_stolen = @match.teamstat.first.lineouts_stolen
+    lineouts_not_stolen = @match.teamstat.first.lineouts_not_stolen
+    lineouts_stolen_total = lineouts_stolen + lineouts_not_stolen
+    lineouts_stolen_percentage = lineouts_stolen_total > 0 ? (lineouts_stolen.to_f / lineouts_stolen_total * 100).round : 0
+
+    scrums_won = @match.teamstat.first.scrums_won
+    scrums_lost = @match.teamstat.first.scrums_lost
+    scrums_total = scrums_won + scrums_lost
+    scrums_percentage = scrums_total > 0 ? (scrums_won.to_f / scrums_total * 100).round : 0
+
+    scrums_stolen = @match.teamstat.first.scrums_stolen
+    scrums_not_stolen = @match.teamstat.first.scrums_not_stolen
+    scrums_stolen_total = scrums_stolen + scrums_not_stolen
+    scrums_stolen_percentage = scrums_stolen_total > 0 ? (scrums_stolen.to_f / scrums_stolen_total * 100).round : 0
+
+    # Determine which team the stats belong to and who was home/away
+    stats_team_id = @match.teamstat.first.team_id
+    user_team_id = current_user.team_id
+    home_team_id = @match.home_team_id
+    away_team_id = @match.away_team_id
+
+    # Check if user's team was playing at home or away
+    user_team_is_home = (user_team_id == home_team_id)
+    user_team_has_stats = (user_team_id == stats_team_id)
+
+    # Get team names
+    home_team_name = @match.home_team.name
+    away_team_name = @match.away_team.name
+
+    if user_team_has_stats
+      # We have stats for user's team - show from their perspective
+      if user_team_is_home
+        # User's team is home (left side)
+        user_team_percentage = lineouts_percentage
+        @setpiece_stats = [
+          { name: "Lineouts Won (#{lineouts_percentage}%)", home: lineouts_won, away: lineouts_lost, bar_home: lineouts_percentage, bar_away: 100 - lineouts_percentage, percent: false },
+          { name: "Lineouts Stolen (#{lineouts_stolen_percentage}%)", home: lineouts_stolen, away: lineouts_not_stolen, bar_home: lineouts_stolen_percentage, bar_away: 100 - lineouts_stolen_percentage, percent: false },
+          { name: "Scrums Won (#{scrums_percentage}%)", home: scrums_won, away: scrums_lost, bar_home: scrums_percentage, bar_away: 100 - scrums_percentage, percent: false },
+          { name: "Scrums Stolen (#{scrums_stolen_percentage}%)", home: scrums_stolen, away: scrums_not_stolen, bar_home: scrums_stolen_percentage, bar_away: 100 - scrums_stolen_percentage, percent: false }
+        ]
+      else
+        # User's team is away (right side) - flip the data
+        @setpiece_stats = [
+          { name: "Lineouts Won (#{lineouts_percentage}%)", home: lineouts_lost, away: lineouts_won, bar_home: 100 - lineouts_percentage, bar_away: lineouts_percentage, percent: false },
+          { name: "Lineouts Stolen (#{lineouts_stolen_percentage}%)", home: lineouts_not_stolen, away: lineouts_stolen, bar_home: 100 - lineouts_stolen_percentage, bar_away: lineouts_stolen_percentage, percent: false },
+          { name: "Scrums Won (#{scrums_percentage}%)", home: scrums_lost, away: scrums_won, bar_home: 100 - scrums_percentage, bar_away: scrums_percentage, percent: false },
+          { name: "Scrums Stolen (#{scrums_stolen_percentage}%)", home: scrums_not_stolen, away: scrums_stolen, bar_home: 100 - scrums_stolen_percentage, bar_away: scrums_stolen_percentage, percent: false }
+        ]
+      end
+    else
+      # We have stats for opponent - show from opponent's perspective, but display from user's team position
+      opponent_lineouts_percentage = lineouts_total > 0 ? 100 - lineouts_percentage : 0
+      opponent_lineouts_stolen_percentage = lineouts_stolen_total > 0 ? 100 - lineouts_stolen_percentage : 0
+      opponent_scrums_percentage = scrums_total > 0 ? 100 - scrums_percentage : 0
+      opponent_scrums_stolen_percentage = scrums_stolen_total > 0 ? 100 - scrums_stolen_percentage : 0
+
+      if user_team_is_home
+        # User's team is home (left side), opponent has the stats
+        @setpiece_stats = [
+          { name: "Lineouts Won (#{opponent_lineouts_percentage}%)", home: lineouts_lost, away: lineouts_won, bar_home: opponent_lineouts_percentage, bar_away: lineouts_percentage, percent: false },
+          { name: "Lineouts Stolen (#{opponent_lineouts_stolen_percentage}%)", home: lineouts_not_stolen, away: lineouts_stolen, bar_home: opponent_lineouts_stolen_percentage, bar_away: lineouts_stolen_percentage, percent: false },
+          { name: "Scrums Won (#{opponent_scrums_percentage}%)", home: scrums_lost, away: scrums_won, bar_home: opponent_scrums_percentage, bar_away: scrums_percentage, percent: false },
+          { name: "Scrums Stolen (#{opponent_scrums_stolen_percentage}%)", home: scrums_not_stolen, away: scrums_stolen, bar_home: opponent_scrums_stolen_percentage, bar_away: scrums_stolen_percentage, percent: false }
+        ]
+      else
+        # User's team is away (right side), opponent has the stats
+        @setpiece_stats = [
+          { name: "Lineouts Won (#{opponent_lineouts_percentage}%)", home: lineouts_won, away: lineouts_lost, bar_home: lineouts_percentage, bar_away: opponent_lineouts_percentage, percent: false },
+          { name: "Lineouts Stolen (#{opponent_lineouts_stolen_percentage}%)", home: lineouts_stolen, away: lineouts_not_stolen, bar_home: lineouts_stolen_percentage, bar_away: opponent_lineouts_stolen_percentage, percent: false },
+          { name: "Scrums Won (#{opponent_scrums_percentage}%)", home: scrums_won, away: scrums_lost, bar_home: scrums_percentage, bar_away: opponent_scrums_percentage, percent: false },
+          { name: "Scrums Stolen (#{opponent_scrums_stolen_percentage}%)", home: scrums_stolen, away: scrums_not_stolen, bar_home: scrums_stolen_percentage, bar_away: opponent_scrums_stolen_percentage, percent: false }
+        ]
+      end
+    end
 
     @negative_stats = [
       { name: "Errors", home: 52, away: 48 },
@@ -87,7 +162,7 @@ class MatchesController < ApplicationController
       { name: @match.away_team.name, data: @general_stats.map { |s| [s[:name], s[:away]] } }
     ]
 
-    if current_user.team.name != "Sport Rugby"
+    if current_user.team.name != "SPORT"
       @performance_data = {
         "Tackles" => 5,
         "Turnovers" => 4,
@@ -115,30 +190,14 @@ class MatchesController < ApplicationController
       }
     else
       @performance_data = {
-        "Tackles" => (@player_match.positive_tackle || 0) + (@player_match.neutral_tackle || 0) + (@player_match.negative_tackle || 0) + (@player_match.assist_tackle || 0),
-        "Missed Tackles" => @player_match.missed_tackle || 0,
-        "Turnovers" => @player_match.turnover || 0,
-        "Penalties" => (@player_match.pen_offside || 0) + (@player_match.pen_breakdown || 0) + (@player_match.pen_scrum || 0) + (@player_match.pen_others || 0),
-        "Offloads" => (@player_match.positive_offload || 0) + (@player_match.negative_offload || 0),
-        "Linebreaks" => @player_match.linebreak || 0,
-        "Knock-ons" => @player_match.knock_on || 0,
-        "Carries" => @player_match.carries || 0,
-        "Cards" => (@player_match.yellow || 0) + (@player_match.red || 0),
+
       }
 
       player_matches = @match.player_matches
       player_count = player_matches.count.to_f
 
       @average_player_performance_data = {
-        "Tackles" => player_matches.sum { |pm| (pm.positive_tackle || 0) + (pm.neutral_tackle || 0) + (pm.negative_tackle || 0) + (pm.assist_tackle || 0) } / player_count,
-        "Missed Tackles" => player_matches.sum { |pm| pm.missed_tackle || 0 } / player_count,
-        "Turnovers" => player_matches.sum { |pm| pm.turnover || 0 } / player_count,
-        "Penalties" => player_matches.sum { |pm| (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0) } / player_count,
-        "Offloads" => player_matches.sum { |pm| (pm.positive_offload || 0) + (pm.negative_offload || 0) } / player_count,
-        "Linebreaks" => player_matches.sum { |pm| pm.linebreak || 0 } / player_count,
-        "Knock-ons" => player_matches.sum { |pm| pm.knock_on || 0 } / player_count,
-        "Carries" => player_matches.sum { |pm| pm.carries || 0 } / player_count,
-        "Cards" => player_matches.sum { |pm| (pm.yellow || 0) + (pm.red || 0) } / player_count,
+
       }
     end
 

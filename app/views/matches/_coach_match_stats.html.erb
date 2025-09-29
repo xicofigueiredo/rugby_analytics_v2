@@ -8,9 +8,9 @@
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="text-white mb-0">Select Player</h5>
           <select id="playerSelector" class="form-select" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
-            <% (@home_players + @away_players).each do |player| %>
+            <% (@players).each do |player| %>
               <option value="<%= player.id %>" <%= 'selected' if player == @player %>>
-                <%= player.name %> (<%= player.team.name %>)
+                <%= player.player.name %> (<%= player.player.team.name %>)
               </option>
             <% end %>
           </select>
