@@ -28,6 +28,10 @@ class Match < ApplicationRecord
     where('home_team_id = ? OR away_team_id = ?', team_id, team_id)
   }
 
+  def avg_penalties_conceded
+    (avg_pen_offside || 0) + (avg_pen_breakdown || 0) + (avg_pen_scrum || 0) + (avg_pen_others || 0)
+  end
+
   private
 
   def different_teams
@@ -35,4 +39,5 @@ class Match < ApplicationRecord
       errors.add(:base, "Home team and away team must be different")
     end
   end
+
 end

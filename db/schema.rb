@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_28_170221) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_29_155330) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -35,6 +35,25 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_28_170221) do
     t.bigint "home_team_id"
     t.bigint "away_team_id"
     t.text "coach_notes"
+    t.float "avg_time_played"
+    t.float "avg_positive_tackle"
+    t.float "avg_neutral_tackle"
+    t.float "avg_negative_tackle"
+    t.float "avg_assist_tackle"
+    t.float "avg_missed_tackle"
+    t.float "avg_turnover"
+    t.float "avg_pen_offside"
+    t.float "avg_pen_breakdown"
+    t.float "avg_pen_scrum"
+    t.float "avg_pen_others"
+    t.float "avg_aerial_duel_won"
+    t.float "avg_aerial_duel_lost"
+    t.float "avg_positive_offload"
+    t.float "avg_negative_offload"
+    t.float "avg_linebreak"
+    t.float "avg_knock_on"
+    t.float "avg_positive_carry"
+    t.float "avg_carries"
   end
 
   create_table "player_matches", force: :cascade do |t|

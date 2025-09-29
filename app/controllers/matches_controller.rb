@@ -51,6 +51,8 @@ class MatchesController < ApplicationController
     @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
     @player = current_user.player
     @staff = @team.users.where.not(role: ["player", "fan"])
+    calculate_top_players(@match)
+
     # if current_user.role == "player"
     #   @player = current_user.player
 
@@ -162,7 +164,34 @@ class MatchesController < ApplicationController
       { name: @match.away_team.name, data: @general_stats.map { |s| [s[:name], s[:away]] } }
     ]
 
-    if current_user.team.name != "SPORT"
+    if current_user.team.name == "SPORT"
+      @performance_data = {
+        "Tackles Made" => @player_match.tackles_made,
+        "Missed Tackles" => @player_match.missed_tackle,
+        "Turnovers" => @player_match.turnover,
+        "Penalties" => @player_match.penalties_conceded,
+        "Positive Offloads" => @player_match.positive_offload,
+        "Negative Offloads" => @player_match.negative_offload,
+        "Linebreaks" => @player_match.linebreak,
+        "Knock-ons" => @player_match.knock_on,
+        "Positive Carries" => @player_match.positive_carry,
+        "Carries" => @player_match.carries
+      }
+
+      @average_player_performance_data = {
+        "Tackles Made" => @match.avg_positive_tackle,
+        "Missed Tackles" => @match.avg_missed_tackle,
+        "Turnovers" => @match.avg_turnover,
+        "Penalties" => @match.avg_penalties_conceded,
+        "Positive Offloads" => @match.avg_positive_offload,
+        "Negative Offloads" => @match.avg_negative_offload,
+        "Linebreaks" => @match.avg_linebreak,
+        "Knock-ons" => @match.avg_knock_on,
+        "Positive Carries" => @match.avg_positive_carry,
+        "Carries" => @match.avg_carries
+      }
+
+    else
       @performance_data = {
         "Tackles" => 5,
         "Turnovers" => 4,
@@ -187,17 +216,6 @@ class MatchesController < ApplicationController
         "Scrums" => 3,
         "Mauls" => 6,
         "Lineouts" => 7
-      }
-    else
-      @performance_data = {
-
-      }
-
-      player_matches = @match.player_matches
-      player_count = player_matches.count.to_f
-
-      @average_player_performance_data = {
-
       }
     end
 
@@ -230,15 +248,7 @@ class MatchesController < ApplicationController
     }
 
     @stats_dropdown_options = [
-      "Tackles",
-      "Turnovers",
-      "Errors",
-      "Penalties",
-      "Cards",
-      "Carries",
-      "Turnovers",
-      "Penalties Conceded",
-      "Passes"
+      calculate_top_players(@match)
     ]
 
     @metrics_dropdown_options = [
@@ -632,6 +642,7 @@ class MatchesController < ApplicationController
 
       # Create team stats after processing all players
       create_team_stats(match, team_stats_data) if team_stats_data
+      calculate_team_average(match)
     end # End transaction
   end
 
@@ -738,4 +749,38 @@ class MatchesController < ApplicationController
 
     Rails.logger.info "Created home team stats: #{home_teamstat.inspect}"
   end
+
+  def calculate_team_average(match)
+    match.avg_time_played = match.player_matches.average(:time_played)
+    match.avg_positive_tackle = match.player_matches.average(:positive_tackle)
+    match.avg_neutral_tackle = match.player_matches.average(:neutral_tackle)
+    match.avg_negative_tackle = match.player_matches.average(:negative_tackle)
+    match.avg_assist_tackle = match.player_matches.average(:assist_tackle)
+    match.avg_missed_tackle = match.player_matches.average(:missed_tackle)
+    match.avg_turnover = match.player_matches.average(:turnover)
+    match.avg_pen_offside = match.player_matches.average(:pen_offside)
+    match.avg_pen_breakdown = match.player_matches.average(:pen_breakdown)
+    match.avg_pen_scrum = match.player_matches.average(:pen_scrum)
+    match.avg_pen_others = match.player_matches.average(:pen_others)
+    match.avg_aerial_duel_won = match.player_matches.average(:aerial_duel_won)
+    match.avg_aerial_duel_lost = match.player_matches.average(:aerial_duel_lost)
+    match.avg_positive_offload = match.player_matches.average(:positive_offload)
+    match.avg_negative_offload = match.player_matches.average(:negative_offload)
+    match.avg_linebreak = match.player_matches.average(:linebreak)
+    match.avg_knock_on = match.player_matches.average(:knock_on)
+    match.avg_positive_carry = match.player_matches.average(:positive_carry)
+    match.avg_carries = match.player_matches.average(:carries)
+    match.save
+  end
+
+  def calculate_top_players(match)
+    @positive_tackles_top_players = match.player_matches.order(positive_tackle: :desc).limit(5)
+    @turnovers_top_players = match.player_matches.order(turnover: :desc).limit(5)
+    @penalties_top_players = match.player_matches.order(penalties_conceded: :desc).limit(5)
+    @carries_top_players = match.player_matches.order(carries: :desc).limit(5)
+    @positive_carries_top_players = match.player_matches.order(positive_carry: :desc).limit(5)
+    @positive_offloads_top_players = match.player_matches.order(positive_offload: :desc).limit(5)
+    @linebreaks_top_players = match.player_matches.order(linebreak: :desc).limit(5)
+  end
+
 end
