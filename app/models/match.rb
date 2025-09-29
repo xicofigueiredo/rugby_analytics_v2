@@ -32,6 +32,10 @@ class Match < ApplicationRecord
     (avg_pen_offside || 0) + (avg_pen_breakdown || 0) + (avg_pen_scrum || 0) + (avg_pen_others || 0)
   end
 
+  def avg_tackles_made
+    (avg_positive_tackle || 0) + (avg_neutral_tackle || 0) + (avg_negative_tackle || 0) + (avg_assist_tackle || 0)
+  end
+
   private
 
   def different_teams

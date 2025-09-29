@@ -20,31 +20,15 @@
                 <h5 class="text-secondary">Best</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Gain Line Sucess Rate</span>
-                <span class="stat-value">70% <span class="text-secondary">(4º)</span></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Carries</span>
-                <span class="stat-value">10 <span class="text-secondary">(2º)</span></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Turnovers</span>
-                <span class="stat-value">5 <span class="text-secondary">(1º)</span></span>
+                <span>COMING SOON...</span>
+                <%# <span class="stat-value">70% <span class="text-secondary">(4º)</span></span> %>
               </li>
               <li class="d-flex justify-content-center align-items-center mb-2">
                 <h5 class="text-secondary">Worse</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Penalties Conceded</span>
-                <span class="stat-value">3 <span class="text-secondary">(12º)</span></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Tackle Dominance Rate</span>
-                <span class="stat-value">10% <span class="text-secondary">(14º)</span></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Passes</span>
-                <span class="stat-value">2 <span class="text-secondary">(18º)</span></span>
+                <span>COMING SOON...</span>
+                <%# <span class="stat-value">3 <span class="text-secondary">(12º)</span></span> %>
               </li>
             </ul>
           </div>
@@ -60,7 +44,7 @@
           <div class="card card main-card p-4 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Performance</div>
-              <span class="text-secondary">2024/2025</span>
+              <span class="text-secondary">2025/2026</span>
             </div>
             <div>
               <%= turbo_frame_tag "performance_chart" do %>
@@ -118,17 +102,14 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Stats</div>
               <div class="d-flex justify-content-end w-50">
-                <%= select_tag "absolute_stats_dropdown", options_for_select(@stats_dropdown_options), class: "form-select" %>
+                <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options.first[1]),
+                    { class: "form-select", id: "stats_dropdown" } %>
               </div>
             </div>
             <br>
             <div class="d-flex justify-content-between text-white">
-              <ul class="list-unstyled">
-                <li>1º - <%= Player.find(9).name %> (12)</li>
-                <li>2º - <%= Player.find(8).name %> (10)</li>
-                <li>3º - <%= Player.second.name %> (8)</li>
-                <li>4º - <%= Player.find(7).name %> (6)</li>
-                <li>5º - <%= Player.fifth.name %> (4)</li>
+              <ul class="list-unstyled" id="stats_list">
+                <!-- Content will be populated by JavaScript -->
               </ul>
             </div>
           </div>
@@ -146,11 +127,7 @@
             <br>
             <div class="d-flex justify-content-between text-white">
               <ul class="list-unstyled">
-                <li>1º - <%= Player.find(6).name %> (50%)</li>
-                <li>2º - <%= Player.find(8).name %> (35%)</li>
-                <li>3º - <%= Player.find(9).name %> (25%)</li>
-                <li>4º - <%= Player.find(14).name %> (20%)</li>
-                <li>5º - <%= Player.find(7).name %> (18%)</li>
+                <li>COMING SOON...</li>
               </ul>
             </div>
           </div>
@@ -222,6 +199,32 @@
           }
         }
       }
+    });
+
+    // Stats dropdown functionality
+    const statsData = <%= raw @stats_data.to_json %>;
+    const statsDropdown = document.getElementById('stats_dropdown');
+    const statsList = document.getElementById('stats_list');
+
+    function updateStatsList(selectedStat) {
+      const players = statsData[selectedStat] || [];
+      statsList.innerHTML = '';
+
+      players.forEach((player, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${index + 1}º - ${player.name} (${player.value})`;
+        statsList.appendChild(listItem);
+      });
+    }
+
+    // Initialize with first option
+    if (statsDropdown.value) {
+      updateStatsList(statsDropdown.value);
+    }
+
+    // Handle dropdown changes
+    statsDropdown.addEventListener('change', function() {
+      updateStatsList(this.value);
     });
   });
 </script>

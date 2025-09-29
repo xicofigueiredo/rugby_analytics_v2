@@ -175,11 +175,10 @@ class MatchesController < ApplicationController
         "Linebreaks" => @player_match.linebreak,
         "Knock-ons" => @player_match.knock_on,
         "Positive Carries" => @player_match.positive_carry,
-        "Carries" => @player_match.carries
       }
 
       @average_player_performance_data = {
-        "Tackles Made" => @match.avg_positive_tackle,
+        "Tackles Made" => @match.avg_tackles_made,
         "Missed Tackles" => @match.avg_missed_tackle,
         "Turnovers" => @match.avg_turnover,
         "Penalties" => @match.avg_penalties_conceded,
@@ -188,7 +187,6 @@ class MatchesController < ApplicationController
         "Linebreaks" => @match.avg_linebreak,
         "Knock-ons" => @match.avg_knock_on,
         "Positive Carries" => @match.avg_positive_carry,
-        "Carries" => @match.avg_carries
       }
 
     else
@@ -248,8 +246,25 @@ class MatchesController < ApplicationController
     }
 
     @stats_dropdown_options = [
-      calculate_top_players(@match)
+      ["Positive Tackles", "positive_tackles"],
+      ["Turnovers", "turnovers"],
+      ["Penalties", "penalties"],
+      ["Carries", "carries"],
+      ["Positive Carries", "positive_carries"],
+      ["Positive Offloads", "positive_offloads"],
+      ["Linebreaks", "linebreaks"]
     ]
+
+    # Create a hash for JavaScript access
+    @stats_data = {
+      "positive_tackles" => @positive_tackles_top_players.map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
+      "turnovers" => @turnovers_top_players.map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
+      "penalties" => @penalties_top_players.map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
+      "carries" => @carries_top_players.map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
+      "positive_carries" => @positive_carries_top_players.map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
+      "positive_offloads" => @positive_offloads_top_players.map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
+      "linebreaks" => @linebreaks_top_players.map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+    }
 
     @metrics_dropdown_options = [
       "Tackle Dominance Rate",
@@ -587,8 +602,8 @@ class MatchesController < ApplicationController
           Rails.logger.info "ALINHAMENTO TOTAIS SPORT: '#{row['ALINHAMENTO TOTAIS SPORT']}'"
           Rails.logger.info "ALINHAMENTO GANHOS ADVERSARIO: '#{row['ALINHAMENTO GANHOS ADVERSARIO']}'"
           Rails.logger.info "ALINHAMENTO TOTAIS ADVERSARIO: '#{row['ALINHAMENTO TOTAIS ADVERSARIO']}'"
-          Rails.logger.info "FO GANHAS SPORT: '#{row['FO GANHAS SPORT']}'"
-          Rails.logger.info "FO TOTAIS SPORT: '#{row['FO TOTAIS SPORT']}'"
+          Rails.logger.info "FO GANHAS SPORT: '#{row['FO GANHAS SPORT ']}'"
+          Rails.logger.info "FO TOTAIS SPORT: '#{row['FO TOTAIS SPORT ']}'"
           Rails.logger.info "FO GANHAS ADVERSARIO: '#{row['FO GANHAS ADVERSARIO']}'"
           Rails.logger.info "FO TOTAIS ADVERSARIO: '#{row['FO TOTAIS ADVERSARIO']}'"
 
@@ -596,8 +611,8 @@ class MatchesController < ApplicationController
           lineouts_totais_sport = safe_to_i.call(row['ALINHAMENTO TOTAIS SPORT'])
           lineouts_ganhos_adversario = safe_to_i.call(row['ALINHAMENTO GANHOS ADVERSARIO'])
           lineouts_totais_adversario = safe_to_i.call(row['ALINHAMENTO TOTAIS ADVERSARIO'])
-          scrums_ganhos_sport = safe_to_i.call(row['FO GANHAS SPORT'])
-          scrums_totais_sport = safe_to_i.call(row['FO TOTAIS SPORT'])
+          scrums_ganhos_sport = safe_to_i.call(row['FO GANHAS SPORT '])
+          scrums_totais_sport = safe_to_i.call(row['FO TOTAIS SPORT '])
           scrums_ganhos_adversario = safe_to_i.call(row['FO GANHAS ADVERSARIO'])
           scrums_totais_adversario = safe_to_i.call(row['FO TOTAIS ADVERSARIO'])
 
@@ -751,36 +766,45 @@ class MatchesController < ApplicationController
   end
 
   def calculate_team_average(match)
-    match.avg_time_played = match.player_matches.average(:time_played)
-    match.avg_positive_tackle = match.player_matches.average(:positive_tackle)
-    match.avg_neutral_tackle = match.player_matches.average(:neutral_tackle)
-    match.avg_negative_tackle = match.player_matches.average(:negative_tackle)
-    match.avg_assist_tackle = match.player_matches.average(:assist_tackle)
-    match.avg_missed_tackle = match.player_matches.average(:missed_tackle)
-    match.avg_turnover = match.player_matches.average(:turnover)
-    match.avg_pen_offside = match.player_matches.average(:pen_offside)
-    match.avg_pen_breakdown = match.player_matches.average(:pen_breakdown)
-    match.avg_pen_scrum = match.player_matches.average(:pen_scrum)
-    match.avg_pen_others = match.player_matches.average(:pen_others)
-    match.avg_aerial_duel_won = match.player_matches.average(:aerial_duel_won)
-    match.avg_aerial_duel_lost = match.player_matches.average(:aerial_duel_lost)
-    match.avg_positive_offload = match.player_matches.average(:positive_offload)
-    match.avg_negative_offload = match.player_matches.average(:negative_offload)
-    match.avg_linebreak = match.player_matches.average(:linebreak)
-    match.avg_knock_on = match.player_matches.average(:knock_on)
-    match.avg_positive_carry = match.player_matches.average(:positive_carry)
-    match.avg_carries = match.player_matches.average(:carries)
+    # Only count players who have played one or more minutes
+    played_players = match.player_matches.where("CAST(time_played AS INTEGER) > 0")
+    players_count = played_players.count
+
+    return if players_count == 0 # Avoid division by zero
+
+    match.avg_time_played = played_players.sum("CAST(time_played AS INTEGER)").to_f / players_count
+    match.avg_positive_tackle = played_players.sum(:positive_tackle).to_f / players_count
+    match.avg_neutral_tackle = played_players.sum(:neutral_tackle).to_f / players_count
+    match.avg_negative_tackle = played_players.sum(:negative_tackle).to_f / players_count
+    match.avg_assist_tackle = played_players.sum(:assist_tackle).to_f / players_count
+    match.avg_missed_tackle = played_players.sum(:missed_tackle).to_f / players_count
+    match.avg_turnover = played_players.sum(:turnover).to_f / players_count
+    match.avg_pen_offside = played_players.sum(:pen_offside).to_f / players_count
+    match.avg_pen_breakdown = played_players.sum(:pen_breakdown).to_f / players_count
+    match.avg_pen_scrum = played_players.sum(:pen_scrum).to_f / players_count
+    match.avg_pen_others = played_players.sum(:pen_others).to_f / players_count
+    match.avg_aerial_duel_won = played_players.sum(:aerial_duel_won).to_f / players_count
+    match.avg_aerial_duel_lost = played_players.sum(:aerial_duel_lost).to_f / players_count
+    match.avg_positive_offload = played_players.sum(:positive_offload).to_f / players_count
+    match.avg_negative_offload = played_players.sum(:negative_offload).to_f / players_count
+    match.avg_linebreak = played_players.sum(:linebreak).to_f / players_count
+    match.avg_knock_on = played_players.sum(:knock_on).to_f / players_count
+    match.avg_positive_carry = played_players.sum(:positive_carry).to_f / players_count
+    match.avg_carries = played_players.sum(:carries).to_f / players_count
     match.save
   end
 
   def calculate_top_players(match)
-    @positive_tackles_top_players = match.player_matches.order(positive_tackle: :desc).limit(5)
-    @turnovers_top_players = match.player_matches.order(turnover: :desc).limit(5)
-    @penalties_top_players = match.player_matches.order(penalties_conceded: :desc).limit(5)
-    @carries_top_players = match.player_matches.order(carries: :desc).limit(5)
-    @positive_carries_top_players = match.player_matches.order(positive_carry: :desc).limit(5)
-    @positive_offloads_top_players = match.player_matches.order(positive_offload: :desc).limit(5)
-    @linebreaks_top_players = match.player_matches.order(linebreak: :desc).limit(5)
+    @positive_tackles_top_players = match.player_matches.order(Arel.sql("COALESCE(positive_tackle, 0) DESC")).limit(5)
+    @turnovers_top_players = match.player_matches.order(Arel.sql("COALESCE(turnover, 0) DESC")).limit(5)
+    @penalties_top_players = match.player_matches
+      .select(Arel.sql("*, (COALESCE(pen_offside, 0) + COALESCE(pen_breakdown, 0) + COALESCE(pen_scrum, 0) + COALESCE(pen_others, 0)) as total_penalties"))
+      .order(Arel.sql("total_penalties DESC"))
+      .limit(5)
+    @carries_top_players = match.player_matches.order(Arel.sql("COALESCE(carries, 0) DESC")).limit(5)
+    @positive_carries_top_players = match.player_matches.order(Arel.sql("COALESCE(positive_carry, 0) DESC")).limit(5)
+    @positive_offloads_top_players = match.player_matches.order(Arel.sql("COALESCE(positive_offload, 0) DESC")).limit(5)
+    @linebreaks_top_players = match.player_matches.order(Arel.sql("COALESCE(linebreak, 0) DESC")).limit(5)
   end
 
 end
