@@ -9,7 +9,7 @@
           <h5 class="text-white mb-0">Select Player</h5>
           <select id="playerSelector" class="form-select" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
             <% (@players).each do |player| %>
-              <option value="<%= player.id %>" <%= 'selected' if player == @player %>>
+              <option value="<%= player.id %>" <%= 'selected' if player == @players.first %>>
                 <%= player.player.name %> (<%= player.player.team.name %>)
               </option>
             <% end %>
@@ -32,34 +32,19 @@
         <!-- General Info -->
         <div class="col-md-12">
           <div class="card chart-card p-4 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">General Info</div>
-              <span class="text-secondary">2024/2025</span>
-            </div>
-            <div>
-              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
-            </div>
             <br>
             <ul class="list-unstyled stats-list">
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-clock"></i> Minutes played</span>
-                <span class="stat-value"><%= @minutes_data["Minutes"] %></span>
+              <li class="d-flex justify-content-center align-items-center mb-2">
+                <h5 class="text-secondary">Best</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-bar-chart"></i>Tackles</span>
-                <span class="stat-value"><%= @performance_data["Tackles"] %></span>
+                <span>COMING SOON...</span>
+              </li>
+              <li class="d-flex justify-content-center align-items-center mb-2">
+                <h5 class="text-secondary">Worse</h5>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-people"></i> Starting lineup</span>
-                <span class="stat-value">13</span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-trophy"></i> Tries</span>
-                <span class="stat-value"><%= rand(0..3) %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
-                <span class="stat-value"><%= @performance_data["Cards"] %> / 0</span>
+                <span>COMING SOON...</span>
               </li>
             </ul>
           </div>
@@ -75,46 +60,13 @@
           <div class="card card main-card p-4 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Performance</div>
-              <span class="text-secondary">2024/2025</span>
+              <span class="text-secondary">2025/2026</span>
             </div>
-            <div>
+            <div id="performance-chart-container">
               <%= turbo_frame_tag "performance_chart" do %>
-                <%= column_chart [
-                    { name: player.name, data: @performance_data },
-                    { name: "Team Average", data: @average_player_performance_data }
-                  ],
-                  height: "220px",
-                  colors: ["#4dc9f6", "#f72585"],
-                  library: {
-                    plugins: {
-                      tooltip: {
-                        enabled: false
-                      },
-                      legend: {
-                        labels: {
-                          color: 'white'
-                        }
-                      }
-                    },
-                    scales: {
-                      x: {
-                        grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                          color: 'white'
-                        }
-                      },
-                      y: {
-                        grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                          color: 'white'
-                        }
-                      }
-                    }
-                  } %>
+                <div id="chart-content">
+                  <!-- Chart will be populated by JavaScript -->
+                </div>
               <% end %>
             </div>
           </div>
@@ -124,27 +76,18 @@
         <div class="col-md-6">
           <div class="card card main-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Absolute</div>
-              <span class="text-secondary">average</span>
+              <div class="h5 text-white mb-0">Stats</div>
+              <div class="d-flex justify-content-end w-50">
+                <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options.first[1]),
+                    { class: "form-select", id: "stats_dropdown" } %>
+              </div>
             </div>
-            <ul class="list-unstyled stats-list">
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Carries</span>
-                <span class="stat-value"><%= @performance_data["Carries"] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Passes</span>
-                <span class="stat-value"><%= @performance_data["Passes"] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Turnovers</span>
-                <span class="stat-value"><%= @performance_data["Turnovers"] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Errors</span>
-                <span class="stat-value"><%= @performance_data["Errors"] %></span>
-              </li>
-            </ul>
+            <br>
+            <div class="d-flex justify-content-between text-white">
+              <ul class="list-unstyled" id="stats_list">
+                <!-- Content will be populated by JavaScript -->
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -152,102 +95,227 @@
         <div class="col-md-6">
           <div class="card card main-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Relative</div>
-              <span class="text-secondary">average</span>
+              <div class="h5 text-white mb-0">Metrics</div>
+              <div class="d-flex justify-content-end w-50">
+                <%= select_tag "metrics_dropdown", options_for_select(@metrics_dropdown_options), class: "form-select" %>
+              </div>
             </div>
-            <ul class="list-unstyled stats-list">
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Scrums</span>
-                <span class="stat-value"><%= @performance_data["Scrums"] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Mauls</span>
-                <span class="stat-value"><%= @performance_data["Mauls"] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Lineouts</span>
-                <span class="stat-value"><%= @performance_data["Lineouts"] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>Penalties</span>
-                <span class="stat-value"><%= @performance_data["Penalties"] %></span>
-              </li>
-            </ul>
+            <br>
+            <div class="d-flex justify-content-between text-white">
+              <ul class="list-unstyled">
+                <li>COMING SOON...</li>
+              </ul>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
+  <br>
+  <br>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const ctx = document.getElementById('radarChart').getContext('2d');
+    let radarChart;
+    let performanceChart;
 
-    const radarChart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
-        datasets: [{
-          label: "This Game",
-          data: [<%= @player_match_performance_data["Attack"] %>, <%= @player_match_performance_data["Defense"] %>, <%= @player_match_performance_data["Work Rate"] %>, <%= @player_match_performance_data["Discipline"] %>, <%= @player_match_performance_data["Kicking"] %>, <%= @player_match_performance_data["Set Piece"] %>, <%= @player_match_performance_data["Breakdown"] %>],
-          fill: true,
-          backgroundColor: '#4dc9f67a',
-          borderColor: '#4dc9f6',
-          pointBackgroundColor: '#4dc9f6'
+    // Initialize with first player
+    const firstPlayerId = document.getElementById('playerSelector').value;
+    updatePlayerStats(firstPlayerId);
+
+    function initializeRadarChart(playerData, seasonData) {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+
+      if (radarChart) {
+        radarChart.destroy();
+      }
+
+      radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+          datasets: [{
+            label: "This Game",
+            data: [playerData["Attack"] || 0, playerData["Defense"] || 0, playerData["Work Rate"] || 0, playerData["Discipline"] || 0, playerData["Kicking"] || 0, playerData["Set Piece"] || 0, playerData["Breakdown"] || 0],
+            fill: true,
+            backgroundColor: '#4dc9f67a',
+            borderColor: '#4dc9f6',
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: "This Season",
+            data: [seasonData["Attack"] || 0, seasonData["Defense"] || 0, seasonData["Work Rate"] || 0, seasonData["Discipline"] || 0, seasonData["Kicking"] || 0, seasonData["Set Piece"] || 0, seasonData["Breakdown"] || 0],
+            fill: true,
+            backgroundColor: '#f725857a',
+            borderColor: '#f72585',
+            pointBackgroundColor: '#f72585'
+          }]
         },
-        {
-          label: "This Season",
-          data: [<%= @player_season_average_performance_data["Attack"] %>, <%= @player_season_average_performance_data["Defense"] %>, <%= @player_season_average_performance_data["Work Rate"] %>, <%= @player_season_average_performance_data["Discipline"] %>, <%= @player_season_average_performance_data["Kicking"] %>, <%= @player_season_average_performance_data["Set Piece"] %>, <%= @player_season_average_performance_data["Breakdown"] %>],
-          fill: true,
-          backgroundColor: '#f725857a',
-          borderColor: '#f72585',
-          pointBackgroundColor: '#f72585'
-        }]
-      },
-      options: {
-        scales: {
-          r: {
-            angleLines: {
-              color: 'rgba(255, 255, 255, 0.1)'
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: 'white'
+              }
             },
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            pointLabels: {
-              color: 'white'
-            },
-            ticks: {
-              color: 'white',
-              backdropColor: 'transparent'
+            tooltip: {
+              enabled: true
             }
-          }
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: 'white'
+          },
+          scales: {
+            r: {
+              min: 0,
+              max: 10,
+              angleLines: {
+                color: '#ccc'
+              },
+              grid: {
+                color: '#666'
+              },
+              pointLabels: {
+                color: '#eee'
+              },
+              ticks: {
+                display: false
+              }
             }
           }
         }
-      }
-    });
+      });
+    }
 
-    // Add event listener for player selection
-    document.getElementById('playerSelector').addEventListener('change', function() {
-      const playerId = this.value;
-      // Make an AJAX request to update the stats
-      fetch(`/matches/<%= @match.id %>/player_stats?player_id=${playerId}`, {
+    function updatePlayerStats(playerId) {
+      // Make AJAX request to get player stats
+      fetch(`/matches/<%= @match.id %>/coach_player_stats?player_id=${playerId}`, {
         headers: {
-          'Accept': 'text/html',
+          'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
         }
       })
-      .then(response => response.text())
-      .then(html => {
-        // Update the stats section with the new data
-        document.querySelector('.container').innerHTML = html;
+      .then(response => response.json())
+      .then(data => {
+        // Update radar chart
+        initializeRadarChart(data.player_match_performance_data, data.player_season_average_performance_data);
+
+        // Update performance chart
+        updatePerformanceChart(data.performance_data, data.average_player_performance_data, data.player_name);
+
+        // Update stats dropdown data
+        updateStatsData(data.stats_data);
+      })
+      .catch(error => {
+        console.error('Error fetching player stats:', error);
       });
+    }
+
+    function updatePerformanceChart(playerData, teamData, playerName) {
+      const chartContainer = document.getElementById('chart-content');
+
+      // Create canvas if it doesn't exist
+      let canvas = chartContainer.querySelector('#performanceChart');
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'performanceChart';
+        canvas.width = 400;
+        canvas.height = 220;
+        chartContainer.innerHTML = '';
+        chartContainer.appendChild(canvas);
+      }
+
+      const ctx = canvas.getContext('2d');
+
+      if (performanceChart) {
+        performanceChart.destroy();
+      }
+
+      performanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(playerData),
+          datasets: [{
+            label: playerName,
+            data: Object.values(playerData),
+            backgroundColor: '#4dc9f6'
+          }, {
+            label: 'Team Average',
+            data: Object.values(teamData),
+            backgroundColor: '#f72585'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              enabled: false
+            },
+            legend: {
+              labels: {
+                color: 'white'
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'white'
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'white'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateStatsData(statsData) {
+      window.currentStatsData = statsData;
+
+      // Update the stats list if a dropdown option is selected
+      const statsDropdown = document.getElementById('stats_dropdown');
+      if (statsDropdown && statsDropdown.value) {
+        updateStatsList(statsDropdown.value);
+      }
+    }
+
+    // Stats dropdown functionality
+    const statsDropdown = document.getElementById('stats_dropdown');
+    const statsList = document.getElementById('stats_list');
+
+    function updateStatsList(selectedStat) {
+      const players = (window.currentStatsData && window.currentStatsData[selectedStat]) || [];
+      statsList.innerHTML = '';
+
+      players.forEach((player, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${index + 1}º - ${player.name} (${player.value})`;
+        statsList.appendChild(listItem);
+      });
+    }
+
+    // Handle stats dropdown changes
+    if (statsDropdown) {
+      statsDropdown.addEventListener('change', function() {
+        updateStatsList(this.value);
+      });
+    }
+
+    // Handle player selection changes
+    document.getElementById('playerSelector').addEventListener('change', function() {
+      const playerId = this.value;
+      updatePlayerStats(playerId);
     });
   });
 </script>

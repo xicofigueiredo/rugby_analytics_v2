@@ -48,7 +48,7 @@
             </div>
             <div>
               <%= turbo_frame_tag "performance_chart" do %>
-                <% if player.present? %>
+                <% if player.present? && current_user.role == "player" %>
                   <%= column_chart [
                       { name: player.name, data: @performance_data },
                       { name: "Team Average", data: @average_player_performance_data }

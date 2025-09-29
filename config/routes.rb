@@ -58,6 +58,7 @@ Rails.application.routes.draw do
     end
     member do
       get 'player_stats'
+      get 'coach_player_stats'
     end
   end
 

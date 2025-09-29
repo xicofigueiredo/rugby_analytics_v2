@@ -4,7 +4,7 @@ class MatchesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_match, only: [:show, :edit, :update, :destroy]
   before_action :set_opponents, only: [:new, :edit, :create, :update]
-  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy, :upload_csv]
+  before_action :require_admin_or_coach, only: [:new, :create, :edit, :update, :destroy, :upload_csv]
 
   def index
     @matches = Match.all
@@ -165,30 +165,34 @@ class MatchesController < ApplicationController
     ]
 
     if current_user.team.name == "SPORT"
-      @performance_data = {
-        "Tackles Made" => @player_match.tackles_made,
-        "Missed Tackles" => @player_match.missed_tackle,
-        "Turnovers" => @player_match.turnover,
-        "Penalties" => @player_match.penalties_conceded,
-        "Positive Offloads" => @player_match.positive_offload,
-        "Negative Offloads" => @player_match.negative_offload,
-        "Linebreaks" => @player_match.linebreak,
-        "Knock-ons" => @player_match.knock_on,
-        "Positive Carries" => @player_match.positive_carry,
-      }
+      if current_user.role == "coach"
+        @performance_data = {}
+        @average_player_performance_data = {}
+      else
+        @performance_data = {
+          "Tackles Made" => @player_match.tackles_made,
+          "Missed Tackles" => @player_match.missed_tackle,
+          "Turnovers" => @player_match.turnover,
+          "Penalties" => @player_match.penalties_conceded,
+          "Positive Offloads" => @player_match.positive_offload,
+          "Negative Offloads" => @player_match.negative_offload,
+          "Linebreaks" => @player_match.linebreak,
+          "Knock-ons" => @player_match.knock_on,
+          "Positive Carries" => @player_match.positive_carry,
+        }
 
-      @average_player_performance_data = {
-        "Tackles Made" => @match.avg_tackles_made,
-        "Missed Tackles" => @match.avg_missed_tackle,
-        "Turnovers" => @match.avg_turnover,
-        "Penalties" => @match.avg_penalties_conceded,
-        "Positive Offloads" => @match.avg_positive_offload,
-        "Negative Offloads" => @match.avg_negative_offload,
-        "Linebreaks" => @match.avg_linebreak,
-        "Knock-ons" => @match.avg_knock_on,
-        "Positive Carries" => @match.avg_positive_carry,
-      }
-
+        @average_player_performance_data = {
+          "Tackles Made" => @match.avg_tackles_made,
+          "Missed Tackles" => @match.avg_missed_tackle,
+          "Turnovers" => @match.avg_turnover,
+          "Penalties" => @match.avg_penalties_conceded,
+          "Positive Offloads" => @match.avg_positive_offload,
+          "Negative Offloads" => @match.avg_negative_offload,
+          "Linebreaks" => @match.avg_linebreak,
+          "Knock-ons" => @match.avg_knock_on,
+          "Positive Carries" => @match.avg_positive_carry,
+        }
+      end
     else
       @performance_data = {
         "Tackles" => 5,
@@ -394,6 +398,82 @@ class MatchesController < ApplicationController
     end
   end
 
+  def coach_player_stats
+    @match = Match.find(params[:id])
+    player_match = PlayerMatch.find(params[:player_id])
+    @player_match = player_match
+    @player = player_match.player
+
+    # Get top players for stats dropdown (same as in show method)
+    calculate_top_players(@match)
+
+    # Create stats data for JavaScript (same as in show method)
+    @stats_data = {
+      "positive_tackles" => @positive_tackles_top_players.map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
+      "turnovers" => @turnovers_top_players.map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
+      "penalties" => @penalties_top_players.map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
+      "carries" => @carries_top_players.map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
+      "positive_carries" => @positive_carries_top_players.map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
+      "positive_offloads" => @positive_offloads_top_players.map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
+      "linebreaks" => @linebreaks_top_players.map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+    }
+
+    # Calculate performance data for the selected player
+    performance_data = {
+      "Tackles Made" => @player_match.tackles_made || 0,
+      "Missed Tackles" => @player_match.missed_tackle || 0,
+      "Turnovers" => @player_match.turnover || 0,
+      "Penalties" => @player_match.penalties_conceded || 0,
+      "Positive Offloads" => @player_match.positive_offload || 0,
+      "Negative Offloads" => @player_match.negative_offload || 0,
+      "Linebreaks" => @player_match.linebreak || 0,
+      "Knock-ons" => @player_match.knock_on || 0,
+      "Positive Carries" => @player_match.positive_carry || 0,
+    }
+
+    # Calculate team averages
+    average_player_performance_data = {
+      "Tackles Made" => @match.avg_tackles_made || 0,
+      "Missed Tackles" => @match.avg_missed_tackle || 0,
+      "Turnovers" => @match.avg_turnover || 0,
+      "Penalties" => @match.avg_penalties_conceded || 0,
+      "Negative Offloads" => @match.avg_negative_offload || 0,
+      "Linebreaks" => @match.avg_linebreak || 0,
+      "Knock-ons" => @match.avg_knock_on || 0,
+      "Positive Carries" => @match.avg_positive_carry || 0,
+    }
+
+    # Calculate performance scores (simplified version)
+    player_match_performance_data = {
+      "Attack" => [(@player_match.positive_carry || 0) + (@player_match.linebreak || 0), 10].min,
+      "Defense" => [(@player_match.positive_tackle || 0) + (@player_match.neutral_tackle || 0), 10].min,
+      "Work Rate" => [(@player_match.time_played || 0).to_i / 10, 10].min,
+      "Discipline" => [10 - ((@player_match.pen_offside || 0) + (@player_match.pen_breakdown || 0) + (@player_match.pen_scrum || 0) + (@player_match.pen_others || 0)), 0].max,
+      "Kicking" => 5, # Placeholder
+      "Set Piece" => 5, # Placeholder
+      "Breakdown" => [(@player_match.turnover || 0), 10].min
+    }
+
+    player_season_average_performance_data = {
+      "Attack" => 6,
+      "Defense" => 7,
+      "Work Rate" => 8,
+      "Discipline" => 6,
+      "Kicking" => 5,
+      "Set Piece" => 6,
+      "Breakdown" => 7
+    }
+
+    render json: {
+      performance_data: performance_data,
+      average_player_performance_data: average_player_performance_data,
+      player_match_performance_data: player_match_performance_data,
+      player_season_average_performance_data: player_season_average_performance_data,
+      stats_data: @stats_data,
+      player_name: @player.name
+    }
+  end
+
   private
 
   def set_match
@@ -417,8 +497,8 @@ class MatchesController < ApplicationController
     )
   end
 
-  def require_admin
-    unless current_user.role == 'admin'
+  def require_admin_or_coach
+    unless current_user.role == 'admin' || current_user.role == 'coach'
       redirect_to matches_path, alert: 'You are not authorized to access this area.'
     end
   end

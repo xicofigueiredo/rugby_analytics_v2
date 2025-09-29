@@ -35,7 +35,7 @@
         %>
         <%= hidden_field_tag :sort_direction, @sort_direction %>
       <% end %>
-      <% if @role == 'admin' %>
+      <% if @role == 'admin' || @role == 'coach' %>
         <div class="d-flex justify-content-end gap-2 p-3" style="background-color: #23263a;">
           <!-- CSV Upload Button -->
           <%= button_tag class: "btn btn-outline-warning",
@@ -44,9 +44,9 @@
             <i class="fas fa-upload me-1"></i> Upload Match
           <% end %>
 
-          <%= link_to new_match_path,
+          <%# <%= link_to new_match_path,
               class: "btn btn-outline-light" do %>
-            <i class="fas fa-plus me-1"></i> Add Match
+            <%# <i class="fas fa-plus me-1"></i> Add Match
           <% end %>
         </div>
       <% end %>
@@ -164,8 +164,7 @@
           </div>
           <div class="alert alert-info" style="background-color: #1e3a5f; border-color: #3498db; color: #85c1e0;">
             <small>
-              <strong>CSV Format Expected:</strong><br>
-              Headers: NOME, MIN, ENSAIOS, ASSISTÊNCIA, PLACAGENS, PLAC. FALHADAS, RECUPERAÇÃO AL, TURNOVERS, PENALIDADES, OFFLOADS, Q. LINHA, AVANTS, CARRIES, AMARELO, VERMELHO, Data, Opponent, Casa, Result, Competition, Season
+              <strong>CSV Format Expected</strong><br>
             </small>
           </div>
         </div>
