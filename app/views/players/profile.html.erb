@@ -49,7 +49,7 @@
           <div class="card chart-card p-4 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Performance</div>
-              <span class="text-secondary">2024/2025</span>
+              <span class="text-secondary">2025/2026</span>
             </div>
             <div>
               <%= turbo_frame_tag "performance_chart" do %>
@@ -103,47 +103,47 @@
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">General Info</div>
-              <span class="text-secondary">2024/2025</span>
+              <span class="text-secondary">2025/2026</span>
             </div>
             <br>
             <ul class="list-unstyled stats-list">
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-regular fa-clock fa-lg fa-fw text-secondary"></i> Minutes played</span>
-                <span class="stat-value">740</span>
+                <span class="stat-value"><%= @player_general_info[:minutes_played] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-h fa-lg fa-fw text-secondary"></i> Matches played</span>
-                <span class="stat-value">14</span>
+                <span class="stat-value"><%= @player_general_info[:matches_played] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-user fa-lg fa-fw text-secondary"></i> Starting lineup</span>
-                <span class="stat-value">13</span>
+                <span class="stat-value"><%= @player_general_info[:starting_lineup] %></span>
               </li>
               <br>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-bullseye fa-lg fa-fw text-secondary"></i> Tries</span>
-                <span class="stat-value">5</span>
+                <span class="stat-value"><%= @player_general_info[:tries] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-handshake-angle fa-lg fa-fw text-secondary"></i> Try Assists</span>
-                <span class="stat-value">1</span>
+                <span class="stat-value"><%= @player_general_info[:try_assists] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-copy fa-lg fa-fw text-secondary"></i> Yellow / Red cards</span>
-                <span class="stat-value">2 / 0</span>
+                <span class="stat-value"><%= @player_general_info[:yellow_cards] || 0 %> / <%= @player_general_info[:red_cards] || 0 %></span>
               </li>
               <br>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-medal fa-lg fa-fw text-secondary"></i> MVP</span>
-                <span class="stat-value">0</span>
+                <span class="stat-value"><%= @player_general_info[:mvp] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-bolt fa-lg fa-fw text-secondary"></i> Impact Player</span>
-                <span class="stat-value">3</span>
+                <span class="stat-value"><%= @player_general_info[:impact_player] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-star fa-lg fa-fw text-secondary"></i> Average Rating</span>
-                <span class="stat-value">6.33</span>
+                <span class="stat-value"><%= @player_general_info[:average_rating] %></span>
               </li>
             </ul>
           </div>

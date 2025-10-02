@@ -95,6 +95,19 @@ class PlayersController < ApplicationController
   def profile
     @player = current_user.player
 
+    @player_general_info = {
+      minutes_played: @player.player_matches.where(player_id: @player.id).sum(:time_played),
+      matches_played: @player.player_matches.where("player_id = ? AND CAST(time_played AS INTEGER) > 0", @player.id).count,
+      starting_lineup: @player.player_matches.where(player_id: @player.id, started: true).count,
+      tries: @player.player_matches.where(player_id: @player.id).sum(:try),
+      try_assists: @player.player_matches.where(player_id: @player.id).sum(:try_assist),
+      yellow_cards: @player.player_matches.where(player_id: @player.id).sum(:yellow),
+      red_cards: @player.player_matches.where(player_id: @player.id).sum(:red),
+      impact_player: "Coming Soon",
+      mvp: "Coming Soon",
+      average_rating: "Coming Soon"
+    }
+
     # Fetch attack stats per month
     @attack_stats = {
       carries: 14,

@@ -122,27 +122,27 @@
               </li>
               <br>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="fa-solid fa-bullseye fa-lg fa-fw text-secondary"></i> Tries scored</span>
-                <span class="stat-value"><%= @team_stats[:tries_scored] %></span>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="fa-solid fa-shield fa-lg fa-fw text-secondary"></i> Tries conceded</span>
-                <span class="stat-value"><%= @team_stats[:tries_conceded] %></span>
+                <span><i class="fa-solid fa-minus fa-lg fa-fw text-secondary"></i> Points conceded</span>
+                <span class="stat-value"><%= @team_stats[:points_conceded] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-plus fa-lg fa-fw text-secondary"></i> Points scored</span>
                 <span class="stat-value"><%= @team_stats[:total_points] %></span>
-              </li>
-              <br>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="fa-solid fa-minus fa-lg fa-fw text-secondary"></i> Points conceded</span>
-                <span class="stat-value"><%= @team_stats[:points_conceded] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-chart-line fa-lg fa-fw text-secondary"></i> Points difference</span>
                 <span class="stat-value <%= @team_stats[:total_points] - @team_stats[:points_conceded] > 0 ? 'text-success' : 'text-danger' %>">
                   <%= @team_stats[:total_points] - @team_stats[:points_conceded] > 0 ? '+' : '' %><%= @team_stats[:total_points] - @team_stats[:points_conceded] %>
                 </span>
+              </li>
+              <br>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-bullseye fa-lg fa-fw text-secondary"></i> Tries scored</span>
+                <span class="stat-value"><%= @team_stats[:tries_scored] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-shield fa-lg fa-fw text-secondary"></i> Tries conceded</span>
+                <span class="stat-value"><%= @team_stats[:tries_conceded] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
                 <span><i class="fa-solid fa-percentage fa-lg fa-fw text-secondary"></i> Win rate</span>
