@@ -69,15 +69,7 @@ class PlayersController < ApplicationController
       "GDD" => 58
     }
 
-    @overall_data = {
-      "Attack" => 8,
-      "Defense" => 5,
-      "Work Rate" => 6,
-      "Discipline" => 8,
-      "Kicking" => 5,
-      "Set Piece" => 5,
-      "Breakdown" => 6
-    }
+    @overall_data = calculate_player_rating_averages(@player)
   end
 
   def edit
@@ -152,15 +144,7 @@ class PlayersController < ApplicationController
       "SLB" => 6
     }
 
-    @overall_data = {
-      "Attack" => 8,
-      "Defense" => 5,
-      "Work Rate" => 6,
-      "Discipline" => 8,
-      "Kicking" => 5,
-      "Set Piece" => 5,
-      "Breakdown" => 6
-    }
+    @overall_data = calculate_player_rating_averages(@player)
   end
 
   def all_stats
@@ -234,76 +218,67 @@ class PlayersController < ApplicationController
       end
 
       # Performance ratings for radar chart
-      @player1_performance = {
-        "Attack" => rand(5.0..9.0).round(1),
-        "Defense" => rand(5.0..9.0).round(1),
-        "Work Rate" => rand(5.0..9.0).round(1),
-        "Discipline" => rand(5.0..9.0).round(1),
-        "Kicking" => rand(5.0..9.0).round(1),
-        "Set Piece" => rand(5.0..9.0).round(1),
-        "Breakdown" => rand(5.0..9.0).round(1)
-      }
+      @player1_performance = calculate_player_rating_averages(@player1)
 
-      @player2_performance = {
-        "Attack" => rand(5.0..9.0).round(1),
-        "Defense" => rand(5.0..9.0).round(1),
-        "Work Rate" => rand(5.0..9.0).round(1),
-        "Discipline" => rand(5.0..9.0).round(1),
-        "Kicking" => rand(5.0..9.0).round(1),
-        "Set Piece" => rand(5.0..9.0).round(1),
-        "Breakdown" => rand(5.0..9.0).round(1)
-      }
+      @player2_performance = calculate_player_rating_averages(@player2)
 
       # Performance data for third player if present
       if @player3.present?
-        @player3_performance = {
-          "Attack" => rand(5.0..9.0).round(1),
-          "Defense" => rand(5.0..9.0).round(1),
-          "Work Rate" => rand(5.0..9.0).round(1),
-          "Discipline" => rand(5.0..9.0).round(1),
-          "Kicking" => rand(5.0..9.0).round(1),
-          "Set Piece" => rand(5.0..9.0).round(1),
-          "Breakdown" => rand(5.0..9.0).round(1)
-        }
+        @player3_performance = calculate_player_rating_averages(@player3)
       end
 
-      # Season averages
-      @player1_season_avg = {
-        "Attack" => 7.2,
-        "Defense" => 6.8,
-        "Work Rate" => 7.5,
-        "Discipline" => 6.9,
-        "Kicking" => 3.5,
-        "Set Piece" => 8.1,
-        "Breakdown" => 6.7
-      }
-
-      @player2_season_avg = {
-        "Attack" => 6.8,
-        "Defense" => 7.2,
-        "Work Rate" => 6.9,
-        "Discipline" => 7.7,
-        "Kicking" => 3.0,
-        "Set Piece" => 6.8,
-        "Breakdown" => 8.2
-      }
+      # Season averages (same as performance for now, could be filtered by season later)
+      @player1_season_avg = calculate_player_rating_averages(@player1)
+      @player2_season_avg = calculate_player_rating_averages(@player2)
 
       # Season averages for third player if present
       if @player3.present?
-        @player3_season_avg = {
-          "Attack" => 7.5,
-          "Defense" => 6.5,
-          "Work Rate" => 7.8,
-          "Discipline" => 6.2,
-          "Kicking" => 4.5,
-          "Set Piece" => 7.9,
-          "Breakdown" => 7.1
-        }
+        @player3_season_avg = calculate_player_rating_averages(@player3)
       end
     end
   end
 
   private
+
+  def calculate_player_rating_averages(player)
+    # Get all player matches with ratings
+    player_matches = player.player_matches.where.not(
+      attack_rating: nil,
+      defense_rating: nil,
+      consistency_rating: nil,
+      discipline_rating: nil,
+      skills_rating: nil,
+      work_rate_rating: nil
+    )
+
+    Rails.logger.info "Player #{player.name} has #{player_matches.count} matches with ratings"
+
+    if player_matches.empty?
+      # Return default values if no ratings available
+      Rails.logger.info "No ratings found for #{player.name}, returning defaults"
+      return {
+        "Attack" => 5.0,
+        "Defense" => 5.0,
+        "Work Rate" => 5.0,
+        "Discipline" => 5.0,
+        "Skills" => 5.0,
+        "Consistency" => 5.0
+      }
+    end
+
+    # Calculate averages
+    result = {
+      "Attack" => player_matches.average(:attack_rating)&.round(1) || 5.0,
+      "Defense" => player_matches.average(:defense_rating)&.round(1) || 5.0,
+      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 5.0,
+      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 5.0,
+      "Skills" => player_matches.average(:skills_rating)&.round(1) || 5.0,
+      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 5.0
+    }
+
+    Rails.logger.info "Calculated ratings for #{player.name}: #{result.inspect}"
+    result
+  end
 
   def skip_if_not_current_user
     unless @player == current_user.player || current_user.role == 'admin' || current_user.role == 'coach'
