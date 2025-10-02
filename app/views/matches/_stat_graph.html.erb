@@ -46,10 +46,10 @@
         <div>Min</div>
       </div>
       <ul class="player-list text-white">
-        <% @starting_players.each_with_index do |player, index| %>
+        <% @starting_players.each do |player| %>
           <li class="player-row d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center" style="width: 80%;">
-              <span class="player-number me-2"><%= index + 1 %></span>
+              <span class="player-number me-2"><%= player.position %></span>
               <span class="player-name text-truncate"><%= player.player.name %></span>
             </div>
             <span class="player-minutes text-end"><%= player.time_played %>'</span>
@@ -121,10 +121,10 @@
         <div>Min</div>
       </div>
       <ul class="player-list text-white">
-        <% @bench_players.each_with_index do |player, index| %>
+        <% @bench_players.each do |player| %>
           <li class="player-row d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center" style="width: 80%;">
-              <span class="player-number me-2"><%= index + 16 %></span>
+              <span class="player-number me-2"><%= player.position %></span>
               <span class="player-name text-truncate"><%= player.player.name %></span>
             </div>
             <span class="player-minutes text-end"><%= player.time_played %>'</span>

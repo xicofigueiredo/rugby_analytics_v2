@@ -44,7 +44,7 @@ class MatchesController < ApplicationController
 
   def show
     @team = current_user.team
-    @players = PlayerMatch.where(match_id: @match.id)
+    @players = PlayerMatch.where(match_id: @match.id).order(position: :asc)
     @starting_players = @players.where(started: true)
     @bench_players = @players.where(started: false)
     @scorer_players = @players.where("try > 0 OR conversion > 0 OR penalty_kick_goal > 0 OR drop_goal > 0")
@@ -753,7 +753,10 @@ class MatchesController < ApplicationController
 
         # Create player match with error handling
         begin
-          player_match = match.player_matches.create!(player: player)
+          player_match = match.player_matches.create!(
+            player: player,
+            position: index + 1  # Set position based on CSV row index (1-based)
+          )
         rescue ActiveRecord::RecordInvalid => e
           Rails.logger.error "Failed to create player_match for '#{player_name}': #{e.message}"
           next
