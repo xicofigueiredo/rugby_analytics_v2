@@ -248,14 +248,16 @@ class MatchesController < ApplicationController
 
     # Create a hash for JavaScript access
     @stats_data = {
-      "positive_tackles" => @positive_tackles_top_players.map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
-      "turnovers" => @turnovers_top_players.map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
-      "penalties" => @penalties_top_players.map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
-      "carries" => @carries_top_players.map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
-      "positive_carries" => @positive_carries_top_players.map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
-      "positive_offloads" => @positive_offloads_top_players.map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
-      "linebreaks" => @linebreaks_top_players.map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
+      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
+      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
+      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
+      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
+      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
+      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
     }
+
+    Rails.logger.info "Stats data: #{@stats_data.inspect}"
 
     @metrics_dropdown_options = [
       "Tackle Dominance Rate",
@@ -423,15 +425,25 @@ class MatchesController < ApplicationController
     # Get top players for stats dropdown (same as in show method)
     calculate_top_players(@match)
 
+    @stats_dropdown_options = [
+      ["Positive Tackles", "positive_tackles"],
+      ["Turnovers", "turnovers"],
+      ["Penalties", "penalties"],
+      ["Carries", "carries"],
+      ["Positive Carries", "positive_carries"],
+      ["Positive Offloads", "positive_offloads"],
+      ["Linebreaks", "linebreaks"]
+    ]
+
     # Create stats data for JavaScript (same as in show method)
     @stats_data = {
-      "positive_tackles" => @positive_tackles_top_players.map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
-      "turnovers" => @turnovers_top_players.map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
-      "penalties" => @penalties_top_players.map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
-      "carries" => @carries_top_players.map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
-      "positive_carries" => @positive_carries_top_players.map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
-      "positive_offloads" => @positive_offloads_top_players.map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
-      "linebreaks" => @linebreaks_top_players.map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
+      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
+      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
+      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
+      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
+      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
+      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
     }
 
     # Calculate performance data for the selected player
