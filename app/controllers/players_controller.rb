@@ -135,11 +135,6 @@ class PlayersController < ApplicationController
   end
 
   def head_to_head
-    # Ensure only coaches can access this
-    unless current_user.role == 'coach' || current_user.role == 'admin'
-      redirect_to root_path, alert: 'Only coaches can access the head-to-head comparison tool.'
-    end
-
     # Get all players from the coach's team with error handling
     if current_user.team.present?
       @team_players = current_user.team.players.order(:name)
@@ -157,47 +152,13 @@ class PlayersController < ApplicationController
       @player2 = Player.find(@player2_id)
       @player3 = Player.find(@player3_id) if @player3_id.present?
 
-      # Generate mock comparison data for both players
-      @player1_stats = {
-        "Tackles" => rand(5..15),
-        "Turnovers" => rand(2..8),
-        "Errors" => rand(1..5),
-        "Penalties" => rand(0..3),
-        "Cards" => rand(0..1),
-        "Carries" => rand(5..20),
-        "Passes" => rand(10..30),
-        "Scrums" => rand(2..8),
-        "Mauls" => rand(3..10),
-        "Lineouts" => rand(2..6)
-      }
+      # Calculate real statistics from player_matches
+      @player1_stats = calculate_player_season_stats(@player1)
+      @player2_stats = calculate_player_season_stats(@player2)
 
-      @player2_stats = {
-        "Tackles" => rand(5..15),
-        "Turnovers" => rand(2..8),
-        "Errors" => rand(1..5),
-        "Penalties" => rand(0..3),
-        "Cards" => rand(0..1),
-        "Carries" => rand(5..20),
-        "Passes" => rand(10..30),
-        "Scrums" => rand(2..8),
-        "Mauls" => rand(3..10),
-        "Lineouts" => rand(2..6)
-      }
-
-      # Generate mock data for third player if present
+      # Calculate real statistics for third player if present
       if @player3.present?
-        @player3_stats = {
-          "Tackles" => rand(5..15),
-          "Turnovers" => rand(2..8),
-          "Errors" => rand(1..5),
-          "Penalties" => rand(0..3),
-          "Cards" => rand(0..1),
-          "Carries" => rand(5..20),
-          "Passes" => rand(10..30),
-          "Scrums" => rand(2..8),
-          "Mauls" => rand(3..10),
-          "Lineouts" => rand(2..6)
-        }
+        @player3_stats = calculate_player_season_stats(@player3)
       end
 
       # Performance ratings for radar chart
@@ -261,6 +222,38 @@ class PlayersController < ApplicationController
 
     Rails.logger.info "Calculated ratings for #{player.name}: #{result.inspect}"
     result
+  end
+
+  def calculate_player_season_stats(player)
+    # Get all player_matches for this player where they actually played
+    player_matches = player.player_matches.where("CAST(time_played AS INTEGER) > 0")
+
+    return {
+      "Tackles" => 0,
+      "Turnovers" => 0,
+      "Errors" => 0,
+      "Penalties" => 0,
+      "Cards" => 0,
+      "Carries" => 0,
+      "Passes" => 0,
+      "Scrums" => 0,
+      "Mauls" => 0,
+      "Lineouts" => 0
+    } if player_matches.empty?
+
+    # Calculate totals for the season
+    {
+      "Tackles" => player_matches.sum { |pm| pm.tackles_made },
+      "Turnovers" => player_matches.sum(:turnover) || 0,
+      "Errors" => (player_matches.sum(:knock_on) || 0) + (player_matches.sum(:negative_offload) || 0),
+      "Penalties" => player_matches.sum { |pm| pm.penalties_conceded },
+      "Cards" => (player_matches.sum(:yellow) || 0) + (player_matches.sum(:red) || 0),
+      "Carries" => player_matches.sum(:carries) || 0,
+      "Passes" => 0, # Not directly tracked in current schema
+      "Scrums" => 0, # Not directly tracked in current schema  
+      "Mauls" => 0, # Not directly tracked in current schema
+      "Lineouts" => (player_matches.sum(:lineout_won_jump) || 0) + (player_matches.sum(:lineout_won_no_jump) || 0)
+    }
   end
 
   def skip_if_not_current_user

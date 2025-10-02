@@ -305,10 +305,10 @@
       new Chart(ctx, {
         type: 'radar',
         data: {
-          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
+          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency", "Breakdown"],
           datasets: [{
             label: "<%= @player1.name %>",
-            data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Kicking"] %>, <%= @player1_season_avg["Set Piece"] %>, <%= @player1_season_avg["Breakdown"] %>],
+            data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Skills"] %>, <%= @player1_season_avg["Consistency"] %>, <%= (@player1_season_avg["Attack"] + @player1_season_avg["Defense"]) / 2 %>],
             fill: true,
             backgroundColor: '#4dc9f67a',
             borderColor: '#4dc9f6',
@@ -316,7 +316,7 @@
           },
           {
             label: "<%= @player2.name %>",
-            data: [<%= @player2_season_avg["Attack"] %>, <%= @player2_season_avg["Defense"] %>, <%= @player2_season_avg["Work Rate"] %>, <%= @player2_season_avg["Discipline"] %>, <%= @player2_season_avg["Kicking"] %>, <%= @player2_season_avg["Set Piece"] %>, <%= @player2_season_avg["Breakdown"] %>],
+            data: [<%= @player2_season_avg["Attack"] %>, <%= @player2_season_avg["Defense"] %>, <%= @player2_season_avg["Work Rate"] %>, <%= @player2_season_avg["Discipline"] %>, <%= @player2_season_avg["Skills"] %>, <%= @player2_season_avg["Consistency"] %>, <%= (@player2_season_avg["Attack"] + @player2_season_avg["Defense"]) / 2 %>],
             fill: true,
             backgroundColor: '#f725857a',
             borderColor: '#f72585',
@@ -324,7 +324,7 @@
           }<% if @player3.present? %>,
           {
             label: "<%= @player3.name %>",
-            data: [<%= @player3_season_avg["Attack"] %>, <%= @player3_season_avg["Defense"] %>, <%= @player3_season_avg["Work Rate"] %>, <%= @player3_season_avg["Discipline"] %>, <%= @player3_season_avg["Kicking"] %>, <%= @player3_season_avg["Set Piece"] %>, <%= @player3_season_avg["Breakdown"] %>],
+            data: [<%= @player3_season_avg["Attack"] %>, <%= @player3_season_avg["Defense"] %>, <%= @player3_season_avg["Work Rate"] %>, <%= @player3_season_avg["Discipline"] %>, <%= @player3_season_avg["Skills"] %>, <%= @player3_season_avg["Consistency"] %>, <%= (@player3_season_avg["Attack"] + @player3_season_avg["Defense"]) / 2 %>],
             fill: true,
             backgroundColor: '#28a7457a',
             borderColor: '#28a745',
