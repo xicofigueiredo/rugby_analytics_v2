@@ -729,14 +729,29 @@ class MatchesController < ApplicationController
         # Create actions based on stats with error handling
         begin
           create_actions_from_stats(player_match, row, csv_data.headers, index)
+          # Calculate ratings after stats are saved
+          player_match.calculate_ratings!
+          Rails.logger.info "Calculated ratings for player '#{player_name}'"
         rescue ActiveRecord::RecordInvalid => e
           Rails.logger.error "Failed to create stats for player '#{player_name}': #{e.message}"
           # Continue processing other players even if one fails
+        rescue => e
+          Rails.logger.error "Failed to calculate ratings for player '#{player_name}': #{e.message}"
+          # Continue processing other players even if rating calculation fails
         end
       end
 
       # Create team stats after processing all players
-      create_team_stats(match, team_stats_data) if team_stats_data
+      if team_stats_data
+        teamstat = create_team_stats(match, team_stats_data)
+        # Calculate team ratings after team stats are saved
+        begin
+          teamstat.calculate_ratings!
+          Rails.logger.info "Calculated team ratings for match #{match.id}"
+        rescue => e
+          Rails.logger.error "Failed to calculate team ratings for match #{match.id}: #{e.message}"
+        end
+      end
       calculate_team_average(match)
     end # End transaction
   end
@@ -843,6 +858,7 @@ class MatchesController < ApplicationController
     )
 
     Rails.logger.info "Created home team stats: #{home_teamstat.inspect}"
+    home_teamstat
   end
 
   def calculate_team_average(match)

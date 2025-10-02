@@ -37,4 +37,27 @@ class Teamstat < ApplicationRecord
     return 0 if total_opponent_scrums == 0
     (scrums_stolen.to_f / total_opponent_scrums * 100).round(2)
   end
+
+  # Rating calculation methods
+  def calculate_ratings!
+    TeamRatingService.new(self).calculate_all_ratings!
+  end
+
+  def has_ratings?
+    [attack_rating, defense_rating, consistency_rating, discipline_rating, skills_rating, work_rate_rating].any?(&:present?)
+  end
+
+  def overall_rating
+    return nil unless has_ratings?
+
+    # Weighted average of ratings
+    (
+      (attack_rating || 0) * 0.3 +
+      (defense_rating || 0) * 0.3 +
+      (consistency_rating || 0) * 0.1 +
+      (discipline_rating || 0) * 0.15 +
+      (skills_rating || 0) * 0.05 +
+      (work_rate_rating || 0) * 0.1
+    ).round(2)
+  end
 end
