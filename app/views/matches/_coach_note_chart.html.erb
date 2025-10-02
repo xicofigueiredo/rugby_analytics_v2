@@ -5,17 +5,19 @@
       <div class="note-section h-100">
         <h6 class="text-white mb-3">COACH TEAM NOTES</h6>
         <div class="note-card h-100">
-          <%# add here the form %>
-          <% if match.coach_notes.present? %>
-            <p class="note-text"><%= match.coach_notes %></p>
-          <% else %>
-            <p class="note-text text-secondary">No match notes from coach</p>
-          <% end %>
-          <% if current_user&.admin? %>
-            <div class="note-actions">
-              <%= link_to "Edit Match Notes", edit_match_path(match, anchor: 'coach_notes'),
-                  class: "btn btn-sm btn-outline-primary" %>
+          <%= form_with model: match, local: false, class: "coach-notes-form h-100", id: "coach-notes-form-#{match.id}" do |form| %>
+            <div class="form-group flex-grow-1">
+              <%= form.text_area :coach_notes,
+                  class: "form-control coach-notes-textarea",
+                  placeholder: "Enter coach notes for this match...",
+                  rows: 6,
+                  id: "coach_notes_#{match.id}",
+                  data: {
+                    match_id: match.id,
+                    autosave: true
+                  } %>
             </div>
+            <div class="save-status" id="save-status-#{match.id}"></div>
           <% end %>
         </div>
       </div>
@@ -65,9 +67,152 @@
   margin-top: auto;
 }
 
+.coach-notes-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.coach-notes-textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  resize: vertical;
+  min-height: 120px;
+  transition: all 0.3s ease;
+}
+
+.coach-notes-textarea:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.coach-notes-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.save-status {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  text-align: right;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.save-status.saving {
+  color: #ffc107;
+  opacity: 1;
+}
+
+.save-status.saved {
+  color: #28a745;
+  opacity: 1;
+}
+
+.save-status.error {
+  color: #dc3545;
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
   .note-cards-grid {
     grid-template-columns: 1fr;
   }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Coach notes auto-save script loaded');
+  const textareas = document.querySelectorAll('[data-autosave="true"]');
+  console.log('Found textareas:', textareas.length);
+
+  textareas.forEach(function(textarea) {
+    let saveTimeout;
+    const matchId = textarea.dataset.matchId;
+    const statusElement = document.getElementById(`save-status-${matchId}`);
+
+    console.log('Setting up auto-save for match:', matchId);
+
+    function showStatus(message, className) {
+      console.log('Status:', message, className);
+      if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.className = `save-status ${className}`;
+
+        if (className === 'saved') {
+          setTimeout(() => {
+            statusElement.classList.remove('saved');
+          }, 2000);
+        }
+      }
+    }
+
+    function saveNotes() {
+      console.log('Attempting to save notes for match:', matchId);
+      console.log('Notes content:', textarea.value);
+
+      // Get CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]');
+      console.log('CSRF token found:', !!csrfToken);
+
+      const formData = new FormData();
+      formData.append('match[coach_notes]', textarea.value);
+      formData.append('_method', 'PATCH');
+
+      if (csrfToken) {
+        formData.append('authenticity_token', csrfToken.getAttribute('content'));
+      }
+
+      showStatus('Saving...', 'saving');
+
+      fetch(`/matches/${matchId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      })
+      .then(data => {
+        console.log('Save response:', data);
+        if (data.status === 'success') {
+          showStatus('Saved', 'saved');
+        } else {
+          throw new Error(data.errors ? data.errors.join(', ') : 'Unknown error');
+        }
+      })
+      .catch(error => {
+        console.error('Error saving notes:', error);
+        showStatus('Save failed', 'error');
+      });
+    }
+
+    // Auto-save on blur (when clicking outside)
+    textarea.addEventListener('blur', function() {
+      console.log('Textarea blur event triggered');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveNotes, 300);
+    });
+
+    // Also save on input with debounce (optional - saves while typing)
+    textarea.addEventListener('input', function() {
+      console.log('Textarea input event triggered');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(saveNotes, 2000); // Save 2 seconds after stopping typing
+    });
+  });
+});
+</script>

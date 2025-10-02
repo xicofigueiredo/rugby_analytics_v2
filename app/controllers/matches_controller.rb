@@ -292,10 +292,18 @@ class MatchesController < ApplicationController
 
   def update
     if @match.update(match_params)
-      redirect_to @match, notice: 'Match was successfully updated.'
+      respond_to do |format|
+        format.html { redirect_to @match, notice: 'Match was successfully updated.' }
+        format.json { render json: { status: 'success', message: 'Match was successfully updated.' } }
+      end
     else
-      @teams = Team.all
-      render :edit, status: :unprocessable_entity
+      respond_to do |format|
+        format.html do
+          @teams = Team.all
+          render :edit, status: :unprocessable_entity
+        end
+        format.json { render json: { status: 'error', errors: @match.errors.full_messages } }
+      end
     end
   end
 
@@ -356,6 +364,21 @@ class MatchesController < ApplicationController
     @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
 
     render partial: 'coach_match_stats', locals: { player: @player }
+  end
+
+  def update_player_match
+    @match = Match.find(params[:id])
+    @player_match = @match.player_matches.find(params[:player_match_id])
+
+    if @player_match.update(player_match_params)
+      respond_to do |format|
+        format.json { render json: { status: 'success', message: 'Player notes updated successfully.' } }
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { status: 'error', errors: @player_match.errors.full_messages } }
+      end
+    end
   end
 
   def upload_csv
@@ -521,6 +544,7 @@ class MatchesController < ApplicationController
       :away_team_id,
       :result,
       :description,
+      :coach_notes,
       player_matches_attributes: [:id, :player_id, :position, :_destroy, :coach_notes, :player_notes]
     )
   end
