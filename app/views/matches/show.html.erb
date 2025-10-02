@@ -81,8 +81,13 @@
         </div>
 
         <div id="note-chart" class="chart-section">
-          <%= render partial: 'note_chart', locals: { match: @match, player: current_user.player, player_match: @player_match } %>
+          <% if current_user.role == "coach" %>
+            <%= render partial: 'coach_note_chart', locals: { match: @match } %>
+          <% else %>
+            <%= render partial: 'note_chart', locals: { match: @match, player: current_user.player, player_match: @player_match } %>
+          <% end %>
         </div>
+
 
       <% end %>
     </div>
