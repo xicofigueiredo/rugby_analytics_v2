@@ -305,7 +305,7 @@
       new Chart(ctx, {
         type: 'radar',
         data: {
-          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency", "Breakdown"],
+          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency"],
           datasets: [{
             label: "<%= @player1.name %>",
             data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Skills"] %>, <%= @player1_season_avg["Consistency"] %>, <%= (@player1_season_avg["Attack"] + @player1_season_avg["Defense"]) / 2 %>],

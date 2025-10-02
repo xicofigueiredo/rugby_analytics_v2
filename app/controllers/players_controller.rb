@@ -235,9 +235,6 @@ class PlayersController < ApplicationController
       "Penalties" => 0,
       "Cards" => 0,
       "Carries" => 0,
-      "Passes" => 0,
-      "Scrums" => 0,
-      "Mauls" => 0,
       "Lineouts" => 0
     } if player_matches.empty?
 
@@ -249,9 +246,6 @@ class PlayersController < ApplicationController
       "Penalties" => player_matches.sum { |pm| pm.penalties_conceded },
       "Cards" => (player_matches.sum(:yellow) || 0) + (player_matches.sum(:red) || 0),
       "Carries" => player_matches.sum(:carries) || 0,
-      "Passes" => 0, # Not directly tracked in current schema
-      "Scrums" => 0, # Not directly tracked in current schema  
-      "Mauls" => 0, # Not directly tracked in current schema
       "Lineouts" => (player_matches.sum(:lineout_won_jump) || 0) + (player_matches.sum(:lineout_won_no_jump) || 0)
     }
   end

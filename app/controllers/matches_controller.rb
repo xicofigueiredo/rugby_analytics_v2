@@ -170,15 +170,15 @@ class MatchesController < ApplicationController
         }
       else
         @performance_data = {
-          "Tackles Made" => @player_match.tackles_made,
+          "Tackles Made" => @player_match.tackles_made || 0,
           "Missed Tackles" => @player_match.missed_tackle,
-          "Turnovers" => @player_match.turnover,
-          "Penalties" => @player_match.penalties_conceded,
-          "Positive Offloads" => @player_match.positive_offload,
-          "Negative Offloads" => @player_match.negative_offload,
-          "Linebreaks" => @player_match.linebreak,
-          "Knock-ons" => @player_match.knock_on,
-          "Positive Carries" => @player_match.positive_carry,
+          "Turnovers" => @player_match.turnover || 0,
+          "Penalties" => @player_match.penalties_conceded || 0,
+          "Positive Offloads" => @player_match.positive_offload || 0,
+          "Negative Offloads" => @player_match.negative_offload || 0,
+          "Linebreaks" => @player_match.linebreak || 0,
+          "Knock-ons" => @player_match.knock_on || 0,
+          "Positive Carries" => @player_match.positive_carry || 0,
         }
 
         @average_player_performance_data = {
