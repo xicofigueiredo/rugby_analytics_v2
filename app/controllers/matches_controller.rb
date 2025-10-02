@@ -378,6 +378,21 @@ class MatchesController < ApplicationController
       process_match_csv(csv_data)
       redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
     rescue => e
+      Rails.logger.error "CSV processing error: #{e.class}: #{e.message}"
+      Rails.logger.error "Backtrace: #{e.backtrace.first(10).join("\n")}"
+
+      # Ensure any failed transaction is properly rolled back
+      begin
+        if ActiveRecord::Base.connection.transaction_open?
+          Rails.logger.info "Rolling back open transaction"
+          ActiveRecord::Base.connection.rollback_db_transaction
+        end
+      rescue => rollback_error
+        Rails.logger.error "Error during transaction rollback: #{rollback_error.message}"
+        # Reset the connection to ensure it's in a clean state
+        ActiveRecord::Base.connection.reconnect!
+      end
+
       redirect_to matches_path, alert: "Error processing CSV: #{e.message}"
     end
   end
@@ -538,7 +553,12 @@ class MatchesController < ApplicationController
   def process_match_csv(csv_data)
     return if csv_data.empty?
 
+    # Ensure database connection is healthy
+    ActiveRecord::Base.connection.verify!
+    Rails.logger.info "Database connection verified"
+
     ActiveRecord::Base.transaction do
+      Rails.logger.info "Starting CSV processing transaction"
       # Get match data from first row (excluding totals)
       first_row = csv_data.first
 
@@ -771,8 +791,23 @@ class MatchesController < ApplicationController
           Rails.logger.error "Failed to calculate team ratings for match #{match.id}: #{e.message}"
         end
       end
+
+      Rails.logger.info "Calculating team averages for match #{match.id}"
       calculate_team_average(match)
+
+      Rails.logger.info "CSV processing transaction completed successfully"
     end # End transaction
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Database validation error during CSV processing: #{e.message}"
+    Rails.logger.error "Record errors: #{e.record.errors.full_messages}" if e.record
+    raise "Database validation failed: #{e.message}"
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error "Database statement error during CSV processing: #{e.message}"
+    raise "Database error: #{e.message}"
+  rescue StandardError => e
+    Rails.logger.error "Unexpected error during CSV processing: #{e.class}: #{e.message}"
+    Rails.logger.error "Backtrace: #{e.backtrace.first(5).join("\n")}"
+    raise e
   end
 
   def create_actions_from_stats(player_match, row, headers, index)
