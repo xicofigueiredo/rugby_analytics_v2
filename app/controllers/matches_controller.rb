@@ -169,17 +169,31 @@ class MatchesController < ApplicationController
           "Consistency" => 5.0
         }
       else
-        @performance_data = {
-          "Tackles Made" => @player_match.tackles_made || 0,
-          "Missed Tackles" => @player_match.missed_tackle,
-          "Turnovers" => @player_match.turnover || 0,
-          "Penalties" => @player_match.penalties_conceded || 0,
-          "Positive Offloads" => @player_match.positive_offload || 0,
-          "Negative Offloads" => @player_match.negative_offload || 0,
-          "Linebreaks" => @player_match.linebreak || 0,
-          "Knock-ons" => @player_match.knock_on || 0,
-          "Positive Carries" => @player_match.positive_carry || 0,
-        }
+        if @player_match
+          @performance_data = {
+            "Tackles Made" => 0 + @player_match.tackles_made,
+            "Missed Tackles" => @player_match.missed_tackle,
+            "Turnovers" => @player_match.turnover || 0,
+            "Penalties" => @player_match.penalties_conceded || 0,
+            "Positive Offloads" => @player_match.positive_offload || 0,
+            "Negative Offloads" => @player_match.negative_offload || 0,
+            "Linebreaks" => @player_match.linebreak || 0,
+            "Knock-ons" => @player_match.knock_on || 0,
+            "Positive Carries" => @player_match.positive_carry || 0,
+          }
+
+          @player_match_performance_data = {
+            "Attack" => @player_match.attack_rating || 5.0,
+            "Defense" => @player_match.defense_rating || 5.0,
+            "Work Rate" => @player_match.work_rate_rating || 5.0,
+            "Discipline" => @player_match.discipline_rating || 5.0,
+            "Skills" => @player_match.skills_rating || 5.0,
+            "Consistency" => @player_match.consistency_rating || 5.0
+          }
+        else
+          @performance_data = { }
+          @player_match_performance_data = { }
+        end
 
         @average_player_performance_data = {
           "Tackles Made" => @match.avg_tackles_made,
@@ -193,14 +207,6 @@ class MatchesController < ApplicationController
           "Positive Carries" => @match.avg_positive_carry,
         }
 
-        @player_match_performance_data = {
-          "Attack" => @player_match.attack_rating || 5.0,
-          "Defense" => @player_match.defense_rating || 5.0,
-          "Work Rate" => @player_match.work_rate_rating || 5.0,
-          "Discipline" => @player_match.discipline_rating || 5.0,
-          "Skills" => @player_match.skills_rating || 5.0,
-          "Consistency" => @player_match.consistency_rating || 5.0
-        }
 
         # Calculate team average ratings for this match
         @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)

@@ -28,7 +28,7 @@
       <div class="note-section h-100">
         <h6 class="text-white mb-3">COACH NOTES TO YOU</h6>
         <div class="note-card h-100">
-          <% if @player_match.coach_notes.present? %>
+          <% if @player_match && @player_match.coach_notes.present? %>
             <p class="note-text"><%= @player_match.coach_notes %></p>
           <% else %>
             <p class="note-text text-secondary">No match notes to you from coach</p>
