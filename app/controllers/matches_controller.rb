@@ -2,7 +2,7 @@ require 'csv'
 
 class MatchesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_match, only: [:show, :edit, :update, :destroy]
+  before_action :set_match, only: [:show, :edit, :update, :destroy, :coach_player_stats]
   before_action :set_opponents, only: [:new, :edit, :create, :update]
   before_action :require_admin_or_coach, only: [:new, :create, :edit, :update, :destroy, :upload_csv]
 
@@ -59,15 +59,7 @@ class MatchesController < ApplicationController
     # elsif current_user.role == "coach"
     #   @player = @match.player_matches.first.player
     # end
-    @general_stats = [
-      { name: "Carries", home: 63, away: 37 },
-      { name: "Tackles", home: 50, away: 50 },
-      { name: "Turnovers", home: 66, away: 34 },
-      { name: "Passes", home: 34, away: 66 },
-      { name: "Errors", home: 52, away: 48 },
-      { name: "Penalties", home: 62, away: 38 },
-      { name: "Cards", home: 50, away: 50 }
-    ]
+
 
     lineouts_won = @match.teamstat.first.lineouts_won
     lineouts_lost = @match.teamstat.first.lineouts_lost
@@ -143,26 +135,22 @@ class MatchesController < ApplicationController
       end
     end
 
-    @negative_stats = [
-      { name: "Errors", home: 52, away: 48 },
-      { name: "Penalties", home: 62, away: 38 },
-      { name: "Cards", home: 0, away: 0 }
-    ]
-
-    @home_data = @general_stats.map { |s| [s[:name], s[:home]] }.to_h
-    @away_data = @general_stats.map { |s| [s[:name], s[:away]] }.to_h
 
 
-    @chartkick_data = [
-      { name: @match.home_team.name, data: @general_stats.map { |s| [s[:name], s[:home]] } },
-      { name: @match.away_team.name, data: @general_stats.map { |s| [s[:name], s[:away]] } }
-    ]
-
-    if current_user.team.name == "SPORT"
       if current_user.role == "coach"
         @performance_data = {}
-        @average_player_performance_data = {}
         @player_match_performance_data = {}
+        @average_player_performance_data = {
+          "Tackles Made" => @match.avg_tackles_made,
+          "Missed Tackles" => @match.avg_missed_tackle,
+          "Turnovers" => @match.avg_turnover,
+          "Penalties" => @match.avg_penalties_conceded,
+          "Positive Offloads" => @match.avg_positive_offload,
+          "Negative Offloads" => @match.avg_negative_offload,
+          "Linebreaks" => @match.avg_linebreak,
+          "Knock-ons" => @match.avg_knock_on,
+          "Positive Carries" => @match.avg_positive_carry,
+        }
       else
         @performance_data = {
           "Tackles Made" => @player_match.tackles_made,
@@ -200,17 +188,6 @@ class MatchesController < ApplicationController
         # Calculate team average ratings for this match
         @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
 
-        # Set up stats dropdown options and data
-        @stats_dropdown_options = [
-          ["Positive Tackles", "positive_tackles"],
-          ["Turnovers", "turnovers"],
-          ["Penalties", "penalties"],
-          ["Carries", "carries"],
-          ["Positive Carries", "positive_carries"],
-          ["Positive Offloads", "positive_offloads"],
-          ["Linebreaks", "linebreaks"]
-        ]
-
         # Create stats data for JavaScript
         @stats_data = {
           "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
@@ -222,33 +199,6 @@ class MatchesController < ApplicationController
           "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
         }
       end
-    else
-      @performance_data = {
-        "Tackles" => 5,
-        "Turnovers" => 4,
-        "Errors" => 7,
-        "Penalties" => 8,
-        "Cards" => 6,
-        "Carries" => 5,
-        "Passes" => 8,
-        "Scrums" => 3,
-        "Mauls" => 4,
-        "Lineouts" => 4
-      }
-
-      @average_player_performance_data = {
-        "Tackles" => 7,
-        "Turnovers" => 7,
-        "Errors" => 3,
-        "Penalties" => 7,
-        "Cards" => 7,
-        "Carries" => 7,
-        "Passes" => 6,
-        "Scrums" => 3,
-        "Mauls" => 6,
-        "Lineouts" => 7
-      }
-    end
 
     @minutes_data = {
       "CDUL" => 65,
@@ -356,59 +306,6 @@ class MatchesController < ApplicationController
     redirect_to matches_url, notice: 'Match was successfully deleted.'
   end
 
-  def player_stats
-    @match = Match.find(params[:id])
-    @player = Player.find(params[:player_id])
-    @player_match = PlayerMatch.where(match_id: @match.id, player_id: @player.id).first
-
-    # Mock data for player stats
-    @performance_data = {
-      "Tackles" => rand(5..15),
-      "Turnovers" => rand(2..8),
-      "Errors" => rand(1..5),
-      "Penalties" => rand(0..3),
-      "Cards" => rand(0..1),
-      "Carries" => rand(5..20),
-      "Passes" => rand(10..30),
-      "Scrums" => rand(2..8),
-      "Mauls" => rand(3..10),
-      "Lineouts" => rand(2..6)
-    }
-
-    # Mock data for team average
-    @average_player_performance_data = {
-      "Tackles" => 10,
-      "Turnovers" => 5,
-      "Errors" => 3,
-      "Penalties" => 2,
-      "Cards" => 0.5,
-      "Carries" => 12,
-      "Passes" => 20,
-      "Scrums" => 5,
-      "Mauls" => 6,
-      "Lineouts" => 4
-    }
-
-    # Mock data for minutes played
-    @minutes_data = {
-      "Minutes" => rand(40..80)
-    }
-
-    # Get actual ratings for this specific match
-    @player_match_performance_data = {
-      "Attack" => @player_match.attack_rating || 5.0,
-      "Defense" => @player_match.defense_rating || 5.0,
-      "Work Rate" => @player_match.work_rate_rating || 5.0,
-      "Discipline" => @player_match.discipline_rating || 5.0,
-      "Skills" => @player_match.skills_rating || 5.0,
-      "Consistency" => @player_match.consistency_rating || 5.0
-    }
-
-    # Calculate team average ratings for this match
-    @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
-
-    render partial: 'coach_match_stats', locals: { player: @player }
-  end
 
   def update_player_match
     @match = Match.find(params[:id])
@@ -459,7 +356,6 @@ class MatchesController < ApplicationController
   end
 
   def coach_player_stats
-    @match = Match.find(params[:id])
     player_match = PlayerMatch.find(params[:player_id])
     @player_match = player_match
     @player = player_match.player
@@ -520,15 +416,15 @@ class MatchesController < ApplicationController
           player_name: @player.name,
           performance_data: performance_data,
           average_player_performance_data: {
-            "Tackles Made" => 10,
-            "Missed Tackles" => 3,
-            "Turnovers" => 2,
-            "Penalties" => 1,
-            "Positive Offloads" => 2,
-            "Negative Offloads" => 1,
-            "Linebreaks" => 1,
-            "Knock-ons" => 2,
-            "Positive Carries" => 8
+            "Tackles Made" => @match.avg_tackles_made,
+            "Missed Tackles" => @match.avg_missed_tackle,
+            "Turnovers" => @match.avg_turnover,
+            "Penalties" => @match.avg_penalties_conceded,
+            "Positive Offloads" => @match.avg_positive_offload,
+            "Negative Offloads" => @match.avg_negative_offload,
+            "Linebreaks" => @match.avg_linebreak,
+            "Knock-ons" => @match.avg_knock_on,
+            "Positive Carries" => @match.avg_positive_carry,
           },
           player_match_performance_data: @player_match_performance_data,
           player_season_average_performance_data: @player_season_average_performance_data,
