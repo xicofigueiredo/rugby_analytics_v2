@@ -78,15 +78,13 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Stats</div>
               <div class="d-flex justify-content-end w-50">
-                <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options.first[1]),
+                <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options&.first&.last),
                     { class: "form-select", id: "stats_dropdown" } %>
               </div>
             </div>
             <br>
-            <div class="d-flex justify-content-between text-white">
-              <ul class="list-unstyled" id="stats_list">
-                <!-- Content will be populated by JavaScript -->
-              </ul>
+            <div class="text-white" id="stats_container">
+              <!-- Content will be populated by JavaScript -->
             </div>
           </div>
         </div>
@@ -122,37 +120,80 @@
     let performanceChart;
 
     // Initialize with first player
-    const firstPlayerId = document.getElementById('playerSelector').value;
-    updatePlayerStats(firstPlayerId);
+    const playerSelector = document.getElementById('playerSelector');
+    console.log('Player selector element:', playerSelector);
+    const firstPlayerId = playerSelector ? playerSelector.value : null;
+    console.log('First player ID:', firstPlayerId);
+
+    if (firstPlayerId) {
+      console.log('Calling updatePlayerStats with first player:', firstPlayerId);
+      updatePlayerStats(firstPlayerId);
+    } else {
+      console.error('No first player ID found');
+    }
 
     function initializeRadarChart(playerData, seasonData) {
-      const ctx = document.getElementById('radarChart').getContext('2d');
+      console.log('initializeRadarChart called');
+      console.log('playerData:', playerData);
+      console.log('seasonData:', seasonData);
 
-      if (radarChart) {
-        radarChart.destroy();
+      const radarChartElement = document.getElementById('radarChart');
+      console.log('radarChart element:', radarChartElement);
+
+      if (!radarChartElement) {
+        console.error('radarChart element not found');
+        return;
       }
 
-      radarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: ["Attack", "Defense", "Work Rate", "Discipline", "Kicking", "Set Piece", "Breakdown"],
-          datasets: [{
-            label: "This Game",
-            data: [playerData["Attack"] || 0, playerData["Defense"] || 0, playerData["Work Rate"] || 0, playerData["Discipline"] || 0, playerData["Kicking"] || 0, playerData["Set Piece"] || 0, playerData["Breakdown"] || 0],
-            fill: true,
-            backgroundColor: '#4dc9f67a',
-            borderColor: '#4dc9f6',
-            pointBackgroundColor: '#4dc9f6'
+      // Ensure canvas has proper dimensions
+      radarChartElement.width = 400;
+      radarChartElement.height = 400;
+      radarChartElement.style.width = '400px';
+      radarChartElement.style.height = '400px';
+      console.log('Canvas dimensions set to:', radarChartElement.width, 'x', radarChartElement.height);
+      console.log('Canvas style dimensions:', radarChartElement.style.width, 'x', radarChartElement.style.height);
+
+      const ctx = radarChartElement.getContext('2d');
+      console.log('Canvas context:', ctx);
+
+      // Clear the canvas completely
+      ctx.clearRect(0, 0, radarChartElement.width, radarChartElement.height);
+
+      if (radarChart) {
+        console.log('Destroying existing radar chart variable');
+        radarChart.destroy();
+        radarChart = null;
+      }
+
+      // Force Chart.js to forget about this canvas
+      if (Chart.getChart(radarChartElement)) {
+        console.log('Found existing Chart.js instance, destroying it');
+        Chart.getChart(radarChartElement).destroy();
+      }
+
+      console.log('Creating new radar chart');
+      try {
+        radarChart = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: ["Attack", "Defense", "Work Rate", "Discipline"],
+            datasets: [{
+              label: "This Game",
+              data: [playerData["Attack"] || 0, playerData["Defense"] || 0, playerData["Work Rate"] || 0, playerData["Discipline"] || 0],
+              fill: true,
+              backgroundColor: '#4dc9f67a',
+              borderColor: '#4dc9f6',
+              pointBackgroundColor: '#4dc9f6'
+            },
+            {
+              label: "Team Average",
+              data: [seasonData["Attack"] || 0, seasonData["Defense"] || 0, seasonData["Work Rate"] || 0, seasonData["Discipline"] || 0],
+              fill: true,
+              backgroundColor: '#f725857a',
+              borderColor: '#f72585',
+              pointBackgroundColor: '#f72585'
+            }]
           },
-          {
-            label: "This Season",
-            data: [seasonData["Attack"] || 0, seasonData["Defense"] || 0, seasonData["Work Rate"] || 0, seasonData["Discipline"] || 0, seasonData["Kicking"] || 0, seasonData["Set Piece"] || 0, seasonData["Breakdown"] || 0],
-            fill: true,
-            backgroundColor: '#f725857a',
-            borderColor: '#f72585',
-            pointBackgroundColor: '#f72585'
-          }]
-        },
         options: {
           responsive: true,
           plugins: {
@@ -186,25 +227,46 @@
           }
         }
       });
+      console.log('Radar chart created successfully');
+      console.log('Chart instance:', radarChart);
+      console.log('Chart canvas dimensions after creation:', radarChart.canvas.width, 'x', radarChart.canvas.height);
+      console.log('Chart canvas style dimensions after creation:', radarChart.canvas.style.width, 'x', radarChart.canvas.style.height);
+      console.log('Chart canvas computed style:', window.getComputedStyle(radarChart.canvas).width, 'x', window.getComputedStyle(radarChart.canvas).height);
+      } catch (error) {
+        console.error('Error creating radar chart:', error);
+      }
     }
 
     function updatePlayerStats(playerId) {
+      console.log('updatePlayerStats called with playerId:', playerId);
+      const url = `/matches/<%= @match.id %>/coach_player_stats?player_id=${playerId}`;
+      console.log('Fetching from URL:', url);
+
       // Make AJAX request to get player stats
-      fetch(`/matches/<%= @match.id %>/coach_player_stats?player_id=${playerId}`, {
+      fetch(url, {
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
         }
       })
-      .then(response => response.json())
+      .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        return response.json();
+      })
       .then(data => {
+        console.log('Received data:', data);
+
         // Update radar chart
+        console.log('Updating radar chart with:', data.player_match_performance_data, data.player_season_average_performance_data);
         initializeRadarChart(data.player_match_performance_data, data.player_season_average_performance_data);
 
         // Update performance chart
+        console.log('Updating performance chart with:', data.performance_data, data.average_player_performance_data, data.player_name);
         updatePerformanceChart(data.performance_data, data.average_player_performance_data, data.player_name);
 
         // Update stats dropdown data
+        console.log('Updating stats data with:', data.stats_data);
         updateStatsData(data.stats_data);
       })
       .catch(error => {
@@ -281,28 +343,75 @@
     }
 
     function updateStatsData(statsData) {
+      console.log('updateStatsData called with:', statsData);
+      console.log('Stats data keys:', Object.keys(statsData || {}));
       window.currentStatsData = statsData;
 
       // Update the stats list if a dropdown option is selected
       const statsDropdown = document.getElementById('stats_dropdown');
-      if (statsDropdown && statsDropdown.value) {
-        updateStatsList(statsDropdown.value);
+      console.log('Dropdown element:', statsDropdown);
+      console.log('Dropdown options count:', statsDropdown ? statsDropdown.options.length : 0);
+      console.log('Dropdown value:', statsDropdown ? statsDropdown.value : 'no dropdown');
+
+      if (statsDropdown) {
+        // Force selection of first option if none selected
+        if (!statsDropdown.value && statsDropdown.options.length > 0) {
+          statsDropdown.value = statsDropdown.options[0].value;
+          console.log('Set dropdown to first option:', statsDropdown.value);
+        }
+
+        if (statsDropdown.value) {
+          console.log('Calling updateStatsList with:', statsDropdown.value);
+          console.log('Data for selected stat:', statsData[statsDropdown.value]);
+          updateStatsList(statsDropdown.value);
+        }
+      } else {
+        console.error('Stats dropdown not found!');
       }
     }
 
     // Stats dropdown functionality
     const statsDropdown = document.getElementById('stats_dropdown');
-    const statsList = document.getElementById('stats_list');
+    const statsContainer = document.getElementById('stats_container');
 
     function updateStatsList(selectedStat) {
-      const players = (window.currentStatsData && window.currentStatsData[selectedStat]) || [];
-      statsList.innerHTML = '';
+      console.log('updateStatsList called with:', selectedStat);
+      console.log('window.currentStatsData:', window.currentStatsData);
 
+      const players = (window.currentStatsData && window.currentStatsData[selectedStat]) || [];
+      console.log('Players for', selectedStat, ':', players);
+
+      if (!statsContainer) {
+        console.error('Stats container not found');
+        return;
+      }
+
+      console.log('Stats container found:', statsContainer);
+
+      // Clear existing content
+      statsContainer.innerHTML = '';
+      console.log('Cleared container');
+
+      if (players.length === 0) {
+        console.log('No players data, showing no data message');
+        statsContainer.innerHTML = '<div class="text-muted">No data available</div>';
+        return;
+      }
+
+      // Create stats list
+      let html = '';
       players.forEach((player, index) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${index + 1}º - ${player.name} (${player.value})`;
-        statsList.appendChild(listItem);
+        html += `
+          <div class="d-flex justify-content-between align-items-center mb-2 text-white">
+            <span>${index + 1}º - ${player.name}</span>
+            <span class="stat-value fw-bold">${player.value}</span>
+          </div>
+        `;
       });
+
+      console.log('Generated HTML:', html);
+      statsContainer.innerHTML = html;
+      console.log('Updated container innerHTML');
     }
 
     // Handle stats dropdown changes
@@ -310,6 +419,11 @@
       statsDropdown.addEventListener('change', function() {
         updateStatsList(this.value);
       });
+
+      // Initialize with first option when stats data is available
+      if (window.currentStatsData && statsDropdown.value) {
+        updateStatsList(statsDropdown.value);
+      }
     }
 
     // Handle player selection changes

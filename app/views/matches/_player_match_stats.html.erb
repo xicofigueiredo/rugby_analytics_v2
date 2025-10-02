@@ -204,8 +204,15 @@
     const statsDropdown = document.getElementById('stats_dropdown');
     const statsContainer = document.getElementById('stats_container');
 
+    console.log('Player stats script loaded');
+    console.log('Stats data:', statsData);
+    console.log('Stats dropdown element:', statsDropdown);
+    console.log('Stats container element:', statsContainer);
+
     function updateStatsList(selectedStat) {
+      console.log('updateStatsList called with:', selectedStat);
       const players = statsData[selectedStat] || [];
+      console.log('Players for', selectedStat, ':', players);
 
       if (!statsContainer) {
         console.error('Stats container not found');
@@ -216,6 +223,7 @@
       statsContainer.innerHTML = '';
 
       if (players.length === 0) {
+        console.log('No players data, showing no data message');
         statsContainer.innerHTML = '<div class="text-muted">No data available</div>';
         return;
       }
@@ -231,26 +239,36 @@
         `;
       });
 
+      console.log('Generated HTML:', html);
       statsContainer.innerHTML = html;
+      console.log('Updated container innerHTML');
     }
 
     // Initialize dropdown functionality
     if (statsDropdown && statsContainer) {
+      console.log('Initializing dropdown functionality');
       // Initialize with first option
       let initialValue = statsDropdown.value;
+      console.log('Initial dropdown value:', initialValue);
+
       if (!initialValue && statsDropdown.options.length > 0) {
         initialValue = statsDropdown.options[0].value;
         statsDropdown.value = initialValue;
+        console.log('Set dropdown to first option:', initialValue);
       }
 
       if (initialValue) {
+        console.log('Calling updateStatsList with initial value:', initialValue);
         updateStatsList(initialValue);
       }
 
       // Handle dropdown changes
       statsDropdown.addEventListener('change', function() {
+        console.log('Dropdown changed to:', this.value);
         updateStatsList(this.value);
       });
+    } else {
+      console.error('Missing elements - dropdown:', !!statsDropdown, 'container:', !!statsContainer);
     }
   });
 </script>

@@ -196,6 +196,31 @@ class MatchesController < ApplicationController
           "Skills" => @player_match.skills_rating || 5.0,
           "Consistency" => @player_match.consistency_rating || 5.0
         }
+
+        # Calculate team average ratings for this match
+        @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
+
+        # Set up stats dropdown options and data
+        @stats_dropdown_options = [
+          ["Positive Tackles", "positive_tackles"],
+          ["Turnovers", "turnovers"],
+          ["Penalties", "penalties"],
+          ["Carries", "carries"],
+          ["Positive Carries", "positive_carries"],
+          ["Positive Offloads", "positive_offloads"],
+          ["Linebreaks", "linebreaks"]
+        ]
+
+        # Create stats data for JavaScript
+        @stats_data = {
+          "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
+          "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
+          "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
+          "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
+          "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
+          "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
+          "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+        }
       end
     else
       @performance_data = {
@@ -232,6 +257,23 @@ class MatchesController < ApplicationController
       "Bel" => 78,
       "GDD" => 58
     }
+
+    # Set up player match performance data for all teams
+    if @player_match
+      @player_match_performance_data = {
+        "Attack" => @player_match.attack_rating || 5.0,
+        "Defense" => @player_match.defense_rating || 5.0,
+        "Work Rate" => @player_match.work_rate_rating || 5.0,
+        "Discipline" => @player_match.discipline_rating || 5.0
+      }
+    else
+      @player_match_performance_data = {
+        "Attack" => 5.0,
+        "Defense" => 5.0,
+        "Work Rate" => 5.0,
+        "Discipline" => 5.0
+      }
+    end
 
     # Calculate team average ratings for this match
     @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
@@ -459,47 +501,42 @@ class MatchesController < ApplicationController
       "Positive Carries" => @player_match.positive_carry || 0,
     }
 
-    # Calculate team averages
-    average_player_performance_data = {
-      "Tackles Made" => @match.avg_tackles_made || 0,
-      "Missed Tackles" => @match.avg_missed_tackle || 0,
-      "Turnovers" => @match.avg_turnover || 0,
-      "Penalties" => @match.avg_penalties_conceded || 0,
-      "Negative Offloads" => @match.avg_negative_offload || 0,
-      "Linebreaks" => @match.avg_linebreak || 0,
-      "Knock-ons" => @match.avg_knock_on || 0,
-      "Positive Carries" => @match.avg_positive_carry || 0,
+    # Get actual ratings for this specific match
+    @player_match_performance_data = {
+      "Attack" => @player_match.attack_rating || 5.0,
+      "Defense" => @player_match.defense_rating || 5.0,
+      "Work Rate" => @player_match.work_rate_rating || 5.0,
+      "Discipline" => @player_match.discipline_rating || 5.0,
+      "Skills" => @player_match.skills_rating || 5.0,
+      "Consistency" => @player_match.consistency_rating || 5.0
     }
 
-    # Calculate performance scores (simplified version)
-    player_match_performance_data = {
-      "Attack" => [(@player_match.positive_carry || 0) + (@player_match.linebreak || 0), 10].min,
-      "Defense" => [(@player_match.positive_tackle || 0) + (@player_match.neutral_tackle || 0), 10].min,
-      "Work Rate" => [(@player_match.time_played || 0).to_i / 10, 10].min,
-      "Discipline" => [10 - ((@player_match.pen_offside || 0) + (@player_match.pen_breakdown || 0) + (@player_match.pen_scrum || 0) + (@player_match.pen_others || 0)), 0].max,
-      "Kicking" => 5, # Placeholder
-      "Set Piece" => 5, # Placeholder
-      "Breakdown" => [(@player_match.turnover || 0), 10].min
-    }
+    # Calculate team average ratings for this match
+    @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
 
-    player_season_average_performance_data = {
-      "Attack" => 6,
-      "Defense" => 7,
-      "Work Rate" => 8,
-      "Discipline" => 6,
-      "Kicking" => 5,
-      "Set Piece" => 6,
-      "Breakdown" => 7
-    }
+    respond_to do |format|
+      format.json {
+        render json: {
+          player_name: @player.name,
+          performance_data: performance_data,
+          average_player_performance_data: {
+            "Tackles Made" => 10,
+            "Missed Tackles" => 3,
+            "Turnovers" => 2,
+            "Penalties" => 1,
+            "Positive Offloads" => 2,
+            "Negative Offloads" => 1,
+            "Linebreaks" => 1,
+            "Knock-ons" => 2,
+            "Positive Carries" => 8
+          },
+          player_match_performance_data: @player_match_performance_data,
+          player_season_average_performance_data: @player_season_average_performance_data,
+          stats_data: @stats_data
+        }
+      }
+    end
 
-    render json: {
-      performance_data: performance_data,
-      average_player_performance_data: average_player_performance_data,
-      player_match_performance_data: player_match_performance_data,
-      player_season_average_performance_data: player_season_average_performance_data,
-      stats_data: @stats_data,
-      player_name: @player.name
-    }
   end
 
   private
