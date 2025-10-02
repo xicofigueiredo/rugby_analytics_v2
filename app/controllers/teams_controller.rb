@@ -33,9 +33,9 @@ class TeamsController < ApplicationController
 
     players = PlayerMatch.joins(:player).where(players: { team_id: @team.id }).where('time_played > 0')
 
-    @forwards_performance_data = calculate_forwards_performance_data(players)
-    @backs_performance_data = calculate_backs_performance_data(players)
-    @team_performance_data = calculate_team_performance_data(players)
+    @forwards_performance_data = calculate_forwards_performance(players)
+    @backs_performance_data = calculate_backs_performance(players)
+    @team_performance_data = calculate_team_performance(players)
 
     # Team overall radar chart data (averages from all teamstats)
     @overall_data = calculate_team_rating_averages(@team)
@@ -172,7 +172,7 @@ class TeamsController < ApplicationController
     [total_points_scored, total_points_conceded]
   end
 
-  def calculate_team_performance_data(player_matches)
+  def calculate_team_performance(player_matches)
     # Get team performance data from teamstats
     performance_data = {}
 
@@ -191,7 +191,7 @@ class TeamsController < ApplicationController
     performance_data
   end
 
-  def calculate_forwards_performance_data(players)
+  def calculate_forwards_performance(players)
     # Calculate forwards performance data for each match
     performance_data = {}
     forward_positions = ["Loosehead Prop", "Hooker", "Tighthead Prop", "Lock", "Flanker", "Number 8"]
@@ -220,7 +220,7 @@ class TeamsController < ApplicationController
     performance_data
   end
 
-  def calculate_backs_performance_data(players)
+  def calculate_backs_performance(players)
     # Calculate backs performance data for each match
     performance_data = {}
     back_positions = ["Scrum-half", "Fly-half", "Wing", "Centre", "Full-back"]

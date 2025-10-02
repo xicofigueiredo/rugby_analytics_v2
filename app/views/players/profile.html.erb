@@ -56,7 +56,7 @@
                 <%= line_chart [
                     { name: "You", data: @player_performance_data },
                     { name: @player.team.name, data: @performance_data },
-                    { name: "Back Row", data: @group_performance_data }
+                    { name: @position_group_name, data: @group_performance_data }
                   ],
                   height: "220px",
                   colors: ["#4dc9f6", "#f72585", "#ffd166"],

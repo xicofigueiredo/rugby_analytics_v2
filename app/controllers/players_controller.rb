@@ -117,32 +117,15 @@ class PlayersController < ApplicationController
       kicks: 1
     }
 
-    @performance_data = {
-      "CDUL" => 9,
-      "CDUP" => 4,
-      "AAC" => 7,
-      "Bel" => 6,
-      "GDD" => 8,
-      "SLB" => 7
-    }
+    # Calculate team performance per game (using teamstats)
+    @performance_data = calculate_team_performance_per_game(@player.team)
 
-    @player_performance_data = {
-      "CDUL" => 6,
-      "CDUP" => 7,
-      "AAC" => 4,
-      "Bel" => 6,
-      "GDD" => 7,
-      "SLB" => 8
-    }
+    # Calculate player performance per game (using player_matches)
+    @player_performance_data = calculate_player_performance_per_game(@player)
 
-    @group_performance_data = {
-      "CDUL" => 8,
-      "CDUP" => 4,
-      "AAC" => 6,
-      "Bel" => 5,
-      "GDD" => 9,
-      "SLB" => 6
-    }
+    # Calculate position group performance per game
+    @group_performance_data = calculate_position_group_performance_per_game(@player)
+    @position_group_name = get_position_group_name(@player)
 
     @overall_data = calculate_player_rating_averages(@player)
   end
@@ -302,5 +285,122 @@ class PlayersController < ApplicationController
     params.require(:player)
           .permit(:name, :age, :height, :weight, :team_id, :country, positions: [])
           .tap { |params| params[:positions]&.reject!(&:blank?) }
+  end
+
+  def calculate_team_performance_per_game(team)
+    # Get team performance data from teamstats per game
+    performance_data = {}
+
+    team.matches.includes(:teamstat, :home_team, :away_team).each do |match|
+      # Find the teamstat for this specific team using team_id
+      team_stat = match.teamstat.find { |ts| ts.team_id == team.id }
+
+      if team_stat&.has_ratings?
+        # Show only the opponent team's name
+        opponent_team = match.home_team_id == team.id ? match.away_team : match.home_team
+        match_key = "#{opponent_team.name}"
+        performance_data[match_key] = team_stat.overall_rating
+      end
+    end
+
+    performance_data
+  end
+
+  def calculate_player_performance_per_game(player)
+    # Get player performance data from player_matches per game
+    performance_data = {}
+
+    player.player_matches.includes(match: [:home_team, :away_team]).each do |player_match|
+      # Only include matches where player actually played and has ratings
+      if player_match.time_played > 0 && player_match.has_ratings?
+        match = player_match.match
+
+        # Show only the opponent team's name
+        opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
+        match_key = "#{opponent_team.name}"
+        performance_data[match_key] = player_match.overall_rating
+      end
+    end
+
+    performance_data
+  end
+
+  def calculate_position_group_performance_per_game(player)
+    # Define position groups
+    position_groups = {
+      "First Row" => ["Loosehead Prop", "Hooker", "Tighthead Prop"],
+      "Second Row" => ["Lock"],
+      "Back Row" => ["Flanker", "Number 8"],
+      "Midfielders" => ["Scrum-half", "Fly-half"],
+      "Centers" => ["Centre"],
+      "Backline" => ["Wing", "Full-back"]
+    }
+
+    # Determine which group the current player belongs to
+    player_group = nil
+    player.positions.each do |position|
+      position_groups.each do |group_name, positions|
+        if positions.include?(position)
+          player_group = group_name
+          break
+        end
+      end
+      break if player_group
+    end
+
+    # If no group found, return empty hash
+    return {} unless player_group
+
+    # Get all positions in the player's group
+    group_positions = position_groups[player_group]
+
+    # Calculate average performance for the position group per game
+    performance_data = {}
+
+    player.team.matches.includes(:player_matches, :home_team, :away_team).each do |match|
+      # Get all players from the same position group who played in this match
+      group_players = match.player_matches
+                          .joins(:player)
+                          .where(players: { team_id: player.team_id })
+                          .where('players.positions && ARRAY[?]::varchar[]', group_positions)
+                          .where('time_played > 0')
+
+      # Calculate average overall rating for the position group in this match
+      if group_players.any?
+        ratings = group_players.filter_map(&:overall_rating).compact
+        if ratings.any?
+          average_rating = (ratings.sum / ratings.size.to_f).round(1)
+
+          opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
+          match_key = "#{opponent_team.name}"
+          performance_data[match_key] = average_rating
+        end
+      end
+    end
+
+    performance_data
+  end
+
+  def get_position_group_name(player)
+    # Define position groups
+    position_groups = {
+      "First Row" => ["Loosehead Prop", "Hooker", "Tighthead Prop"],
+      "Second Row" => ["Lock"],
+      "Back Row" => ["Flanker", "Number 8"],
+      "Half-Backs" => ["Scrum-half", "Fly-half"],
+      "Centers" => ["Centre"],
+      "Backline" => ["Wing", "Full-back"]
+    }
+
+    # Find which group the current player belongs to
+    player.positions.each do |position|
+      position_groups.each do |group_name, positions|
+        if positions.include?(position)
+          return group_name
+        end
+      end
+    end
+
+    "Position Group" # Default fallback
   end
 end
