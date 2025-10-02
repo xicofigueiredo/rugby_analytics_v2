@@ -93,21 +93,15 @@ class MatchesController < ApplicationController
     stats_team_id = @match.teamstat.first.team_id
     user_team_id = current_user.team_id
     home_team_id = @match.home_team_id
-    away_team_id = @match.away_team_id
 
     # Check if user's team was playing at home or away
     user_team_is_home = (user_team_id == home_team_id)
     user_team_has_stats = (user_team_id == stats_team_id)
 
-    # Get team names
-    home_team_name = @match.home_team.name
-    away_team_name = @match.away_team.name
-
     if user_team_has_stats
       # We have stats for user's team - show from their perspective
       if user_team_is_home
         # User's team is home (left side)
-        user_team_percentage = lineouts_percentage
         @setpiece_stats = [
           { name: "Lineouts Won (#{lineouts_percentage}%)", home: lineouts_won, away: lineouts_lost, bar_home: lineouts_percentage, bar_away: 100 - lineouts_percentage, percent: false },
           { name: "Lineouts Stolen (#{lineouts_stolen_percentage}%)", home: lineouts_stolen, away: lineouts_not_stolen, bar_home: lineouts_stolen_percentage, bar_away: 100 - lineouts_stolen_percentage, percent: false },
@@ -168,6 +162,7 @@ class MatchesController < ApplicationController
       if current_user.role == "coach"
         @performance_data = {}
         @average_player_performance_data = {}
+        @player_match_performance_data = {}
       else
         @performance_data = {
           "Tackles Made" => @player_match.tackles_made,
@@ -191,6 +186,15 @@ class MatchesController < ApplicationController
           "Linebreaks" => @match.avg_linebreak,
           "Knock-ons" => @match.avg_knock_on,
           "Positive Carries" => @match.avg_positive_carry,
+        }
+
+        @player_match_performance_data = {
+          "Attack" => @player_match.attack_rating || 5.0,
+          "Defense" => @player_match.defense_rating || 5.0,
+          "Work Rate" => @player_match.work_rate_rating || 5.0,
+          "Discipline" => @player_match.discipline_rating || 5.0,
+          "Skills" => @player_match.skills_rating || 5.0,
+          "Consistency" => @player_match.consistency_rating || 5.0
         }
       end
     else
@@ -229,18 +233,8 @@ class MatchesController < ApplicationController
       "GDD" => 58
     }
 
-    # Get actual ratings for this specific match
-    @player_match_performance_data = {
-      "Attack" => @player_match.attack_rating || 5.0,
-      "Defense" => @player_match.defense_rating || 5.0,
-      "Work Rate" => @player_match.work_rate_rating || 5.0,
-      "Discipline" => @player_match.discipline_rating || 5.0,
-      "Skills" => @player_match.skills_rating || 5.0,
-      "Consistency" => @player_match.consistency_rating || 5.0
-    }
-
     # Calculate team average ratings for this match
-    @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
+    @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
 
     @stats_dropdown_options = [
       ["Positive Tackles", "positive_tackles"],
