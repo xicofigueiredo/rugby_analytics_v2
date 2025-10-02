@@ -229,25 +229,18 @@ class MatchesController < ApplicationController
       "GDD" => 58
     }
 
+    # Get actual ratings for this specific match
     @player_match_performance_data = {
-      "Attack" => 8.3,
-      "Defense" => 5.2,
-      "Work Rate" => 6.5,
-      "Discipline" => 8.1,
-      "Kicking" => 5.4,
-      "Set Piece" => 5.2,
-      "Breakdown" => 6.5
+      "Attack" => @player_match.attack_rating || 5.0,
+      "Defense" => @player_match.defense_rating || 5.0,
+      "Work Rate" => @player_match.work_rate_rating || 5.0,
+      "Discipline" => @player_match.discipline_rating || 5.0,
+      "Skills" => @player_match.skills_rating || 5.0,
+      "Consistency" => @player_match.consistency_rating || 5.0
     }
 
-    @player_season_average_performance_data = {
-      "Attack" => 7,
-      "Defense" => 6,
-      "Work Rate" => 7,
-      "Discipline" => 2,
-      "Kicking" => 6,
-      "Set Piece" => 6,
-      "Breakdown" => 7
-    }
+    # Calculate team average ratings for this match
+    @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
 
     @stats_dropdown_options = [
       ["Positive Tackles", "positive_tackles"],
@@ -355,27 +348,18 @@ class MatchesController < ApplicationController
       "Minutes" => rand(40..80)
     }
 
-    # Mock data for performance ratings
+    # Get actual ratings for this specific match
     @player_match_performance_data = {
-      "Attack" => rand(5.0..9.0).round(1),
-      "Defense" => rand(5.0..9.0).round(1),
-      "Work Rate" => rand(5.0..9.0).round(1),
-      "Discipline" => rand(5.0..9.0).round(1),
-      "Kicking" => rand(5.0..9.0).round(1),
-      "Set Piece" => rand(5.0..9.0).round(1),
-      "Breakdown" => rand(5.0..9.0).round(1)
+      "Attack" => @player_match.attack_rating || 5.0,
+      "Defense" => @player_match.defense_rating || 5.0,
+      "Work Rate" => @player_match.work_rate_rating || 5.0,
+      "Discipline" => @player_match.discipline_rating || 5.0,
+      "Skills" => @player_match.skills_rating || 5.0,
+      "Consistency" => @player_match.consistency_rating || 5.0
     }
 
-    # Mock data for season averages
-    @player_season_average_performance_data = {
-      "Attack" => 7.2,
-      "Defense" => 6.8,
-      "Work Rate" => 7.5,
-      "Discipline" => 6.9,
-      "Kicking" => 6.5,
-      "Set Piece" => 7.1,
-      "Breakdown" => 6.7
-    }
+    # Calculate team average ratings for this match
+    @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
 
     render partial: 'coach_match_stats', locals: { player: @player }
   end
@@ -475,6 +459,41 @@ class MatchesController < ApplicationController
   end
 
   private
+
+  def calculate_team_average_ratings(match, team_id)
+    # Get all player matches for this team in this match with ratings
+    team_player_matches = match.player_matches.joins(:player).where(players: { team_id: team_id })
+                               .where.not(
+                                 attack_rating: nil,
+                                 defense_rating: nil,
+                                 consistency_rating: nil,
+                                 discipline_rating: nil,
+                                 skills_rating: nil,
+                                 work_rate_rating: nil
+                               )
+
+    if team_player_matches.empty?
+      # Return default values if no ratings available
+      return {
+        "Attack" => 5.0,
+        "Defense" => 5.0,
+        "Work Rate" => 5.0,
+        "Discipline" => 5.0,
+        "Skills" => 5.0,
+        "Consistency" => 5.0
+      }
+    end
+
+    # Calculate team averages for this match
+    {
+      "Attack" => team_player_matches.average(:attack_rating)&.round(1) || 5.0,
+      "Defense" => team_player_matches.average(:defense_rating)&.round(1) || 5.0,
+      "Work Rate" => team_player_matches.average(:work_rate_rating)&.round(1) || 5.0,
+      "Discipline" => team_player_matches.average(:discipline_rating)&.round(1) || 5.0,
+      "Skills" => team_player_matches.average(:skills_rating)&.round(1) || 5.0,
+      "Consistency" => team_player_matches.average(:consistency_rating)&.round(1) || 5.0
+    }
+  end
 
   def set_match
     @match = Match.find(params[:id])
