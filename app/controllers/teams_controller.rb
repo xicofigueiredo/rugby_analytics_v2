@@ -78,17 +78,16 @@ class TeamsController < ApplicationController
     # Team stats aggregated
     @team_stats = {
       total_players: @players.count,
-      active_players: @players.joins(:user).count,
+      active_users: @players.joins(:user).count,
       average_age: @players.average(:age)&.round(1) || 0,
       average_height: @players.average(:height)&.round(1) || 0,
       average_weight: @players.average(:weight)&.round(1) || 0,
-      matches_played: 14, # Mock data
-      wins: 9,
-      losses: 5,
-      tries_scored: 42,
-      tries_conceded: 28,
-      total_points: 156,
-      points_conceded: 98
+      matches_played: Match.where('home_team_id = ? OR away_team_id = ?', @team.id, @team.id).count,
+      wins: Match.where('home_team_id = ? AND result LIKE ?', @team.id, '%-%').count,
+      losses: Match.where('away_team_id = ? AND result LIKE ?', @team.id, '%-%').count,
+      tries_scored: PlayerMatch.joins(:player).where(players: { team_id: @team.id }).sum(:try),
+      total_points: calculate_total_points(@team).first,
+      points_conceded: calculate_total_points(@team).second
     }
   end
 
@@ -141,4 +140,34 @@ class TeamsController < ApplicationController
   def team_params
     params.require(:team).permit(:name, :level, :classification, :abbreviation, :main_color, :secondary_color)
   end
+
+  def calculate_total_points(team)
+    total_points_scored = 0
+    total_points_conceded = 0
+    # Get all matches where this team played
+    matches = Match.where('home_team_id = ? OR away_team_id = ?', team.id, team.id)
+
+    matches.each do |match|
+      next if match.result.blank? || !match.result.include?('-')
+
+      # Split the result by '-' and clean up whitespace
+      result_parts = match.result.split('-').map(&:strip)
+      next if result_parts.length != 2
+
+      home_points = result_parts[0].to_i
+      away_points = result_parts[1].to_i
+
+      # Add points based on whether team was home or away
+      if match.home_team_id == team.id
+        total_points_scored += home_points
+        total_points_conceded += away_points
+      elsif match.away_team_id == team.id
+        total_points_scored += away_points
+        total_points_conceded += home_points
+      end
+    end
+
+    [total_points_scored, total_points_conceded]
+  end
+
 end
