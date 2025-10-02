@@ -139,7 +139,14 @@ class MatchesController < ApplicationController
 
       if current_user.role == "coach"
         @performance_data = {}
-        @player_match_performance_data = {}
+        @player_match_performance_data = {
+          "Attack" => 5.0,
+          "Defense" => 5.0,
+          "Work Rate" => 5.0,
+          "Discipline" => 5.0,
+          "Skills" => 5.0,
+          "Consistency" => 5.0
+        }
         @average_player_performance_data = {
           "Tackles Made" => @match.avg_tackles_made,
           "Missed Tackles" => @match.avg_missed_tackle,
@@ -150,6 +157,16 @@ class MatchesController < ApplicationController
           "Linebreaks" => @match.avg_linebreak,
           "Knock-ons" => @match.avg_knock_on,
           "Positive Carries" => @match.avg_positive_carry,
+        }
+
+        # Set team average performance data for radar chart
+        @player_season_average_performance_data = {
+          "Attack" => 5.0,
+          "Defense" => 5.0,
+          "Work Rate" => 5.0,
+          "Discipline" => 5.0,
+          "Skills" => 5.0,
+          "Consistency" => 5.0
         }
       else
         @performance_data = {
@@ -214,14 +231,18 @@ class MatchesController < ApplicationController
         "Attack" => @player_match.attack_rating || 5.0,
         "Defense" => @player_match.defense_rating || 5.0,
         "Work Rate" => @player_match.work_rate_rating || 5.0,
-        "Discipline" => @player_match.discipline_rating || 5.0
+        "Discipline" => @player_match.discipline_rating || 5.0,
+        "Skills" => @player_match.skills_rating || 5.0,
+        "Consistency" => @player_match.consistency_rating || 5.0
       }
     else
       @player_match_performance_data = {
         "Attack" => 5.0,
         "Defense" => 5.0,
         "Work Rate" => 5.0,
-        "Discipline" => 5.0
+        "Discipline" => 5.0,
+        "Skills" => 5.0,
+        "Consistency" => 5.0
       }
     end
 

@@ -176,10 +176,10 @@
         radarChart = new Chart(ctx, {
           type: 'radar',
           data: {
-            labels: ["Attack", "Defense", "Work Rate", "Discipline"],
+            labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency"],
             datasets: [{
               label: "This Game",
-              data: [playerData["Attack"] || 0, playerData["Defense"] || 0, playerData["Work Rate"] || 0, playerData["Discipline"] || 0],
+              data: [playerData["Attack"] || 0, playerData["Defense"] || 0, playerData["Work Rate"] || 0, playerData["Discipline"] || 0, playerData["Skills"] || 0, playerData["Consistency"] || 0],
               fill: true,
               backgroundColor: '#4dc9f67a',
               borderColor: '#4dc9f6',
@@ -187,7 +187,7 @@
             },
             {
               label: "Team Average",
-              data: [seasonData["Attack"] || 0, seasonData["Defense"] || 0, seasonData["Work Rate"] || 0, seasonData["Discipline"] || 0],
+              data: [seasonData["Attack"] || 0, seasonData["Defense"] || 0, seasonData["Work Rate"] || 0, seasonData["Discipline"] || 0, seasonData["Skills"] || 0, seasonData["Consistency"] || 0],
               fill: true,
               backgroundColor: '#f725857a',
               borderColor: '#f72585',
