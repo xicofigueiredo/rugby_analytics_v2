@@ -57,14 +57,14 @@
           <div class="card chart-card p-4 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Team Performance</div>
-              <span class="text-secondary">2024/2025</span>
+              <span class="text-secondary">2025/2026</span>
             </div>
             <div>
               <%= turbo_frame_tag "performance_chart" do %>
                 <%= line_chart [
                     { name: @team.name, data: @team_performance_data },
-                    { name: "Forwards", data: @league_performance_data },
-                    { name: "Backs", data: @performance_data }
+                    { name: "Forwards", data: @forwards_performance_data },
+                    { name: "Backs", data: @backs_performance_data }
                   ],
                   height: "220px",
                   colors: ["#4dc9f6", "#ffd166", "#f72585"],

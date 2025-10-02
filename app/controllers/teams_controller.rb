@@ -31,38 +31,11 @@ class TeamsController < ApplicationController
     @team = current_user.team
     @players = @team.players.includes(:user)
 
-    # Calculate team averages (mock data for now, similar to player profile)
-    # In a real app, you'd calculate these from actual player stats
+    players = PlayerMatch.joins(:player).where(players: { team_id: @team.id }).where('time_played > 0')
 
-    # Team performance over time (average of all players)
-    @team_performance_data = {
-      "CDUL" => 7.2,
-      "CDUP" => 6.8,
-      "AAC" => 6.5,
-      "Bel" => 7.0,
-      "GDD" => 6.9,
-      "SLB" => 7.1
-    }
-
-    # Performance compared to other teams
-    @performance_data = {
-      "CDUL" => 9,
-      "CDUP" => 4,
-      "AAC" => 7,
-      "Bel" => 8,
-      "GDD" => 6,
-      "SLB" => 7
-    }
-
-    # League average performance
-    @league_performance_data = {
-      "CDUL" => 6.5,
-      "CDUP" => 6.8,
-      "AAC" => 6.2,
-      "Bel" => 6.9,
-      "GDD" => 6.7,
-      "SLB" => 6.6
-    }
+    @forwards_performance_data = calculate_forwards_performance_data(players)
+    @backs_performance_data = calculate_backs_performance_data(players)
+    @team_performance_data = calculate_team_performance_data(players)
 
     # Team overall radar chart data (averages from all teamstats)
     @overall_data = calculate_team_rating_averages(@team)
@@ -197,6 +170,83 @@ class TeamsController < ApplicationController
     end
 
     [total_points_scored, total_points_conceded]
+  end
+
+  def calculate_team_performance_data(player_matches)
+    # Get team performance data from teamstats
+    performance_data = {}
+
+    @team.matches.includes(:teamstat).each do |match|
+      # Find the teamstat for this specific team using team_id
+      team_stat = match.teamstat.find { |ts| ts.team_id == @team.id }
+
+        if team_stat&.has_ratings?
+          # Show only the opponent team's name
+          opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
+          match_key = "#{opponent_team.name}"
+          performance_data[match_key] = team_stat.overall_rating
+        end
+    end
+
+    performance_data
+  end
+
+  def calculate_forwards_performance_data(players)
+    # Calculate forwards performance data for each match
+    performance_data = {}
+    forward_positions = ["Loosehead Prop", "Hooker", "Tighthead Prop", "Lock", "Flanker", "Number 8"]
+
+    @team.matches.includes(:player_matches, :home_team, :away_team).each do |match|
+      # Get forwards who played in this specific match
+      match_forwards = match.player_matches
+                           .joins(:player)
+                           .where(players: { team_id: @team.id })
+                           .where('players.positions && ARRAY[?]::varchar[]', forward_positions)
+                           .where('time_played > 0')
+
+      # Calculate average overall rating for forwards in this match
+      if match_forwards.any?
+        ratings = match_forwards.filter_map(&:overall_rating).compact
+        if ratings.any?
+          average_rating = (ratings.sum / ratings.size.to_f).round(1)
+
+          opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
+          match_key = "#{opponent_team.name}"
+          performance_data[match_key] = average_rating
+        end
+      end
+    end
+
+    performance_data
+  end
+
+  def calculate_backs_performance_data(players)
+    # Calculate backs performance data for each match
+    performance_data = {}
+    back_positions = ["Scrum-half", "Fly-half", "Wing", "Centre", "Full-back"]
+
+    @team.matches.includes(:player_matches, :home_team, :away_team).each do |match|
+      # Get backs who played in this specific match
+      match_backs = match.player_matches
+                        .joins(:player)
+                        .where(players: { team_id: @team.id })
+                        .where('players.positions && ARRAY[?]::varchar[]', back_positions)
+                        .where('time_played > 0')
+
+      # Calculate average overall rating for backs in this match
+      if match_backs.any?
+        ratings = match_backs.filter_map(&:overall_rating).compact
+        if ratings.any?
+          average_rating = (ratings.sum / ratings.size.to_f).round(1)
+
+          opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
+          match_key = "#{opponent_team.name}"
+          performance_data[match_key] = average_rating
+        end
+      end
+    end
+
+    performance_data
   end
 
 end

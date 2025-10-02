@@ -920,8 +920,8 @@ class MatchesController < ApplicationController
 
   def create_team_stats(match, team_stats_data)
     # Create home team stats (the stats appear to be for the home team based on CSV structure)
-    home_teamstat = match.teamstat.create!(
-      team_id: match.home_team.id,
+    teamstat = match.teamstat.create!(
+      team_id: current_user.team_id,
       lineouts_won: team_stats_data[:lineouts_won],
       lineouts_lost: team_stats_data[:lineouts_lost],
       lineouts_stolen: team_stats_data[:lineouts_stolen],
@@ -932,8 +932,8 @@ class MatchesController < ApplicationController
       scrums_not_stolen: team_stats_data[:scrums_not_stolen]
     )
 
-    Rails.logger.info "Created home team stats: #{home_teamstat.inspect}"
-    home_teamstat
+    Rails.logger.info "Created home team stats: #{teamstat.inspect}"
+    teamstat
   end
 
   def calculate_team_average(match)

@@ -1,5 +1,6 @@
 class Teamstat < ApplicationRecord
   belongs_to :match
+  belongs_to :team
 
   validates :lineouts_won, :lineouts_lost, :lineouts_stolen, :lineouts_not_stolen,
             :scrums_won, :scrums_lost, :scrums_stolen, :scrums_not_stolen,
@@ -52,12 +53,12 @@ class Teamstat < ApplicationRecord
 
     # Weighted average of ratings
     (
-      (attack_rating || 0) * 0.3 +
-      (defense_rating || 0) * 0.3 +
+      (attack_rating || 0) * 0.2 +
+      (defense_rating || 0) * 0.2 +
       (consistency_rating || 0) * 0.1 +
-      (discipline_rating || 0) * 0.15 +
-      (skills_rating || 0) * 0.05 +
-      (work_rate_rating || 0) * 0.1
+      (discipline_rating || 0) * 0.2 +
+      (skills_rating || 0) * 0.1 +
+      (work_rate_rating || 0) * 0.2
     ).round(2)
   end
 end
