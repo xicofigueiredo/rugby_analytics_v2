@@ -3,7 +3,7 @@
 <div class="container" data-controller="charts">
   <div class="mb-3 d-flex justify-content-between align-items-center">
     <h2 class="text-white mb-0"><%= @player.name %> - All Stats</h2>
-    <%= link_to player_path(@player), class: "btn btn-outline-light", data: { turbo: true } do %>
+    <%= link_to profile_path(@player), class: "btn btn-outline-light", data: { turbo: true } do %>
       <i class="fas fa-arrow-left me-1"></i> Back to Profile
     <% end %>
   </div>
