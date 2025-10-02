@@ -64,16 +64,9 @@ class TeamsController < ApplicationController
       "SLB" => 6.6
     }
 
-    # Team overall radar chart data (averages)
-    @overall_data = {
-      "Attack" => 7.2,
-      "Defense" => 6.8,
-      "Work Rate" => 7.5,
-      "Discipline" => 7.1,
-      "Kicking" => 5.8,
-      "Set Piece" => 7.3,
-      "Breakdown" => 6.9
-    }
+    # Team overall radar chart data (averages from all teamstats)
+    @overall_data = calculate_team_rating_averages(@team)
+    Rails.logger.info "Team #{@team.name} overall ratings: #{@overall_data.inspect}"
 
     # Team stats aggregated
     @team_stats = {
@@ -126,6 +119,42 @@ class TeamsController < ApplicationController
   end
 
   private
+
+  def calculate_team_rating_averages(team)
+    # Get all teamstats for this team with ratings
+    teamstats = Teamstat.joins(match: [:home_team, :away_team])
+                        .where('matches.home_team_id = ? OR matches.away_team_id = ?', team.id, team.id)
+                        .where.not(
+                          attack_rating: nil,
+                          defense_rating: nil,
+                          consistency_rating: nil,
+                          discipline_rating: nil,
+                          skills_rating: nil,
+                          work_rate_rating: nil
+                        )
+
+    if teamstats.empty?
+      # Return default values if no ratings available
+      return {
+        "Attack" => 5.0,
+        "Defense" => 5.0,
+        "Work Rate" => 5.0,
+        "Discipline" => 5.0,
+        "Skills" => 5.0,
+        "Consistency" => 5.0
+      }
+    end
+
+    # Calculate averages across all matches
+    {
+      "Attack" => teamstats.average(:attack_rating)&.round(1) || 5.0,
+      "Defense" => teamstats.average(:defense_rating)&.round(1) || 5.0,
+      "Work Rate" => teamstats.average(:work_rate_rating)&.round(1) || 5.0,
+      "Discipline" => teamstats.average(:discipline_rating)&.round(1) || 5.0,
+      "Skills" => teamstats.average(:skills_rating)&.round(1) || 5.0,
+      "Consistency" => teamstats.average(:consistency_rating)&.round(1) || 5.0
+    }
+  end
 
   def require_admin
     unless current_user.role == 'admin'
