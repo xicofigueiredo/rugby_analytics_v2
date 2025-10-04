@@ -350,16 +350,20 @@ class MatchesController < ApplicationController
   end
 
   def upload_csv
+    Rails.logger.info "CSV upload started"
     uploaded_file = params[:csv_file]
 
     if uploaded_file.nil?
+      Rails.logger.warn "No CSV file provided"
       redirect_to matches_path, alert: 'Please select a CSV file to upload.'
       return
     end
 
+    Rails.logger.info "CSV file received: #{uploaded_file.original_filename}"
     begin
       # Read CSV with comma delimiter (default)
       csv_data = CSV.read(uploaded_file.path, headers: true)
+      Rails.logger.info "CSV read successfully, rows: #{csv_data.count}"
       process_match_csv(csv_data)
       redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
     rescue => e
@@ -541,6 +545,7 @@ class MatchesController < ApplicationController
   end
 
   def process_match_csv(csv_data)
+    Rails.logger.info "process_match_csv called with #{csv_data.count} rows"
     return if csv_data.empty?
 
     # Ensure database connection is healthy
@@ -553,13 +558,13 @@ class MatchesController < ApplicationController
       first_row = csv_data.first
 
       # Extract match information from the row - using correct column names from your CSV
-      date_str = first_row['DATA']&.strip
-      home_team_name = first_row['EQUIPA CASA']&.strip
-      away_team_name = first_row['EQUIPA FORA']&.strip
-      home_points = first_row['PONTOS CASA']&.strip
-      away_points = first_row['PONTOS FORA']&.strip
+      date_str = first_row.to_h['DATA']&.strip
+      home_team_name = first_row.to_h['EQUIPA CASA']&.strip
+      away_team_name = first_row.to_h['EQUIPA FORA']&.strip
+      home_points = first_row.to_h['PONTOS CASA']&.strip
+      away_points = first_row.to_h['PONTOS FORA']&.strip
       result = "#{home_points} - #{away_points}" if home_points.present? && away_points.present?
-      competition = first_row['COMPETIÇÃO']&.strip
+      competition = first_row.to_h['COMPETIÇÃO']&.strip
       season = Date.current.year.to_s # Default to current year since not in CSV
 
       # Debug logging
@@ -683,12 +688,14 @@ class MatchesController < ApplicationController
 
       # Process each player row (excluding totals row)
       team_stats_data = nil
+      players_processed = 0
 
       # Debug: Print CSV headers
       Rails.logger.info "CSV Headers: #{csv_data.headers}"
+      Rails.logger.info "Total CSV rows to process: #{csv_data.count}"
 
       csv_data.each_with_index do |row, index|
-        player_name = row['NOME']&.strip
+        player_name = row[0]&.strip  # Use index instead of column name
 
         # Skip totals row, empty names, or invalid names, but capture team stats from first row
         if player_name.blank? ||
@@ -707,23 +714,23 @@ class MatchesController < ApplicationController
 
           # Debug: Print the raw values
           Rails.logger.info "Raw CSV values for team stats:"
-          Rails.logger.info "ALINHAMENTO GANHOS SPORT: '#{row['ALINHAMENTO GANHOS SPORT']}'"
-          Rails.logger.info "ALINHAMENTO TOTAIS SPORT: '#{row['ALINHAMENTO TOTAIS SPORT']}'"
-          Rails.logger.info "ALINHAMENTO GANHOS ADVERSARIO: '#{row['ALINHAMENTO GANHOS ADVERSARIO']}'"
-          Rails.logger.info "ALINHAMENTO TOTAIS ADVERSARIO: '#{row['ALINHAMENTO TOTAIS ADVERSARIO']}'"
-          Rails.logger.info "FO GANHAS SPORT: '#{row['FO GANHAS SPORT ']}'"
-          Rails.logger.info "FO TOTAIS SPORT: '#{row['FO TOTAIS SPORT ']}'"
-          Rails.logger.info "FO GANHAS ADVERSARIO: '#{row['FO GANHAS ADVERSARIO']}'"
-          Rails.logger.info "FO TOTAIS ADVERSARIO: '#{row['FO TOTAIS ADVERSARIO']}'"
+          Rails.logger.info "ALINHAMENTO GANHOS SPORT: '#{row.to_h['ALINHAMENTO GANHOS SPORT']}'"
+          Rails.logger.info "ALINHAMENTO TOTAIS SPORT: '#{row.to_h['ALINHAMENTO TOTAIS SPORT']}'"
+          Rails.logger.info "ALINHAMENTO GANHOS ADVERSARIO: '#{row.to_h['ALINHAMENTO GANHOS ADVERSARIO']}'"
+          Rails.logger.info "ALINHAMENTO TOTAIS ADVERSARIO: '#{row.to_h['ALINHAMENTO TOTAIS ADVERSARIO']}'"
+          Rails.logger.info "FO GANHAS SPORT: '#{row.to_h['FO GANHAS SPORT ']}'"
+          Rails.logger.info "FO TOTAIS SPORT: '#{row.to_h['FO TOTAIS SPORT ']}'"
+          Rails.logger.info "FO GANHAS ADVERSARIO: '#{row.to_h['FO GANHAS ADVERSARIO']}'"
+          Rails.logger.info "FO TOTAIS ADVERSARIO: '#{row.to_h['FO TOTAIS ADVERSARIO']}'"
 
-          lineouts_ganhos_sport = safe_to_i.call(row['ALINHAMENTO GANHOS SPORT'])
-          lineouts_totais_sport = safe_to_i.call(row['ALINHAMENTO TOTAIS SPORT'])
-          lineouts_ganhos_adversario = safe_to_i.call(row['ALINHAMENTO GANHOS ADVERSARIO'])
-          lineouts_totais_adversario = safe_to_i.call(row['ALINHAMENTO TOTAIS ADVERSARIO'])
-          scrums_ganhos_sport = safe_to_i.call(row['FO GANHAS SPORT '])
-          scrums_totais_sport = safe_to_i.call(row['FO TOTAIS SPORT '])
-          scrums_ganhos_adversario = safe_to_i.call(row['FO GANHAS ADVERSARIO'])
-          scrums_totais_adversario = safe_to_i.call(row['FO TOTAIS ADVERSARIO'])
+          lineouts_ganhos_sport = safe_to_i.call(row.to_h['ALINHAMENTO GANHOS SPORT'])
+          lineouts_totais_sport = safe_to_i.call(row.to_h['ALINHAMENTO TOTAIS SPORT'])
+          lineouts_ganhos_adversario = safe_to_i.call(row.to_h['ALINHAMENTO GANHOS ADVERSARIO'])
+          lineouts_totais_adversario = safe_to_i.call(row.to_h['ALINHAMENTO TOTAIS ADVERSARIO'])
+          scrums_ganhos_sport = safe_to_i.call(row.to_h['FO GANHAS SPORT '])
+          scrums_totais_sport = safe_to_i.call(row.to_h['FO TOTAIS SPORT '])
+          scrums_ganhos_adversario = safe_to_i.call(row.to_h['FO GANHAS ADVERSARIO'])
+          scrums_totais_adversario = safe_to_i.call(row.to_h['FO TOTAIS ADVERSARIO'])
 
           team_stats_data = {
             lineouts_won: lineouts_ganhos_sport,
@@ -744,11 +751,16 @@ class MatchesController < ApplicationController
 
         if player.nil?
           Rails.logger.warn "Player '#{player_name}' not found, skipping..."
+          Rails.logger.info "Available players with similar names:"
+          similar_players = Player.where("name ILIKE ?", "%#{player_name.split.first}%").limit(5)
+          similar_players.each { |p| Rails.logger.info "  - #{p.name}" }
           next
         end
 
         # Create player match with error handling
         begin
+          players_processed += 1
+          Rails.logger.info "Processing player #{players_processed}: #{player_name}"
           player_match = match.player_matches.create!(
             player: player,
             position: index + 1  # Set position based on CSV row index (1-based)
@@ -774,7 +786,10 @@ class MatchesController < ApplicationController
       end
 
       # Create team stats after processing all players
+      Rails.logger.info "Players processed: #{players_processed}"
+      Rails.logger.info "Team stats data: #{team_stats_data.inspect}"
       if team_stats_data
+        Rails.logger.info "Creating team stats for match #{match.id}"
         teamstat = create_team_stats(match, team_stats_data)
         # Calculate team ratings after team stats are saved
         begin
@@ -783,6 +798,8 @@ class MatchesController < ApplicationController
         rescue => e
           Rails.logger.error "Failed to calculate team ratings for match #{match.id}: #{e.message}"
         end
+      else
+        Rails.logger.warn "No team stats data found, skipping teamstat creation"
       end
 
       Rails.logger.info "Calculating team averages for match #{match.id}"
@@ -859,29 +876,29 @@ class MatchesController < ApplicationController
     end
 
     # Handle calculated fields
-    introduções_totais = row['INTRODUÇÕES TOTAIS'].to_s.strip.to_i
-    introduções_ganhas = row['INTRODUÇÕES GANHAS'].to_s.strip.to_i
+    introduções_totais = row.to_h['INTRODUÇÕES TOTAIS'].to_s.strip.to_i
+    introduções_ganhas = row.to_h['INTRODUÇÕES GANHAS'].to_s.strip.to_i
     if introduções_totais > 0 && introduções_ganhas >= 0
       update_attributes['introduction_lost'] = introduções_totais - introduções_ganhas
     end
 
     # Handle missed conversions if we have totals
-    conversões_totais = row['CONVERSÕES TOTAL'].to_s.strip.to_i
-    conversões_feitas = row['CONVERSÕES FEITAS'].to_s.strip.to_i
+    conversões_totais = row.to_h['CONVERSÕES TOTAL'].to_s.strip.to_i
+    conversões_feitas = row.to_h['CONVERSÕES FEITAS'].to_s.strip.to_i
     if conversões_totais > 0 && conversões_feitas >= 0
       update_attributes['missed_conversion'] = conversões_totais - conversões_feitas
     end
 
     # Handle missed penalty kicks if we have totals
-    pen_totais = row['PEN POSTES TOTAL'].to_s.strip.to_i
-    pen_convertidas = row['PEN POSTES CONVERTIDAS'].to_s.strip.to_i
+    pen_totais = row.to_h['PEN POSTES TOTAL'].to_s.strip.to_i
+    pen_convertidas = row.to_h['PEN POSTES CONVERTIDAS'].to_s.strip.to_i
     if pen_totais > 0 && pen_convertidas >= 0
       update_attributes['missed_penalty_kick_goals'] = pen_totais - pen_convertidas
     end
 
     # Handle missed drops if we have totals
-    drops_totais = row['DROPS TOTAL'].to_s.strip.to_i
-    drops_convertidos = row['DROPS CONVERTIDOS'].to_s.strip.to_i
+    drops_totais = row.to_h['DROPS TOTAL'].to_s.strip.to_i
+    drops_convertidos = row.to_h['DROPS CONVERTIDOS'].to_s.strip.to_i
     if drops_totais > 0 && drops_convertidos >= 0
       update_attributes['missed_drop_goals'] = drops_totais - drops_convertidos
     end
