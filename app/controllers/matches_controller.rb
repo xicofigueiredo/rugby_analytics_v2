@@ -358,8 +358,8 @@ class MatchesController < ApplicationController
     end
 
     begin
-      # Read CSV with semicolon delimiter since the file uses ';' not ','
-      csv_data = CSV.read(uploaded_file.path, headers: true, col_sep: ';')
+      # Read CSV with comma delimiter (default)
+      csv_data = CSV.read(uploaded_file.path, headers: true)
       process_match_csv(csv_data)
       redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
     rescue => e
