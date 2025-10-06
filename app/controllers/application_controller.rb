@@ -21,6 +21,8 @@ class ApplicationController < ActionController::Base
       matches_path
     elsif resource.role == "player"
       profile_path
+    elsif resource.role == "coach"
+      team_profile_path
     else
       root_path
     end
