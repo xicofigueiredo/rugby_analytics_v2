@@ -1,10 +1,13 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_team, only: [:show, :edit, :update, :destroy]
-  before_action :require_admin, except: [ :team_profile]
+  before_action :require_admin, except: [ :index, :show, :team_profile]
 
 
   def index
+    if current_user.role == "coach"
+      redirect_to team_path(current_user.team)
+    end
     @teams = Team.all
     @available_levels = Team.distinct.pluck(:level).sort
     @available_countries = Team.distinct.pluck(:country).sort
