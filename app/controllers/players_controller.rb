@@ -53,21 +53,30 @@ class PlayersController < ApplicationController
   end
 
   def show
-    @performance_data = {
-      "CDUL" => 9,
-      "CDUP" => 4,
-      "AAC" => 7,
-      "Bel" => 8,
-      "GDD" => 6
+    @player = Player.find(params[:id])
+
+    @player_general_info = {
+      minutes_played: @player.player_matches.where(player_id: @player.id).sum(:time_played),
+      matches_played: @player.player_matches.where("player_id = ? AND CAST(time_played AS INTEGER) > 0", @player.id).count,
+      starting_lineup: @player.player_matches.where(player_id: @player.id, started: true).count,
+      tries: @player.player_matches.where(player_id: @player.id).sum(:try),
+      try_assists: @player.player_matches.where(player_id: @player.id).sum(:try_assist),
+      yellow_cards: @player.player_matches.where(player_id: @player.id).sum(:yellow),
+      red_cards: @player.player_matches.where(player_id: @player.id).sum(:red),
+      impact_player: "Coming Soon",
+      mvp: "Coming Soon",
+      average_rating: "Coming Soon"
     }
 
-    @minutes_data = {
-      "CDUL" => 65,
-      "CDUP" => 72,
-      "AAC" => 50,
-      "Bel" => 78,
-      "GDD" => 58
-    }
+    # Calculate team performance per game (using teamstats)
+    @performance_data = calculate_team_performance_per_game(@player.team)
+
+    # Calculate player performance per game (using player_matches)
+    @player_performance_data = calculate_player_performance_per_game(@player)
+
+    # Calculate position group performance per game
+    @group_performance_data = calculate_position_group_performance_per_game(@player)
+    @position_group_name = get_position_group_name(@player)
 
     @overall_data = calculate_player_rating_averages(@player)
   end
@@ -98,23 +107,6 @@ class PlayersController < ApplicationController
       impact_player: "Coming Soon",
       mvp: "Coming Soon",
       average_rating: "Coming Soon"
-    }
-
-    # Fetch attack stats per month
-    @attack_stats = {
-      carries: 14,
-      passes: 8
-    }
-
-    # Fetch defense stats per month
-    @defense_stats = {
-      tackles: 37,
-      turnovers: 4
-    }
-
-    # Fetch kicking stats per month
-    @kicking_stats = {
-      kicks: 1
     }
 
     # Calculate team performance per game (using teamstats)

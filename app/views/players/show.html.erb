@@ -1,30 +1,24 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <div class="container">
-  <div class="mb-3 d-flex justify-content-end align-items-center">
-    <%= link_to players_path, class: "btn btn-outline-light" do %>
-      <i class="fas fa-arrow-left me-1"></i> Back
-    <% end %>
-  </div>
-
   <div class="row g-4">
-    <!-- Profile Card 1 -->
+    <!-- Profile Card -->
     <div class="col-md-4">
-      <div class="card main-card p-4 h-100 d-flex justify-content-center align-items-center">
-        <% if @player.id == 1 %>
-          <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player.name %>" class="profile-img mb-3">
-        <% elsif @player.id == 2 %>
-          <img src="<%= asset_path('puto.png') %>" alt="<%= @player.name %>" class="profile-img mb-3">
-        <% end %>
+      <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
+        <br>
         <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
           <%= @player.name %>
         </div>
-        <div class="text-info fw-bold mb-3" style="font-size:1.2em;"><%= @player.total_points %> pts</div>
-        <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center justify-content-between">
           <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
           <span class="me-2" style="color: white;"><%= @player.country %></span>
           <span class="me-2"><img src="<%= asset_path('sport.jpg') %>" alt="Team Logo" style="width:35px;height:35px;"></span>
           <span style="color: white;"><%= @player.team.name %></span>
+        </div>
+        <div class="col-md-12">
+          <div class="card chart-card h-100">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+          </div>
         </div>
         <div class="row mb-3">
           <div class="col-6">
@@ -44,20 +38,6 @@
             <div class="stat-value"><%= @player.height %> cm</div>
           </div>
         </div>
-        <div class="d-flex gap-2">
-          <div class="mt-4">
-            <%= link_to edit_player_path(@player),
-                class: "btn btn-lg btn-outline-light",
-                data: {
-                  turbo_frame: "_top",
-                  bs_toggle: "tooltip",
-                  bs_placement: "top",
-                  bs_title: "Edit Player"
-                } do %>
-              <i class="fas fa-edit"></i> Edit Player
-            <% end %>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -69,32 +49,51 @@
           <div class="card chart-card p-4 mb-2">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="h5 text-white mb-0">Performance</div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-primary active">All</button>
-                <button class="btn btn-outline-light">At home</button>
-                <button class="btn btn-outline-light">Away</button>
-              </div>
+              <span class="text-secondary">2025/2026</span>
             </div>
             <div>
-              <%= line_chart @performance_data, height: "220px", colors: ["#4dc9f6"] %>
+              <%= turbo_frame_tag "performance_chart" do %>
+                <%= line_chart [
+                    { name: "You", data: @player_performance_data },
+                    { name: @player.team.name, data: @performance_data },
+                    { name: @position_group_name, data: @group_performance_data }
+                  ],
+                  height: "220px",
+                  colors: ["#4dc9f6", "#f72585", "#ffd166"],
+                  library: {
+                    plugins: {
+                      legend: {
+                        labels: {
+                          color: 'white'
+                        }
+                      }
+                    }
+                  } %>
+              <% end %>
             </div>
           </div>
         </div>
 
-        <!-- Minutes Per Game Chart -->
+        <!-- Recent Stats Chart -->
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Overall</div>
-              <span class="text-secondary">average</span>
+              <div class="h5 text-white mb-0">Stats <br>(comming soon...)</div>
+              <div class="d-flex align-items-center gap-2">
+                <select id="statsSelector" class="form-select form-select-sm" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
+                  <option value="attack">Attack</option>
+                  <option value="defense">Defense</option>
+                  <option value="kicking">Kicking</option>
+                </select>
+              </div>
             </div>
-            <canvas id="radarChart" width="400" height="400"></canvas>
+            <canvas id="lineChart" width="400" height="400"></canvas>
             <br>
-            <%= link_to all_stats_player_path(@player),
+<%#             <%= link_to all_stats_player_path(@player),
                 class: "btn btn-primary btn-action btn-sm d-block mx-auto",
                 style: "width: 50%;",
                 data: { turbo: true } do %>
-              View all stats
+<%#               View all stats
             <% end %>
           </div>
         </div>
@@ -106,30 +105,45 @@
               <div class="h5 text-white mb-0">General Info</div>
               <span class="text-secondary">2025/2026</span>
             </div>
-            <div>
-              <%= bar_chart @minutes_data, height: "160px", colors: ["#36a2eb"] %>
-            </div>
             <br>
             <ul class="list-unstyled stats-list">
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-clock"></i> Minutes played</span>
-                <span class="stat-value">740</span>
+                <span><i class="fa-regular fa-clock fa-lg fa-fw text-secondary"></i> Minutes played</span>
+                <span class="stat-value"><%= @player_general_info[:minutes_played] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-bar-chart"></i> Matches played</span>
-                <span class="stat-value">14</span>
+                <span><i class="fa-solid fa-h fa-lg fa-fw text-secondary"></i> Matches played</span>
+                <span class="stat-value"><%= @player_general_info[:matches_played] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-people"></i> Starting lineup</span>
-                <span class="stat-value">13</span>
+                <span><i class="fa-solid fa-user fa-lg fa-fw text-secondary"></i> Starting lineup</span>
+                <span class="stat-value"><%= @player_general_info[:starting_lineup] %></span>
+              </li>
+              <br>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-bullseye fa-lg fa-fw text-secondary"></i> Tries</span>
+                <span class="stat-value"><%= @player_general_info[:tries] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-trophy"></i> Tries</span>
-                <span class="stat-value">5</span>
+                <span><i class="fa-solid fa-handshake-angle fa-lg fa-fw text-secondary"></i> Try Assists</span>
+                <span class="stat-value"><%= @player_general_info[:try_assists] %></span>
               </li>
               <li class="d-flex justify-content-between align-items-center mb-2">
-                <span><i class="bi bi-exclamation-triangle"></i> Yellow / Red cards</span>
-                <span class="stat-value">2 / 0</span>
+                <span><i class="fa-solid fa-copy fa-lg fa-fw text-secondary"></i> Yellow / Red cards</span>
+                <span class="stat-value"><%= @player_general_info[:yellow_cards] || 0 %> / <%= @player_general_info[:red_cards] || 0 %></span>
+              </li>
+              <br>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-medal fa-lg fa-fw text-secondary"></i> MVP</span>
+                <span class="stat-value"><%= @player_general_info[:mvp] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-bolt fa-lg fa-fw text-secondary"></i> Impact Player</span>
+                <span class="stat-value"><%= @player_general_info[:impact_player] %></span>
+              </li>
+              <li class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fa-solid fa-star fa-lg fa-fw text-secondary"></i> Average Rating</span>
+                <span class="stat-value"><%= @player_general_info[:average_rating] %></span>
               </li>
             </ul>
           </div>
@@ -138,3 +152,172 @@
     </div>
   </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    const radarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency"],
+        datasets: [{
+          data: [<%= @overall_data["Attack"] %>, <%= @overall_data["Defense"] %>, <%= @overall_data["Work Rate"] %>, <%= @overall_data["Discipline"] %>, <%= @overall_data["Skills"] %>, <%= @overall_data["Consistency"] %>],
+          fill: true,
+          backgroundColor: '#4dc9f67a',
+          borderColor: '#4dc9f6',
+          pointBackgroundColor: '#4dc9f6'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            angleLines: {
+              color: '#ccc'
+            },
+            grid: {
+              color: '#666'
+            },
+            pointLabels: {
+              color: '#eee'
+            },
+            ticks: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    let lineChart;
+
+    // Define your datasets with multiple statistics per category
+    const datasets = {
+      attack: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Carries',
+            data: [12, 15, 13, 14, 16, 15],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Passes',
+            data: [25, 28, 24, 27, 29, 26],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      },
+      defense: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Tackles',
+            data: [18, 20, 22, 19, 21, 23],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          },
+          {
+            label: 'Turnovers',
+            data: [3, 4, 2, 5, 3, 4],
+            borderColor: '#f72585',
+            tension: 0.1,
+            pointBackgroundColor: '#f72585'
+          }
+        ]
+      },
+      kicking: {
+        labels: ['CDUL', 'CDUP', 'AAC', 'Bel', 'GDD', 'SLB'],
+        datasets: [
+          {
+            label: 'Kicks',
+            data: [8, 7, 9, 8, 10, 9],
+            borderColor: '#4dc9f6',
+            tension: 0.1,
+            pointBackgroundColor: '#4dc9f6'
+          }
+        ]
+      }
+    };
+
+    function createChart(type) {
+      if (lineChart) {
+        lineChart.destroy();
+      }
+
+      lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: datasets[type].labels,
+          datasets: datasets[type].datasets
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#eee',
+                padding: 10
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#666'
+              },
+              ticks: {
+                color: '#eee'
+              }
+            },
+            x: {
+              grid: {
+                color: '#666'
+              },
+              ticks: {
+                color: '#eee'
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // Initial chart creation
+    createChart('attack');
+
+    // Event listener for dropdown changes
+    document.getElementById('statsSelector').addEventListener('change', function(e) {
+      createChart(e.target.value);
+    });
+  });
+</script>
