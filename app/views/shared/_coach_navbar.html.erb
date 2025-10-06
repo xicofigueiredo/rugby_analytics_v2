@@ -16,6 +16,11 @@
               Matches
             <% end %>
           </li>
+          <li>
+            <%= link_to players_path, class: "nav-link text-white #{'active' if controller_name == 'players'}" do %>
+              Players
+            <% end %>
+          </li>
           <li class="nav-item">
             <%= link_to team_profile_path,
                 class: "nav-link text-white #{'active' if controller.class.name.start_with?('Teams') && action_name == 'team_profile'}" do %>
