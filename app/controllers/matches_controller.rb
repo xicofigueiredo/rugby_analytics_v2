@@ -860,7 +860,7 @@ class MatchesController < ApplicationController
     # Update player_match with stats from CSV
     update_attributes = {}
 
-    if index < 16
+    if index < 15
       update_attributes['started'] = true
     end
 
