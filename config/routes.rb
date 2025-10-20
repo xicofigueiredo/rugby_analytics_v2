@@ -58,7 +58,7 @@ Rails.application.routes.draw do
     end
     member do
       get 'player_stats'
-      get 'coach_player_stats'
+      get 'player_data'
       patch 'update_player_match/:player_match_id', to: 'matches#update_player_match', as: 'update_player_match'
     end
   end

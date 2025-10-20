@@ -1,6 +1,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <div class="container">
+  <!-- Player Selector (only visible for coaches/admins) -->
+  <% if current_user.role == "coach" || current_user.role == "admin" %>
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card main-card p-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="text-white mb-0">Select Player</h5>
+            <select id="playerSelector" class="form-select" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
+              <% @players.each do |player_match| %>
+                <option value="<%= player_match.id %>" <%= 'selected' if player_match == @player_match %>>
+                  <%= player_match.player.name %> (<%= player_match.player.team.name %>)
+                </option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <div class="row g-4">
     <!-- Profile Card -->
     <div class="col-md-4">
@@ -432,6 +452,217 @@
       }
     });
 
-    // No additional JavaScript needed for the stats tables
+    // Handle player selection changes (for coaches/admins)
+    const playerSelector = document.getElementById('playerSelector');
+    if (playerSelector) {
+      playerSelector.addEventListener('change', function() {
+        const playerMatchId = this.value;
+
+        // Make AJAX request to get updated player data
+        fetch(`/matches/<%= @match.id %>/player_data?player_match_id=${playerMatchId}`, {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Update radar chart
+          updateRadarChart(data.radar_player_data, data.radar_team_data);
+
+          // Update performance metrics tables
+          updatePerformanceMetrics(data.best_5_metrics, data.worst_5_metrics);
+
+          // Update detailed stats tables
+          updateDetailedStats(data.player_match);
+        })
+        .catch(error => {
+          console.error('Error updating player stats:', error);
+          // Fallback to page refresh if AJAX fails
+          window.location.href = `/matches/<%= @match.id %>?player_match_id=${playerMatchId}`;
+        });
+      });
+    }
+
+    // Function to update radar chart with new data
+    function updateRadarChart(playerData, teamData) {
+      if (radarChart) {
+        radarChart.data.datasets[0].data = [
+          playerData.attack, playerData.defense, playerData.discipline,
+          playerData.work_rate, playerData.skills, playerData.consistency
+        ];
+        radarChart.data.datasets[1].data = [
+          teamData.attack, teamData.defense, teamData.discipline,
+          teamData.work_rate, teamData.skills, teamData.consistency
+        ];
+        radarChart.update();
+      }
+
+      // Also update the category comparison table
+      updateCategoryTable(playerData, teamData);
+    }
+
+    // Function to update performance metrics tables
+    function updatePerformanceMetrics(bestMetrics, worstMetrics) {
+      // Find tables by their headers
+      const headers = document.querySelectorAll('h6');
+      let bestTableBody = null;
+      let worstTableBody = null;
+
+      headers.forEach(header => {
+        if (header.textContent.includes('Best Performance Metrics')) {
+          bestTableBody = header.closest('.mb-3').querySelector('tbody');
+        } else if (header.textContent.includes('Worst Performance Metrics')) {
+          worstTableBody = header.closest('.mb-3').querySelector('tbody');
+        }
+      });
+
+      if (bestTableBody && bestMetrics) {
+        updateMetricsTable(bestTableBody, bestMetrics);
+      }
+
+      if (worstTableBody && worstMetrics) {
+        updateMetricsTable(worstTableBody, worstMetrics);
+      }
+    }
+
+    // Helper function to update metrics table
+    function updateMetricsTable(tbody, metrics) {
+      tbody.innerHTML = '';
+      metrics.forEach(metric => {
+        const row = document.createElement('tr');
+        row.className = 'border-secondary';
+
+        const playerDisplay = metric.format === 'percentage' ? `${metric.player_value}%` : metric.player_value.toString();
+        const teamDisplay = metric.format === 'percentage' ? `${metric.team_avg}%` : metric.team_avg.toString();
+        const diffColor = metric.difference > 0 ? 'text-success' : 'text-danger';
+        const diffSign = metric.difference > 0 ? '+' : '';
+        const diffDisplay = metric.format === 'percentage' ?
+          `${diffSign}${(metric.player_value - metric.team_avg).toFixed(1)}%` :
+          `${diffSign}${(metric.player_value - metric.team_avg).toFixed(1)}`;
+
+        row.innerHTML = `
+          <td class="text-white px-2 py-1 small">${metric.name}</td>
+          <td class="text-white text-center px-2 py-1 small">${playerDisplay}</td>
+          <td class="text-white text-center px-2 py-1 small">${teamDisplay}</td>
+          <td class="${diffColor} text-center px-2 py-1 small fw-bold">${diffDisplay}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Function to update detailed stats tables
+    function updateDetailedStats(playerMatch) {
+      // Update all the stat values in the detailed tables
+      const statMappings = {
+        // Attack stats
+        'Tries': playerMatch.try,
+        'Assists': playerMatch.try_assist,
+        'Linebreak': playerMatch.linebreak,
+        'Linebreak Assists': playerMatch.linebreak_assists,
+        'Carries With Gain': playerMatch.positive_carry,
+        'Carries Without Gain': playerMatch.carries,
+        'Conversions Made': playerMatch.conversion,
+        'Conversions Missed': playerMatch.missed_conversion,
+        'Kicks Made': playerMatch.penalty_kick_goal,
+        'Kicks Missed': playerMatch.missed_penalty_kick_goals,
+        'Drops Made': playerMatch.drop_goal,
+        'Drops Missed': playerMatch.missed_drop_goals,
+        'Mod Game Plus': playerMatch.mod_game_plus,
+        // Defense stats
+        'Positive Tackles': playerMatch.positive_tackle,
+        'Neutral Tackles': playerMatch.neutral_tackle,
+        'Negative Tackles': playerMatch.negative_tackle,
+        'Assist Tackles': playerMatch.assist_tackle,
+        'Missed Tackles': playerMatch.missed_tackle,
+        'Turnovers Won': playerMatch.turnover,
+        'Lineout Steals': playerMatch.lineout_turnover,
+        'Aerial Duels Won': playerMatch.aerial_duel_won,
+        'Aerial Duels Lost': playerMatch.aerial_duel_lost,
+        // Skills stats
+        'Offloads Good': playerMatch.positive_offload,
+        'Offloads Bad': playerMatch.negative_offload,
+        'Lineouts w/ Jump': playerMatch.lineout_won_jump,
+        'Lineouts w/o Jump': playerMatch.lineout_won_no_jump,
+        'Lineout Intros Won': playerMatch.introduction_won,
+        'Lineout Intros Lost': playerMatch.introduction_lost,
+        'Scrum Dominant': playerMatch.scrum_dominant,
+        // Discipline stats
+        'Total Penalties': playerMatch.penalties_conceded,
+        'Offside Penalties': playerMatch.pen_offside,
+        'Ruck Penalties': playerMatch.pen_breakdown,
+        'Scrum Penalties': playerMatch.pen_scrum,
+        'Other Penalties': playerMatch.pen_others,
+        'Yellow Cards': playerMatch.yellow,
+        'Red Cards': playerMatch.red,
+        'Knock On': playerMatch.knock_on,
+        'Other Mistakes': playerMatch.other_mistakes,
+        // Work Rate stats
+        'Total Carries': playerMatch.positive_carry + playerMatch.carries,
+        'Total Tackles': playerMatch.positive_tackle + playerMatch.neutral_tackle + playerMatch.negative_tackle + playerMatch.assist_tackle,
+        'Mod Game Minus': playerMatch.mod_game_minus,
+        // Consistency stats
+        'Time Played': playerMatch.time_played,
+        'Conversions Attempted': playerMatch.conversion + playerMatch.missed_conversion,
+        'Kicks Attempted': playerMatch.penalty_kick_goal + playerMatch.missed_penalty_kick_goals,
+        'Drops Attempted': playerMatch.drop_goal + playerMatch.missed_drop_goals,
+        'Lineout Intros Total': playerMatch.introduction_won + playerMatch.introduction_lost,
+        'Total Offloads': playerMatch.positive_offload + playerMatch.negative_offload,
+        'Total Aerial Duels': playerMatch.aerial_duel_won + playerMatch.aerial_duel_lost,
+        'Total Mod Game': playerMatch.mod_game_plus + playerMatch.mod_game_minus
+      };
+
+      // Update each stat in the tables
+      Object.entries(statMappings).forEach(([statName, value]) => {
+        // Find all cells that contain this stat name and update the adjacent value cell
+        const statCells = Array.from(document.querySelectorAll('td')).filter(td =>
+          td.textContent.trim() === statName
+        );
+
+        statCells.forEach(cell => {
+          const valueCell = cell.nextElementSibling;
+          if (valueCell) {
+            valueCell.textContent = value;
+          }
+        });
+      });
+    }
+
+    // Function to update the category comparison table
+    function updateCategoryTable(playerData, teamData) {
+      const categories = [
+        { name: 'Attack', player: playerData.attack, team: teamData.attack },
+        { name: 'Defense', player: playerData.defense, team: teamData.defense },
+        { name: 'Discipline', player: playerData.discipline, team: teamData.discipline },
+        { name: 'Work Rate', player: playerData.work_rate, team: teamData.work_rate },
+        { name: 'Skills', player: playerData.skills, team: teamData.skills },
+        { name: 'Consistency', player: playerData.consistency, team: teamData.consistency }
+      ];
+
+      // Find the category table (it's the first table in the first card)
+      const categoryTable = document.querySelector('.card.main-card .table tbody');
+      if (categoryTable) {
+        categoryTable.innerHTML = '';
+
+        categories.forEach(category => {
+          const row = document.createElement('tr');
+          row.className = 'border-secondary';
+
+          const isBetter = category.player > category.team;
+          const arrow = isBetter ? '↑' : '↓';
+          const arrowColor = isBetter ? 'text-success' : 'text-danger';
+
+          row.innerHTML = `
+            <td class="text-white px-3 py-2 small">${category.name}</td>
+            <td class="text-center px-3 py-2">
+              <span class="text-white fw-bold small">${category.player}</span>
+              <span class="${arrowColor} ms-1 small">${arrow}</span>
+            </td>
+            <td class="text-white text-center px-3 py-2 small">${category.team}</td>
+          `;
+          categoryTable.appendChild(row);
+        });
+      }
+    }
   });
 </script>

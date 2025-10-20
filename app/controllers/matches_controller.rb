@@ -2,7 +2,7 @@ require 'csv'
 
 class MatchesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_match, only: [:show, :edit, :update, :destroy, :coach_player_stats]
+  before_action :set_match, only: [:show, :edit, :update, :destroy, :player_data]
   before_action :set_opponents, only: [:new, :edit, :create, :update]
   before_action :require_admin_or_coach, only: [:new, :create, :edit, :update, :destroy, :upload_csv]
 
@@ -55,9 +55,14 @@ class MatchesController < ApplicationController
       @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
       @player = current_user.player
       Rails.logger.info "Player mode: Found player_match for player_id #{current_user.player_id}: #{@player_match&.id}"
-    elsif current_user.role == "coach"
-      # For coaches, allow viewing specific player via parameter, otherwise show first player
-      if params[:player_id].present?
+    elsif current_user.role == "coach" || current_user.role == "admin"
+      # For coaches/admins, allow viewing specific player via player_match_id parameter
+      if params[:player_match_id].present?
+        @player_match = PlayerMatch.joins(:player)
+                                  .where(id: params[:player_match_id], match_id: @match.id)
+                                  .where(players: { team_id: current_user.team_id })
+                                  .first
+      elsif params[:player_id].present?
         @player_match = PlayerMatch.joins(:player)
                                   .where(match_id: @match.id, player_id: params[:player_id])
                                   .where(players: { team_id: current_user.team_id })
@@ -70,7 +75,7 @@ class MatchesController < ApplicationController
                                   .first
       end
       @player = @player_match&.player
-      Rails.logger.info "Coach mode: Found player_match for team #{current_user.team_id}: #{@player_match&.id}, player: #{@player&.name}"
+      Rails.logger.info "Coach/Admin mode: Found player_match for team #{current_user.team_id}: #{@player_match&.id}, player: #{@player&.name}"
     else
       @player_match = nil
       @player = nil
@@ -459,84 +464,108 @@ class MatchesController < ApplicationController
     end
   end
 
-  def coach_player_stats
-    player_match = PlayerMatch.find(params[:player_id])
-    @player_match = player_match
-    @player = player_match.player
+  def player_data
+    # Find the specific player match
+    if params[:player_match_id].present?
+      @player_match = PlayerMatch.joins(:player)
+                                .where(id: params[:player_match_id], match_id: @match.id)
+                                .where(players: { team_id: current_user.team_id })
+                                .first
+    else
+      render json: { error: 'Player match ID required' }, status: :bad_request
+      return
+    end
 
-    # Get top players for stats dropdown (same as in show method)
-    calculate_top_players(@match)
+    unless @player_match
+      render json: { error: 'Player match not found' }, status: :not_found
+      return
+    end
 
-    @stats_dropdown_options = [
-      ["Positive Tackles", "positive_tackles"],
-      ["Turnovers", "turnovers"],
-      ["Penalties", "penalties"],
-      ["Carries", "carries"],
-      ["Positive Carries", "positive_carries"],
-      ["Positive Offloads", "positive_offloads"],
-      ["Linebreaks", "linebreaks"]
-    ]
+    @player = @player_match.player
 
-    # Create stats data for JavaScript (same as in show method)
-    @stats_data = {
-      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
-      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
-      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
-      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
-      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
-      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
-      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+    # Calculate all the same data as in the show method
+    calculate_best_worst_metrics(@player_match, @match, @player.team_id)
+
+    # Radar chart data
+    @radar_player_data = {
+      attack: @player_match.attack_rating || 0,
+      defense: @player_match.defense_rating || 0,
+      discipline: @player_match.discipline_rating || 0,
+      work_rate: @player_match.work_rate_rating || 0,
+      skills: @player_match.skills_rating || 0,
+      consistency: @player_match.consistency_rating || 0
     }
 
-    # Calculate performance data for the selected player
-    performance_data = {
-      "Tackles Made" => @player_match.tackles_made || 0,
-      "Missed Tackles" => @player_match.missed_tackle || 0,
-      "Turnovers" => @player_match.turnover || 0,
-      "Penalties" => @player_match.penalties_conceded || 0,
-      "Positive Offloads" => @player_match.positive_offload || 0,
-      "Negative Offloads" => @player_match.negative_offload || 0,
-      "Linebreaks" => @player_match.linebreak || 0,
-      "Knock-ons" => @player_match.knock_on || 0,
-      "Positive Carries" => @player_match.positive_carry || 0,
-    }
+    # Team averages for radar chart
+    team_players = PlayerMatch.joins(:player)
+                             .where(match_id: @match.id)
+                             .where(players: { team_id: @player.team_id })
+                             .where("time_played > 0")
 
-    # Get actual ratings for this specific match
-    @player_match_performance_data = {
-      "Attack" => @player_match.attack_rating || 5.0,
-      "Defense" => @player_match.defense_rating || 5.0,
-      "Work Rate" => @player_match.work_rate_rating || 5.0,
-      "Discipline" => @player_match.discipline_rating || 5.0,
-      "Skills" => @player_match.skills_rating || 5.0,
-      "Consistency" => @player_match.consistency_rating || 5.0
+    @radar_team_data = {
+      attack: team_players.where.not(attack_rating: nil).average(:attack_rating)&.round(1) || 0,
+      defense: team_players.where.not(defense_rating: nil).average(:defense_rating)&.round(1) || 0,
+      discipline: team_players.where.not(discipline_rating: nil).average(:discipline_rating)&.round(1) || 0,
+      work_rate: team_players.where.not(work_rate_rating: nil).average(:work_rate_rating)&.round(1) || 0,
+      skills: team_players.where.not(skills_rating: nil).average(:skills_rating)&.round(1) || 0,
+      consistency: team_players.where.not(consistency_rating: nil).average(:consistency_rating)&.round(1) || 0
     }
-
-    # Calculate team average ratings for this match
-    @player_season_average_performance_data = calculate_team_average_ratings(@match, @player.team_id)
 
     respond_to do |format|
       format.json {
         render json: {
           player_name: @player.name,
-          performance_data: performance_data,
-          average_player_performance_data: {
-            "Tackles Made" => @match.avg_tackles_made,
-            "Missed Tackles" => @match.avg_missed_tackle,
-            "Turnovers" => @match.avg_turnover,
-            "Penalties" => @match.avg_penalties_conceded,
-            "Positive Offloads" => @match.avg_positive_offload,
-            "Negative Offloads" => @match.avg_negative_offload,
-            "Linebreaks" => @match.avg_linebreak,
-            "Knock-ons" => @match.avg_knock_on,
-            "Positive Carries" => @match.avg_positive_carry,
-          },
-          player_match_performance_data: @player_match_performance_data,
-          player_season_average_performance_data: @player_season_average_performance_data,
-          stats_data: @stats_data
+          radar_player_data: @radar_player_data,
+          radar_team_data: @radar_team_data,
+          best_5_metrics: @best_5_metrics,
+          worst_5_metrics: @worst_5_metrics,
+          player_match: {
+            id: @player_match.id,
+            # Add all the stats needed for the detailed tables
+            try: @player_match.try || 0,
+            try_assist: @player_match.try_assist || 0,
+            linebreak: @player_match.linebreak || 0,
+            linebreak_assists: @player_match.linebreak_assists || 0,
+            positive_carry: @player_match.positive_carry || 0,
+            carries: @player_match.carries || 0,
+            conversion: @player_match.conversion || 0,
+            missed_conversion: @player_match.missed_conversion || 0,
+            penalty_kick_goal: @player_match.penalty_kick_goal || 0,
+            missed_penalty_kick_goals: @player_match.missed_penalty_kick_goals || 0,
+            drop_goal: @player_match.drop_goal || 0,
+            missed_drop_goals: @player_match.missed_drop_goals || 0,
+            mod_game_plus: @player_match.mod_game_plus || 0,
+            positive_tackle: @player_match.positive_tackle || 0,
+            neutral_tackle: @player_match.neutral_tackle || 0,
+            negative_tackle: @player_match.negative_tackle || 0,
+            assist_tackle: @player_match.assist_tackle || 0,
+            missed_tackle: @player_match.missed_tackle || 0,
+            turnover: @player_match.turnover || 0,
+            lineout_turnover: @player_match.lineout_turnover || 0,
+            aerial_duel_won: @player_match.aerial_duel_won || 0,
+            aerial_duel_lost: @player_match.aerial_duel_lost || 0,
+            positive_offload: @player_match.positive_offload || 0,
+            negative_offload: @player_match.negative_offload || 0,
+            lineout_won_jump: @player_match.lineout_won_jump || 0,
+            lineout_won_no_jump: @player_match.lineout_won_no_jump || 0,
+            introduction_won: @player_match.introduction_won || 0,
+            introduction_lost: @player_match.introduction_lost || 0,
+            scrum_dominant: @player_match.scrum_dominant || 0,
+            penalties_conceded: @player_match.penalties_conceded || 0,
+            pen_offside: @player_match.pen_offside || 0,
+            pen_breakdown: @player_match.pen_breakdown || 0,
+            pen_scrum: @player_match.pen_scrum || 0,
+            pen_others: @player_match.pen_others || 0,
+            yellow: @player_match.yellow || 0,
+            red: @player_match.red || 0,
+            knock_on: @player_match.knock_on || 0,
+            other_mistakes: @player_match.other_mistakes || 0,
+            mod_game_minus: @player_match.mod_game_minus || 0,
+            time_played: @player_match.time_played || 0
+          }
         }
       }
     end
-
   end
 
   private

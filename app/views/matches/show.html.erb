@@ -54,14 +54,7 @@
       <% if @match.result.present? %>
         <div class="toggle-buttons">
           <button class="toggle-button active" data-target="summary-chart">Summary</button>
-          <% if current_user.role == "player" %>
-            <button class="toggle-button" data-target="player-chart">My Stats</button>
-          <% elsif current_user.role == "coach" %>
-            <button class="toggle-button" data-target="coach-chart">Player Stats</button>
-          <% elsif current_user.role == "admin" %>
-            <button class="toggle-button" data-target="player-chart">My Stats</button>
-            <button class="toggle-button" data-target="coach-chart">Player Stats</button>
-          <% end %>
+          <button class="toggle-button" data-target="player-chart">My Stats</button>
           <button class="toggle-button" data-target="note-chart">Notes</button>
         </div>
         <br>
@@ -77,7 +70,7 @@
         <% end %>
 
         <div id="coach-chart" class="chart-section">
-          <%= render partial: 'coach_match_stats', locals: { player: @player} %>
+          <%= render partial: 'player_match_stats', locals: { player: @player} %>
         </div>
 
         <div id="note-chart" class="chart-section">
