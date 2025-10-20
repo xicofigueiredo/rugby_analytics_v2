@@ -94,6 +94,22 @@
             </div>
           </div>
         <% end %>
+        <br>
+        <br>
+        <br>
+        <h6 class="text-white text-center mb-3" style="font-size: 1.2em; margin-top: -25px;">POINTS SCORERS</h6>
+        <ul class="player-list text-white">
+        <% @scorer_players.each do |player| %>
+          <li class="player-row d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center" style="width: 80%;">
+              <span class="player-number me-2"><%= player.player.name %></span>
+            </div>
+            <span class="player-minutes text-end">
+              <%= player.try.to_i * 5 + player.conversion.to_i * 2 + player.penalty_kick_goal.to_i * 3 + player.drop_goal.to_i * 3 %>
+            </span>
+          </li>
+        <% end %>
+        </ul>
       </div>
     </div>
 
@@ -133,69 +149,6 @@
       </ul>
       </div>
     </div>
-
-    <!-- Stats, Point Scorers, and Metrics Row -->
-    <div class="row mt-4">
-      <!-- absolute stats -->
-      <div class="col-md-4">
-        <div class="card card main-card p-4 h-100">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="h5 text-white mb-0">Stats</div>
-            <div class="d-flex justify-content-end w-50">
-              <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options&.first&.last),
-                  { class: "form-select", id: "stats_dropdown" } %>
-            </div>
-          </div>
-          <br>
-          <div class="text-white" id="stats_container">
-            <!-- Content will be populated by JavaScript -->
-          </div>
-        </div>
-      </div>
-
-      <!-- point scorers (middle) -->
-      <div class="col-md-4">
-        <div class="card card main-card p-4 h-100">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="h5 text-white mb-0">Point Scorers</div>
-          </div>
-          <br>
-          <div class="text-white">
-            <ul class="player-list">
-              <% @scorer_players.each do |player| %>
-                <li class="player-row d-flex justify-content-between align-items-center">
-                  <div class="d-flex align-items-center" style="width: 80%;">
-                    <span class="player-name text-truncate"><%= player.player.name %></span>
-                  </div>
-                  <span class="player-minutes text-end">
-                    <%= player.try.to_i * 5 + player.conversion.to_i * 2 + player.penalty_kick_goal.to_i * 3 + player.drop_goal.to_i * 3 %>
-                  </span>
-                </li>
-              <% end %>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- relative stats -->
-      <div class="col-md-4">
-        <div class="card card main-card p-4 h-100">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="h5 text-white mb-0">Metrics</div>
-            <div class="d-flex justify-content-end w-50">
-              <%= select_tag "absolute_stats_dropdown", options_for_select(@metrics_dropdown_options), class: "form-select" %>
-            </div>
-          </div>
-          <br>
-          <div class="d-flex justify-content-between text-white">
-            <ul class="list-unstyled">
-              <li>COMING SOON...</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
 
   </div>
 </div>
