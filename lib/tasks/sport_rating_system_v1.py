@@ -76,6 +76,8 @@ def calculate_defense_rating(df):
     # Calculate tackle success rate (including assist tackles)
     total_tackles = df.get('neutral_tackles', [0] * len(df)) + df.get('offensive_tackles', [0] * len(df)) + df.get('defensive_tackles', [0] * len(df)) + df.get('assist_tackles', [0] * len(df))
     missed_tackles = df.get('missed_tackles', [0] * len(df))
+    # Handle NaN values in missed_tackles by converting to 0
+    missed_tackles = [0 if pd.isna(mt) else mt for mt in missed_tackles]
     tackle_success_rate = [tt / (tt + mt) if (tt + mt) > 0 else 0
                           for tt, mt in zip(total_tackles, missed_tackles)]
 
@@ -91,11 +93,11 @@ def calculate_defense_rating(df):
     tackle_success_rating = [max(1, tsr) for tsr in tackle_success_rating]
 
     # Tackle impact: normalize to 1-10 scale (using absolute values)
-    tackle_impact_rating = [10.0 if ti >= 6 else (ti/6) * 10.0 for ti in tackle_impact]
+    tackle_impact_rating = [10.0 if ti >= 10 else (ti/10) * 10.0 for ti in tackle_impact]
     tackle_impact_rating = [max(1, tir) for tir in tackle_impact_rating]
 
     # Total tackles rating: normalize to 1-10 scale (using absolute values)
-    total_tackles_rating = [10.0 if tt >= 8 else (tt/8) * 10 for tt in total_tackles]
+    total_tackles_rating = [10.0 if tt >= 15 else (tt/15) * 10 for tt in total_tackles]
     total_tackles_rating = [max(1, ttr) for ttr in total_tackles_rating]
 
     # Calculate bonuses (time-adjusted)
@@ -110,7 +112,7 @@ def calculate_defense_rating(df):
     offside_bonus = [op * -0.6 * tm for op, tm in zip(offside_penalties, time_multiplier)]
 
     # Missed tackles penalties (time-adjusted)
-    missed_tackles = df.get('missed_tackles', [0] * len(df))
+    # Use the already processed missed_tackles (with NaN handling)
     missed_tackle_penalty = [mt * -0.5 * tm for mt, tm in zip(missed_tackles, time_multiplier)]
 
     # Other mistakes penalties (time-adjusted)
@@ -236,14 +238,14 @@ def calculate_attack_rating(df):
                        for cgpm, tcpm in zip(carries_with_gain_per_min, total_carries_per_min)]
 
     # Rate total carries per minute (0-10 scale)
-    # 0.1875 per min = 15 carries in 80 min = 10 rating
-    total_carries_rating = [10.0 if tcpm >= 0.1875 else (tcpm / 0.1875) * 10
+    # 0.15 per min = 12 carries in 80 min = 10 rating
+    total_carries_rating = [10.0 if tcpm >= 0.15 else (tcpm / 0.15) * 10
                            for tcpm in total_carries_per_min]
     total_carries_rating = [max(1, tcr) for tcr in total_carries_rating]
 
     # Rate carries with gain per minute (0-10 scale)
-    # 0.075 per min = 6 carries in 80 min = 10 rating
-    carries_with_gain_rating = [10.0 if cgpm >= 0.075 else (cgpm / 0.075) * 10
+    # 0.05 per min = 4 carries in 80 min = 10 rating
+    carries_with_gain_rating = [10.0 if cgpm >= 0.05 else (cgpm / 0.05) * 10
                                for cgpm in carries_with_gain_per_min]
     carries_with_gain_rating = [max(1, cgr) for cgr in carries_with_gain_rating]
 
@@ -484,12 +486,12 @@ def calculate_skills_rating(df):
     skills_rating = [5.0] * len(df)
 
     # Kicking bonuses/penalties
-    conv_made = df.get('conversions_made', 0)
-    conv_att = df.get('conversions_attempted', 0)
-    pen_made = df.get('kicks_made', 0)
-    pen_att = df.get('kicks_attempted', 0)
-    drop_made = df.get('drops_made', 0)
-    drop_att = df.get('drops_attempted', 0)
+    conv_made = df.get('conversions_made', [0] * len(df))
+    conv_att = df.get('conversions_attempted', [0] * len(df))
+    pen_made = df.get('kicks_made', [0] * len(df))
+    pen_att = df.get('kicks_attempted', [0] * len(df))
+    drop_made = df.get('drops_made', [0] * len(df))
+    drop_att = df.get('drops_attempted', [0] * len(df))
 
     # Conversion points: +0.5 per made, -0.3 per missed
     conv_points = [cm * 0.2 - (ca - cm) * 0.1 for cm, ca in zip(conv_made, conv_att)]
@@ -504,17 +506,17 @@ def calculate_skills_rating(df):
     skills_rating = [sr + dp for sr, dp in zip(skills_rating, drop_points)]
 
     # Offloads: +0.2 per good, -0.2 per bad
-    offloads_good = df.get('offloads_good', 0)
-    offloads_bad = df.get('offloads_bad', 0)
+    offloads_good = df.get('offloads_good', [0] * len(df))
+    offloads_bad = df.get('offloads_bad', [0] * len(df))
     offload_points = [og * 0.7 - ob * 0.4 for og, ob in zip(offloads_good, offloads_bad)]
     skills_rating = [sr + op for sr, op in zip(skills_rating, offload_points)]
 
     # Linebreak assists: +0.5 each
-    lba = df.get('linebreak_assists', 0)
-    skills_rating = [sr + lba * 0.5 for sr, lba in zip(skills_rating, lba)]
+    lba = df.get('linebreak_assists', [0] * len(df))
+    skills_rating = [sr + lba_val * 0.5 for sr, lba_val in zip(skills_rating, lba)]
 
     # Linebreaks: +0.6 each
-    linebreaks = df.get('linebreak', 0)
+    linebreaks = df.get('linebreak', [0] * len(df))
     skills_rating = [sr + lb * 0.4 for sr, lb in zip(skills_rating, linebreaks)]
 
     # Turnovers won: +0.4 each
@@ -614,6 +616,8 @@ def calculate_consistency_rating(df):
     # 2. Tackling consistency
     tackles_made = [ot + nt + dt for ot, nt, dt in zip(df.get('offensive_tackles', [0] * len(df)), df.get('neutral_tackles', [0] * len(df)), df.get('defensive_tackles', [0] * len(df)))]
     tackles_missed = df.get('missed_tackles', [0] * len(df))
+    # Handle NaN values in missed_tackles by converting to 0
+    tackles_missed = [0 if pd.isna(tm) else tm for tm in tackles_missed]
     total_tackles = [tm + tms for tm, tms in zip(tackles_made, tackles_missed)]
 
     tackle_pct = [(tm / tt) * 100 if tt > 0 else 100 for tm, tt in zip(tackles_made, total_tackles)]
@@ -704,7 +708,10 @@ def calculate_weighted_overall_rating(df):
     Returns:
         Series of weighted overall ratings (1-10 scale)
     """
-    # Calculate all individual ratings
+    # Filter out players with 0 minutes
+    valid_players = df['minutes'] > 0
+
+    # Calculate all individual ratings (these return filtered arrays)
     attack_ratings = calculate_attack_rating(df)
     defense_ratings = calculate_defense_rating(df)
     discipline_ratings = calculate_discipline_rating(df)
@@ -712,20 +719,17 @@ def calculate_weighted_overall_rating(df):
     skills_ratings = calculate_skills_rating(df)
     consistency_ratings = calculate_consistency_rating(df)
 
-    # Calculate weighted overall ratings
+    # Calculate weighted overall ratings for valid players only
     overall_ratings = []
-    valid_players = df['minutes'] > 0
-    valid_indices = [i for i, valid in enumerate(valid_players) if valid]
-
+    valid_index = 0
     for i in range(len(df)):
-        # Check if player has valid minutes
-        if df.iloc[i]['minutes'] > 0:
-            # Find the index in the valid ratings lists
-            valid_idx = valid_indices.index(i)
-            overall_rating = (attack_ratings[valid_idx] * 0.35 + defense_ratings[valid_idx] * 0.35 +
-                            work_rate_ratings[valid_idx] * 0.10 + consistency_ratings[valid_idx] * 0.10 +
-                            discipline_ratings[valid_idx] * 0.05 + skills_ratings[valid_idx] * 0.05)
+        if valid_players.iloc[i]:
+            # Use the valid_index to access the filtered rating arrays
+            overall_rating = (attack_ratings[valid_index] * 0.35 + defense_ratings[valid_index] * 0.35 +
+                            work_rate_ratings[valid_index] * 0.10 + consistency_ratings[valid_index] * 0.10 +
+                            discipline_ratings[valid_index] * 0.05 + skills_ratings[valid_index] * 0.05)
             overall_ratings.append(overall_rating)
+            valid_index += 1
         else:
             overall_ratings.append(float('nan'))
 
