@@ -95,16 +95,20 @@ class PlayersController < ApplicationController
   def profile
     @player = current_user.player
 
+    # Get all player matches with time played > 0 for efficiency
+    player_matches = @player.player_matches.where("time_played > 0")
+
+    # Use ActiveRecord aggregate methods which handle the SQL properly
     @player_general_info = {
-      minutes_played: @player.player_matches.where(player_id: @player.id).sum(:time_played),
-      matches_played: @player.player_matches.where("player_id = ? AND CAST(time_played AS INTEGER) > 0", @player.id).count,
-      starting_lineup: @player.player_matches.where(player_id: @player.id, started: true).count,
-      tries: @player.player_matches.where(player_id: @player.id).sum(:try),
-      try_assists: @player.player_matches.where(player_id: @player.id).sum(:try_assist),
-      yellow_cards: @player.player_matches.where(player_id: @player.id).sum(:yellow),
-      red_cards: @player.player_matches.where(player_id: @player.id).sum(:red),
-      impact_player: @player.player_matches.where("overall_rating > 8").count,
-      average_rating: @player.player_matches.where(player_id: @player.id).average(:overall_rating)
+      minutes_played: player_matches.sum(:time_played) || 0,
+      matches_played: player_matches.count || 0,
+      starting_lineup: player_matches.where(started: true).count || 0,
+      tries: player_matches.sum("COALESCE(try, 0)") || 0,
+      try_assists: player_matches.sum("COALESCE(try_assist, 0)") || 0,
+      yellow_cards: player_matches.sum("COALESCE(yellow, 0)") || 0,
+      red_cards: player_matches.sum("COALESCE(red, 0)") || 0,
+      impact_player: player_matches.where("overall_rating > 8").count || 0,
+      average_rating: player_matches.where.not(overall_rating: nil).average(:overall_rating)&.round(2) || 0
     }
 
     # Calculate team performance per game (using teamstats)
@@ -117,7 +121,54 @@ class PlayersController < ApplicationController
     @group_performance_data = calculate_position_group_performance_per_game(@player)
     @position_group_name = get_position_group_name(@player)
 
-    @overall_data = calculate_player_rating_averages(@player)
+    # Calculate radar chart data - get actual rating values from player matches
+    if player_matches.any?
+      # Get the first match with ratings (since you have one game, this will be your game)
+      match_with_ratings = player_matches.where.not(
+        attack_rating: nil,
+        defense_rating: nil,
+        work_rate_rating: nil,
+        discipline_rating: nil,
+        skills_rating: nil,
+        consistency_rating: nil
+      ).first
+
+      if match_with_ratings
+        @overall_data = {
+          "Attack" => match_with_ratings.attack_rating&.round(1) || 5.0,
+          "Defense" => match_with_ratings.defense_rating&.round(1) || 5.0,
+          "Work Rate" => match_with_ratings.work_rate_rating&.round(1) || 5.0,
+          "Discipline" => match_with_ratings.discipline_rating&.round(1) || 5.0,
+          "Skills" => match_with_ratings.skills_rating&.round(1) || 5.0,
+          "Consistency" => match_with_ratings.consistency_rating&.round(1) || 5.0
+        }
+      else
+        # Fallback: use averages if no complete rating set found
+        @overall_data = {
+          "Attack" => player_matches.where.not(attack_rating: nil).average(:attack_rating)&.round(1) || 5.0,
+          "Defense" => player_matches.where.not(defense_rating: nil).average(:defense_rating)&.round(1) || 5.0,
+          "Work Rate" => player_matches.where.not(work_rate_rating: nil).average(:work_rate_rating)&.round(1) || 5.0,
+          "Discipline" => player_matches.where.not(discipline_rating: nil).average(:discipline_rating)&.round(1) || 5.0,
+          "Skills" => player_matches.where.not(skills_rating: nil).average(:skills_rating)&.round(1) || 5.0,
+          "Consistency" => player_matches.where.not(consistency_rating: nil).average(:consistency_rating)&.round(1) || 5.0
+        }
+      end
+    else
+      @overall_data = {
+        "Attack" => 5.0,
+        "Defense" => 5.0,
+        "Work Rate" => 5.0,
+        "Discipline" => 5.0,
+        "Skills" => 5.0,
+        "Consistency" => 5.0
+      }
+    end
+
+    Rails.logger.info "Profile radar data for #{@player.name}: #{@overall_data.inspect}"
+    Rails.logger.info "Player matches count: #{player_matches.count}"
+    if player_matches.any?
+      Rails.logger.info "First match ratings: #{player_matches.first.attributes.slice('attack_rating', 'defense_rating', 'work_rate_rating', 'discipline_rating', 'skills_rating', 'consistency_rating')}"
+    end
   end
 
   def all_stats

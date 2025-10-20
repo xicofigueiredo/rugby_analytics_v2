@@ -155,7 +155,7 @@
     const radarChart = new Chart(ctx, {
       type: 'radar',
       data: {
-        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency"],
+        labels: ["Attack", "Defense", "Discipline", "Work Rate", "Skills", "Consistency"],
         datasets: [{
           data: [<%= @overall_data["Attack"] %>, <%= @overall_data["Defense"] %>, <%= @overall_data["Work Rate"] %>, <%= @overall_data["Discipline"] %>, <%= @overall_data["Skills"] %>, <%= @overall_data["Consistency"] %>],
           fill: true,
