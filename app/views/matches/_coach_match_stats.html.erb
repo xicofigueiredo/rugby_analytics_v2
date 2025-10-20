@@ -119,18 +119,22 @@
     let radarChart;
     let performanceChart;
 
-    // Initialize with first player
-    const playerSelector = document.getElementById('playerSelector');
-    console.log('Player selector element:', playerSelector);
-    const firstPlayerId = playerSelector ? playerSelector.value : null;
-    console.log('First player ID:', firstPlayerId);
+    // Only initialize with first player if user is a coach
+    <% if current_user.role == "coach" %>
+      const playerSelector = document.getElementById('playerSelector');
+      console.log('Player selector element:', playerSelector);
+      const firstPlayerId = playerSelector ? playerSelector.value : null;
+      console.log('First player ID:', firstPlayerId);
 
-    if (firstPlayerId) {
-      console.log('Calling updatePlayerStats with first player:', firstPlayerId);
-      updatePlayerStats(firstPlayerId);
-    } else {
-      console.error('No first player ID found');
-    }
+      if (firstPlayerId) {
+        console.log('Calling updatePlayerStats with first player:', firstPlayerId);
+        updatePlayerStats(firstPlayerId);
+      } else {
+        console.error('No first player ID found');
+      }
+    <% else %>
+      console.log('User is not a coach, skipping automatic player selection');
+    <% end %>
 
     function initializeRadarChart(playerData, seasonData) {
       console.log('initializeRadarChart called');

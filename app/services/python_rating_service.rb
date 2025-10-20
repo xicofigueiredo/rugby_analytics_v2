@@ -96,8 +96,8 @@ class PythonRatingService
           discipline_rating: result['discipline_rating'],
           work_rate_rating: result['work_rate_rating'],
           skills_rating: result['skills_rating'],
-          consistency_rating: result['consistency_rating']
-          # Note: overall_rating is calculated in the model
+          consistency_rating: result['consistency_rating'],
+          overall_rating: result['overall_rating']
         )
       end
 
@@ -115,7 +115,8 @@ class PythonRatingService
           discipline_rating: 5.0,
           work_rate_rating: 5.0,
           skills_rating: 5.0,
-          consistency_rating: 5.0
+          consistency_rating: 5.0,
+          overall_rating: 5.0
         )
       end
     end

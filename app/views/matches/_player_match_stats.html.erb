@@ -4,93 +4,348 @@
   <div class="row g-4">
     <!-- Profile Card -->
     <div class="col-md-4">
-      <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
-        <!-- Overall Chart -->
-        <div class="col-md-9">
-          <div class="card chart-card h-100">
+      <div class="card main-card p-3 h-100">
+
+        <!-- Radar Chart -->
+        <div class="mb-4">
+          <div class="card chart-card">
             <canvas id="radarChart" width="400" height="400"></canvas>
           </div>
         </div>
-        <!-- General Info -->
-        <div class="col-md-12">
-          <div class="card chart-card p-4 h-100">
-            <br>
-            <ul class="list-unstyled stats-list">
-              <li class="d-flex justify-content-center align-items-center mb-2">
-                <h5 class="text-secondary">Best</h5>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>COMING SOON...</span>
-                <%# <span class="stat-value">70% <span class="text-secondary">(4º)</span></span> %>
-              </li>
-              <li class="d-flex justify-content-center align-items-center mb-2">
-                <h5 class="text-secondary">Worse</h5>
-              </li>
-              <li class="d-flex justify-content-between align-items-center mb-2">
-                <span>COMING SOON...</span>
-                <%# <span class="stat-value">3 <span class="text-secondary">(12º)</span></span> %>
-              </li>
-            </ul>
+
+        <!-- Performance Categories -->
+        <div class="mb-3">
+          <div class="table-responsive">
+            <table class="table table-dark table-sm mb-0">
+              <thead class="bg-danger">
+                <tr>
+                  <th class="text-white fw-bold px-3 py-2">Category</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Player</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Team Avg</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  # Use controller data for consistency with radar chart
+                  categories_data = [
+                    ["Attack", @radar_player_data[:attack], @radar_team_data[:attack]],
+                    ["Defense", @radar_player_data[:defense], @radar_team_data[:defense]],
+                    ["Discipline", @radar_player_data[:discipline], @radar_team_data[:discipline]],
+                    ["Work Rate", @radar_player_data[:work_rate], @radar_team_data[:work_rate]],
+                    ["Skills", @radar_player_data[:skills], @radar_team_data[:skills]],
+                    ["Consistency", @radar_player_data[:consistency], @radar_team_data[:consistency]]
+                  ]
+
+                  categories_data.each do |category, player_value, team_avg|
+                    is_better = player_value > team_avg
+                    arrow = is_better ? "↑" : "↓"
+                    arrow_color = is_better ? "text-success" : "text-danger"
+                %>
+                  <tr class="border-secondary">
+                    <td class="text-white px-3 py-2 small"><%= category %></td>
+                    <td class="text-center px-3 py-2">
+                      <span class="text-white fw-bold small"><%= player_value %></span>
+                      <span class="<%= arrow_color %> ms-1 small"><%= arrow %></span>
+                    </td>
+                    <td class="text-white text-center px-3 py-2 small"><%= team_avg %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <br>
+
+        <!-- Advanced Performance Metrics -->
+        <div class="mb-3">
+          <h6 class="text-white text-center mb-3">Best Performance Metrics</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm mb-0">
+              <thead class="bg-danger">
+                <tr>
+                  <th class="text-white fw-bold px-2 py-2 small">Metric</th>
+                  <th class="text-white fw-bold px-2 py-2 text-center small">Player</th>
+                  <th class="text-white fw-bold px-2 py-2 text-center small">Team Avg</th>
+                  <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  # Calculate advanced metrics
+                  total_tackles = (@player_match&.positive_tackle || 0) + (@player_match&.neutral_tackle || 0) + (@player_match&.negative_tackle || 0) + (@player_match&.assist_tackle || 0)
+                  missed_tackles = @player_match&.missed_tackle || 0
+                  tackle_success = total_tackles > 0 ? ((total_tackles.to_f / (total_tackles + missed_tackles)) * 100).round(1) : 0
+
+                  total_carries = (@player_match&.positive_carry || 0) + (@player_match&.carries || 0)
+                  carries_with_gain = @player_match&.positive_carry || 0
+                  carry_success = total_carries > 0 ? ((carries_with_gain.to_f / total_carries) * 100).round(1) : 0
+
+                  mod_plus = @player_match&.mod_game_plus || 0
+                  mod_minus = @player_match&.mod_game_minus || 0
+                  mod_total = mod_plus + mod_minus
+                  mod_success = mod_total > 0 ? ((mod_plus.to_f / mod_total) * 100).round(1) : 0
+
+                  # Tackle impact calculation (simplified)
+                  tackle_impact = ((@player_match&.positive_tackle || 0) * 1.5 + (@player_match&.neutral_tackle || 0) * 1.0 + (@player_match&.negative_tackle || 0) * 0.3 + (@player_match&.assist_tackle || 0) * 0.8).round(1)
+
+                  # Total actions for work rate
+                  total_actions = total_carries + total_tackles + (@player_match&.turnover || 0) + mod_plus
+
+                  # Use the calculated best metrics from controller
+                  metrics = @best_5_metrics || []
+
+                  metrics.each do |metric|
+                    # Use the flipped difference for color (already calculated for sorting)
+                    sorting_difference = metric[:difference]
+                    diff_color = sorting_difference > 0 ? "text-success" : "text-danger"
+
+                    # Format values based on metric format first
+                    player_display = case metric[:format]
+                                   when :percentage
+                                     "#{metric[:player_value]}%"
+                                   when :decimal
+                                     metric[:player_value].to_s
+                                   else
+                                     metric[:player_value].to_i.to_s
+                                   end
+
+                    # Round team average for consistent display and calculation
+                    rounded_team_avg = case metric[:format]
+                                     when :percentage, :decimal
+                                       metric[:team_avg]
+                                     else
+                                       metric[:team_avg].round(1)
+                                     end
+
+                    team_display = case metric[:format]
+                                 when :percentage
+                                   "#{rounded_team_avg}%"
+                                 when :decimal
+                                   rounded_team_avg.to_s
+                                 else
+                                   rounded_team_avg.to_s
+                                 end
+
+                    # Calculate raw difference using rounded team average for consistency
+                    raw_difference = metric[:player_value] - rounded_team_avg
+                    diff_sign = raw_difference > 0 ? "+" : ""
+
+                    diff_display = case metric[:format]
+                                 when :percentage
+                                   "#{diff_sign}#{raw_difference.round(1)}%"
+                                 else
+                                   "#{diff_sign}#{raw_difference.round(1)}"
+                                 end
+                %>
+                  <tr class="border-secondary">
+                    <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
+                    <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
+                    <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
+                    <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold">
+                      <%= diff_display %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <br>
+
+        <!-- Worst Performance Metrics -->
+        <div class="mb-3">
+          <h6 class="text-white text-center mb-3">Worst Performance Metrics</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm mb-0">
+              <thead class="bg-danger">
+                <tr>
+                  <th class="text-white fw-bold px-2 py-2 small">Metric</th>
+                  <th class="text-white fw-bold px-2 py-2 text-center small">Player</th>
+                  <th class="text-white fw-bold px-2 py-2 text-center small">Team Avg</th>
+                  <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  # Use the calculated worst metrics from controller
+                  worst_metrics = @worst_5_metrics || []
+
+                  worst_metrics.each do |metric|
+                    # Use the flipped difference for color (already calculated for sorting)
+                    sorting_difference = metric[:difference]
+                    diff_color = sorting_difference > 0 ? "text-success" : "text-danger"
+
+                    # Format values based on metric format first
+                    player_display = case metric[:format]
+                                   when :percentage
+                                     "#{metric[:player_value]}%"
+                                   when :decimal
+                                     metric[:player_value].to_s
+                                   else
+                                     metric[:player_value].to_i.to_s
+                                   end
+
+                    # Round team average for consistent display and calculation
+                    rounded_team_avg = case metric[:format]
+                                     when :percentage, :decimal
+                                       metric[:team_avg]
+                                     else
+                                       metric[:team_avg].round(1)
+                                     end
+
+                    team_display = case metric[:format]
+                                 when :percentage
+                                   "#{rounded_team_avg}%"
+                                 when :decimal
+                                   rounded_team_avg.to_s
+                                 else
+                                   rounded_team_avg.to_s
+                                 end
+
+                    # Calculate raw difference using rounded team average for consistency
+                    raw_difference = metric[:player_value] - rounded_team_avg
+                    diff_sign = raw_difference > 0 ? "+" : ""
+
+                    diff_display = case metric[:format]
+                                 when :percentage
+                                   "#{diff_sign}#{raw_difference.round(1)}%"
+                                 else
+                                   "#{diff_sign}#{raw_difference.round(1)}"
+                                 end
+                %>
+                  <tr class="border-secondary">
+                    <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
+                    <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
+                    <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
+                    <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold">
+                      <%= diff_display %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Charts and Stats -->
+    <!-- Player Stats Section -->
     <div class="col-md-8">
       <div class="row g-4">
-        <!-- Performance Chart -->
+        <!-- Detailed Stats Table by Category -->
         <div class="col-12">
-          <div class="card card main-card p-4 mb-2">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Performance</div>
-              <span class="text-secondary">2025/2026</span>
-            </div>
-            <div>
-              <%= turbo_frame_tag "performance_chart" do %>
-                <% if player.present? && current_user.role == "player" %>
-                  <%= column_chart [
-                      { name: player.name, data: @performance_data },
-                      { name: "Team Average", data: @average_player_performance_data }
-                    ],
-                  height: "220px",
-                  colors: ["#4dc9f6", "#f72585"],
-                  library: {
-                    plugins: {
-                      tooltip: {
-                        enabled: false
-                      },
-                      legend: {
-                        labels: {
-                          color: 'white'
-                        }
-                      }
-                    },
-                    scales: {
-                      x: {
-                        grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                          color: 'white'
-                        }
-                      },
-                      y: {
-                        grid: {
-                          color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                          color: 'white'
-                        }
-                      }
-                    }
-                  } %>
-                <% else %>
-                  <div class="alert alert-warning text-center">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    No player data available. Please contact an administrator.
-                  </div>
+          <div class="card main-card p-0">
+            <div class="table-responsive">
+              <%
+                # Define stats organized by category based on Python rating system
+                # When stats appear in multiple categories, they're placed where they have negative impact
+                stats_by_category = {
+                  "Attack" => [
+                    ["Tries", @player_match&.try || 0],
+                    ["Assists", @player_match&.try_assist || 0],
+                    ["Linebreak", @player_match&.linebreak || 0],
+                    ["Linebreak Assists", @player_match&.linebreak_assists || 0],
+                    ["Carries With Gain", @player_match&.positive_carry || 0],
+                    ["Carries Without Gain", @player_match&.carries || 0],
+                    ["Conversions Made", @player_match&.conversion || 0],
+                    ["Conversions Missed", @player_match&.missed_conversion || 0],
+                    ["Kicks Made", @player_match&.penalty_kick_goal || 0],
+                    ["Kicks Missed", @player_match&.missed_penalty_kick_goals || 0],
+                    ["Drops Made", @player_match&.drop_goal || 0],
+                    ["Drops Missed", @player_match&.missed_drop_goals || 0],
+                    ["Mod Game Plus", @player_match&.mod_game_plus || 0]
+                  ],
+                  "Defense" => [
+                    ["Positive Tackles", @player_match&.positive_tackle || 0],
+                    ["Neutral Tackles", @player_match&.neutral_tackle || 0],
+                    ["Negative Tackles", @player_match&.negative_tackle || 0],
+                    ["Assist Tackles", @player_match&.assist_tackle || 0],
+                    ["Missed Tackles", @player_match&.missed_tackle || 0],
+                    ["Turnovers Won", @player_match&.turnover || 0],
+                    ["Lineout Steals", @player_match&.lineout_turnover || 0],
+                    ["Aerial Duels Won", @player_match&.aerial_duel_won || 0],
+                    ["Aerial Duels Lost", @player_match&.aerial_duel_lost || 0]
+                  ],
+                  "Skills" => [
+                    ["Offloads Good", @player_match&.positive_offload || 0],
+                    ["Offloads Bad", @player_match&.negative_offload || 0],
+                    ["Lineouts w/ Jump", @player_match&.lineout_won_jump || 0],
+                    ["Lineouts w/o Jump", @player_match&.lineout_won_no_jump || 0],
+                    ["Lineout Intros Won", @player_match&.introduction_won || 0],
+                    ["Lineout Intros Lost", @player_match&.introduction_lost || 0],
+                    ["Scrum Dominant", @player_match&.scrum_dominant || 0]
+                  ],
+                  "Discipline" => [
+                    ["Total Penalties", @player_match&.penalties_conceded || 0],
+                    ["Offside Penalties", @player_match&.pen_offside || 0],
+                    ["Ruck Penalties", @player_match&.pen_breakdown || 0],
+                    ["Scrum Penalties", @player_match&.pen_scrum || 0],
+                    ["Other Penalties", @player_match&.pen_others || 0],
+                    ["Yellow Cards", @player_match&.yellow || 0],
+                    ["Red Cards", @player_match&.red || 0],
+                    ["Knock On", @player_match&.knock_on || 0],
+                    ["Other Mistakes", @player_match&.other_mistakes || 0]
+                  ],
+                  "Work Rate" => [
+                    ["Total Carries", (@player_match&.positive_carry || 0) + (@player_match&.carries || 0)],
+                    ["Total Tackles", (@player_match&.positive_tackle || 0) + (@player_match&.neutral_tackle || 0) + (@player_match&.negative_tackle || 0) + (@player_match&.assist_tackle || 0)],
+                    ["Mod Game Minus", @player_match&.mod_game_minus || 0]
+                  ],
+                  "Consistency" => [
+                    ["Time Played", @player_match&.time_played || 0],
+                    ["Conversions Attempted", (@player_match&.conversion || 0) + (@player_match&.missed_conversion || 0)],
+                    ["Kicks Attempted", (@player_match&.penalty_kick_goal || 0) + (@player_match&.missed_penalty_kick_goals || 0)],
+                    ["Drops Attempted", (@player_match&.drop_goal || 0) + (@player_match&.missed_drop_goals || 0)],
+                    ["Lineout Intros Total", (@player_match&.introduction_won || 0) + (@player_match&.introduction_lost || 0)],
+                    ["Total Offloads", (@player_match&.positive_offload || 0) + (@player_match&.negative_offload || 0)],
+                    ["Total Aerial Duels", (@player_match&.aerial_duel_won || 0) + (@player_match&.aerial_duel_lost || 0)],
+                    ["Total Mod Game", (@player_match&.mod_game_plus || 0) + (@player_match&.mod_game_minus || 0)]
+                  ]
+                }
+
+                # Display each category
+                stats_by_category.each do |category, stats|
+              %>
+                <table class="table table-dark mb-3">
+                  <thead class="bg-danger">
+                    <tr>
+                      <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
+                    </tr>
+                    <tr>
+                      <th class="text-white fw-bold px-3 py-2">Stat</th>
+                      <th class="text-white fw-bold px-3 py-2 text-center">Value</th>
+                      <th class="text-white fw-bold px-3 py-2">Stat</th>
+                      <th class="text-white fw-bold px-3 py-2 text-center">Value</th>
+                      <th class="text-white fw-bold px-3 py-2">Stat</th>
+                      <th class="text-white fw-bold px-3 py-2 text-center">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <%
+                      # Split stats into three columns
+                      stats_per_column = (stats.length / 3.0).ceil
+                      stats_column_1 = stats[0, stats_per_column] || []
+                      stats_column_2 = stats[stats_per_column, stats_per_column] || []
+                      stats_column_3 = stats[stats_per_column * 2, stats_per_column] || []
+
+                      # Create rows by combining the three columns
+                      max_rows = [stats_column_1.length, stats_column_2.length, stats_column_3.length].max
+                      (0...max_rows).each do |i|
+                        stat1 = stats_column_1[i] || ["", ""]
+                        stat2 = stats_column_2[i] || ["", ""]
+                        stat3 = stats_column_3[i] || ["", ""]
+                    %>
+                      <tr class="border-secondary">
+                        <td class="text-white px-3 py-2"><%= stat1[0] %></td>
+                        <td class="text-white text-center px-3 py-2"><%= stat1[1] %></td>
+                        <td class="text-white px-3 py-2"><%= stat2[0] %></td>
+                        <td class="text-white text-center px-3 py-2"><%= stat2[1] %></td>
+                        <td class="text-white px-3 py-2"><%= stat3[0] %></td>
+                        <td class="text-white text-center px-3 py-2"><%= stat3[1] %></td>
+                      </tr>
                 <% end %>
+                  </tbody>
+                </table>
               <% end %>
             </div>
           </div>
@@ -101,17 +356,31 @@
   <br>
   <br>
 </div>
+<!-- Debug radar data -->
+<% if Rails.env.development? %>
+  <div style="display: none;">
+    DEBUG - Player Data: <%= @radar_player_data.inspect %><br>
+    DEBUG - Team Data: <%= @radar_team_data.inspect %><br>
+    DEBUG - Player Match ID: <%= @player_match&.id %><br>
+    DEBUG - Player Name: <%= @player&.name %>
+  </div>
+<% end %>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const ctx = document.getElementById('radarChart').getContext('2d');
 
+    // Debug output
+    console.log("Radar Player Data:", [<%= @radar_player_data[:attack] %>, <%= @radar_player_data[:defense] %>, <%= @radar_player_data[:discipline] %>, <%= @radar_player_data[:work_rate] %>, <%= @radar_player_data[:skills] %>, <%= @radar_player_data[:consistency] %>]);
+    console.log("Radar Team Data:", [<%= @radar_team_data[:attack] %>, <%= @radar_team_data[:defense] %>, <%= @radar_team_data[:discipline] %>, <%= @radar_team_data[:work_rate] %>, <%= @radar_team_data[:skills] %>, <%= @radar_team_data[:consistency] %>]);
+
     const radarChart = new Chart(ctx, {
       type: 'radar',
       data: {
-        labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency"],
+        labels: ["Attack", "Defense", "Discipline", "Work Rate", "Skills", "Consistency"],
         datasets: [{
           label: "This Game",
-          data: [<%= @player_match_performance_data["Attack"] %>, <%= @player_match_performance_data["Defense"] %>, <%= @player_match_performance_data["Work Rate"] %>, <%= @player_match_performance_data["Discipline"] %>, <%= @player_match_performance_data["Skills"] %>, <%= @player_match_performance_data["Consistency"] %>],
+          data: [<%= @radar_player_data[:attack] %>, <%= @radar_player_data[:defense] %>, <%= @radar_player_data[:discipline] %>, <%= @radar_player_data[:work_rate] %>, <%= @radar_player_data[:skills] %>, <%= @radar_player_data[:consistency] %>],
           fill: true,
           backgroundColor: '#4dc9f67a',
           borderColor: '#4dc9f6',
@@ -119,7 +388,7 @@
         },
         {
           label: "Team Average",
-          data: [<%= @player_season_average_performance_data["Attack"] %>, <%= @player_season_average_performance_data["Defense"] %>, <%= @player_season_average_performance_data["Work Rate"] %>, <%= @player_season_average_performance_data["Discipline"] %>, <%= @player_season_average_performance_data["Skills"] %>, <%= @player_season_average_performance_data["Consistency"] %>],
+          data: [<%= @radar_team_data[:attack] %>, <%= @radar_team_data[:defense] %>, <%= @radar_team_data[:discipline] %>, <%= @radar_team_data[:work_rate] %>, <%= @radar_team_data[:skills] %>, <%= @radar_team_data[:consistency] %>],
           fill: true,
           backgroundColor: '#f725857a',
           borderColor: '#f72585',
@@ -163,76 +432,6 @@
       }
     });
 
-    // Stats dropdown functionality
-    const statsData = <%= raw (@stats_data || {}).to_json %>;
-    const statsDropdown = document.getElementById('stats_dropdown');
-    const statsContainer = document.getElementById('stats_container');
-
-    console.log('Player stats script loaded');
-    console.log('Stats data:', statsData);
-    console.log('Stats dropdown element:', statsDropdown);
-    console.log('Stats container element:', statsContainer);
-
-    function updateStatsList(selectedStat) {
-      console.log('updateStatsList called with:', selectedStat);
-      const players = statsData[selectedStat] || [];
-      console.log('Players for', selectedStat, ':', players);
-
-      if (!statsContainer) {
-        console.error('Stats container not found');
-        return;
-      }
-
-      // Clear existing content
-      statsContainer.innerHTML = '';
-
-      if (players.length === 0) {
-        console.log('No players data, showing no data message');
-        statsContainer.innerHTML = '<div class="text-muted">No data available</div>';
-        return;
-      }
-
-      // Create stats list
-      let html = '';
-      players.forEach((player, index) => {
-        html += `
-          <div class="d-flex justify-content-between align-items-center mb-2 text-white">
-            <span>${index + 1}º - ${player.name}</span>
-            <span class="stat-value fw-bold">${player.value}</span>
-          </div>
-        `;
-      });
-
-      console.log('Generated HTML:', html);
-      statsContainer.innerHTML = html;
-      console.log('Updated container innerHTML');
-    }
-
-    // Initialize dropdown functionality
-    if (statsDropdown && statsContainer) {
-      console.log('Initializing dropdown functionality');
-      // Initialize with first option
-      let initialValue = statsDropdown.value;
-      console.log('Initial dropdown value:', initialValue);
-
-      if (!initialValue && statsDropdown.options.length > 0) {
-        initialValue = statsDropdown.options[0].value;
-        statsDropdown.value = initialValue;
-        console.log('Set dropdown to first option:', initialValue);
-      }
-
-      if (initialValue) {
-        console.log('Calling updateStatsList with initial value:', initialValue);
-        updateStatsList(initialValue);
-      }
-
-      // Handle dropdown changes
-      statsDropdown.addEventListener('change', function() {
-        console.log('Dropdown changed to:', this.value);
-        updateStatsList(this.value);
-      });
-    } else {
-      console.error('Missing elements - dropdown:', !!statsDropdown, 'container:', !!statsContainer);
-    }
+    // No additional JavaScript needed for the stats tables
   });
 </script>

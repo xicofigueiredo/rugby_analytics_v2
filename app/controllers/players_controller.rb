@@ -63,9 +63,8 @@ class PlayersController < ApplicationController
       try_assists: @player.player_matches.where(player_id: @player.id).sum(:try_assist),
       yellow_cards: @player.player_matches.where(player_id: @player.id).sum(:yellow),
       red_cards: @player.player_matches.where(player_id: @player.id).sum(:red),
-      impact_player: "Coming Soon",
-      mvp: "Coming Soon",
-      average_rating: "Coming Soon"
+      impact_player: @player.player_matches.where("overall_rating > 8").count,
+      average_rating: @player.player_matches.where(player_id: @player.id).average(:overall_rating)
     }
 
     # Calculate team performance per game (using teamstats)
@@ -104,9 +103,8 @@ class PlayersController < ApplicationController
       try_assists: @player.player_matches.where(player_id: @player.id).sum(:try_assist),
       yellow_cards: @player.player_matches.where(player_id: @player.id).sum(:yellow),
       red_cards: @player.player_matches.where(player_id: @player.id).sum(:red),
-      impact_player: "Coming Soon",
-      mvp: "Coming Soon",
-      average_rating: "Coming Soon"
+      impact_player: @player.player_matches.where("overall_rating > 8").count,
+      average_rating: @player.player_matches.where(player_id: @player.id).average(:overall_rating)
     }
 
     # Calculate team performance per game (using teamstats)

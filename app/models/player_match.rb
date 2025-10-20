@@ -23,21 +23,7 @@ class PlayerMatch < ApplicationRecord
   end
 
   def has_ratings?
-    [attack_rating, defense_rating, consistency_rating, discipline_rating, skills_rating, work_rate_rating].any?(&:present?)
-  end
-
-  def overall_rating
-    return nil unless has_ratings?
-
-    # Weighted average of ratings
-    (
-      (attack_rating || 0) * 0.2 +
-      (defense_rating || 0) * 0.2 +
-      (consistency_rating || 0) * 0.1 +
-      (discipline_rating || 0) * 0.2 +
-      (skills_rating || 0) * 0.1 +
-      (work_rate_rating || 0) * 0.2
-    ).round(2)
+    [attack_rating, defense_rating, consistency_rating, discipline_rating, skills_rating, work_rate_rating, overall_rating].any?(&:present?)
   end
 
 end
