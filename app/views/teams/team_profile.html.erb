@@ -165,7 +165,7 @@
       data: {
         labels: ["Attack", "Defense", "Work Rate", "Discipline", "Skills", "Consistency"],
         datasets: [{
-          data: [<%= @overall_data["Attack"] %>, <%= @overall_data["Defense"] %>, <%= @overall_data["Work Rate"] %>, <%= @overall_data["Discipline"] %>, <%= @overall_data["Skills"] %>, <%= @overall_data["Consistency"] %>],
+          data: [<%= @overall_data["Attack"] || 5.0 %>, <%= @overall_data["Defense"] || 5.0 %>, <%= @overall_data["Work Rate"] || 5.0 %>, <%= @overall_data["Discipline"] || 5.0 %>, <%= @overall_data["Skills"] || 5.0 %>, <%= @overall_data["Consistency"] || 5.0 %>],
           fill: true,
           backgroundColor: '#4dc9f67a',
           borderColor: '#4dc9f6',

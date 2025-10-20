@@ -40,9 +40,17 @@ class TeamsController < ApplicationController
     @backs_performance_data = calculate_backs_performance(players)
     @team_performance_data = calculate_team_performance(players)
 
-    # Team overall radar chart data (averages from all teamstats)
+    # Team overall radar chart data (averages from all player ratings)
     @overall_data = calculate_team_rating_averages(@team)
-    Rails.logger.info "Team #{@team.name} overall ratings: #{@overall_data.inspect}"
+    Rails.logger.info "Team #{@team.name} (ID: #{@team.id}) overall ratings: #{@overall_data.inspect}"
+
+    # Debug: Check if team has any player matches with ratings
+    rated_matches_count = PlayerMatch.joins(:player)
+                                    .where(players: { team_id: @team.id })
+                                    .where('time_played > 0')
+                                    .where.not(attack_rating: nil)
+                                    .count
+    Rails.logger.info "Team #{@team.name} has #{rated_matches_count} player matches with ratings"
 
     # Team stats aggregated
     @team_stats = {
@@ -97,19 +105,13 @@ class TeamsController < ApplicationController
   private
 
   def calculate_team_rating_averages(team)
-    # Get all teamstats for this team with ratings
-    teamstats = Teamstat.joins(match: [:home_team, :away_team])
-                        .where('matches.home_team_id = ? OR matches.away_team_id = ?', team.id, team.id)
-                        .where.not(
-                          attack_rating: nil,
-                          defense_rating: nil,
-                          consistency_rating: nil,
-                          discipline_rating: nil,
-                          skills_rating: nil,
-                          work_rate_rating: nil
-                        )
+    # Get all player matches for this team with ratings
+    player_matches = PlayerMatch.joins(:player, :match)
+                                .where(players: { team_id: team.id })
+                                .where('time_played > 0')
+                                .where('attack_rating IS NOT NULL OR defense_rating IS NOT NULL OR consistency_rating IS NOT NULL OR discipline_rating IS NOT NULL OR skills_rating IS NOT NULL OR work_rate_rating IS NOT NULL')
 
-    if teamstats.empty?
+    if player_matches.empty?
       # Return default values if no ratings available
       return {
         "Attack" => 5.0,
@@ -121,14 +123,14 @@ class TeamsController < ApplicationController
       }
     end
 
-    # Calculate averages across all matches
+    # Calculate averages across all player performances
     {
-      "Attack" => teamstats.average(:attack_rating)&.round(1) || 5.0,
-      "Defense" => teamstats.average(:defense_rating)&.round(1) || 5.0,
-      "Work Rate" => teamstats.average(:work_rate_rating)&.round(1) || 5.0,
-      "Discipline" => teamstats.average(:discipline_rating)&.round(1) || 5.0,
-      "Skills" => teamstats.average(:skills_rating)&.round(1) || 5.0,
-      "Consistency" => teamstats.average(:consistency_rating)&.round(1) || 5.0
+      "Attack" => player_matches.average(:attack_rating)&.round(1) || 5.0,
+      "Defense" => player_matches.average(:defense_rating)&.round(1) || 5.0,
+      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 5.0,
+      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 5.0,
+      "Skills" => player_matches.average(:skills_rating)&.round(1) || 5.0,
+      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 5.0
     }
   end
 
