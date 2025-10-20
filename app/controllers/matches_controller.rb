@@ -773,15 +773,13 @@ class MatchesController < ApplicationController
         # Create actions based on stats with error handling
         begin
           create_actions_from_stats(player_match, row, csv_data.headers, index)
-          # Calculate ratings after stats are saved
-          player_match.calculate_ratings!
-          Rails.logger.info "Calculated ratings for player '#{player_name}'"
+          Rails.logger.info "Created stats for player '#{player_name}'"
         rescue ActiveRecord::RecordInvalid => e
           Rails.logger.error "Failed to create stats for player '#{player_name}': #{e.message}"
           # Continue processing other players even if one fails
         rescue => e
-          Rails.logger.error "Failed to calculate ratings for player '#{player_name}': #{e.message}"
-          # Continue processing other players even if rating calculation fails
+          Rails.logger.error "Failed to create stats for player '#{player_name}': #{e.message}"
+          # Continue processing other players even if stats creation fails
         end
       end
 
@@ -804,6 +802,16 @@ class MatchesController < ApplicationController
 
       Rails.logger.info "Calculating team averages for match #{match.id}"
       calculate_team_average(match)
+
+      # Calculate Python-based ratings for all players
+      Rails.logger.info "Calculating Python-based ratings for match #{match.id}"
+      begin
+        PythonRatingService.new(match).calculate_all_ratings!
+        Rails.logger.info "Successfully calculated Python ratings for match #{match.id}"
+      rescue => e
+        Rails.logger.error "Failed to calculate Python ratings for match #{match.id}: #{e.message}"
+        # Continue without failing the entire process
+      end
 
       Rails.logger.info "CSV processing transaction completed successfully"
     end # End transaction
