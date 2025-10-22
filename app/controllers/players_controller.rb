@@ -421,21 +421,33 @@ class PlayersController < ApplicationController
   end
 
   def calculate_team_performance_per_game(team)
-    # Get team performance data from teamstats per game
+    # Get team performance data by averaging player ratings per game
     performance_data = {}
 
-    team.matches.includes(:teamstat, :home_team, :away_team).each do |match|
-      # Find the teamstat for this specific team using team_id
-      team_stat = match.teamstat.find { |ts| ts.team_id == team.id }
+    team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
+      # Get all player matches for this team in this match with ratings
+      team_player_matches = match.player_matches
+                                .joins(:player)
+                                .where(players: { team_id: team.id })
+                                .where('time_played > 0')
+                                .where.not(overall_rating: nil)
 
-      if team_stat&.has_ratings?
-        # Show only the opponent team's name
-        opponent_team = match.home_team_id == team.id ? match.away_team : match.home_team
-        match_key = "#{opponent_team.name}"
-        performance_data[match_key] = team_stat.overall_rating
+      if team_player_matches.any?
+        # Calculate average overall rating for the team in this match
+        team_ratings = team_player_matches.pluck(:overall_rating).compact
+        if team_ratings.any?
+          average_rating = (team_ratings.sum / team_ratings.size.to_f).round(1)
+
+          # Show opponent team's name with match date to make it unique
+          opponent_team = match.home_team_id == team.id ? match.away_team : match.home_team
+          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+          match_key = "#{opponent_team.name} (#{match_date})"
+          performance_data[match_key] = average_rating
+        end
       end
     end
 
+    Rails.logger.info "Team performance data: #{performance_data.inspect}"
     performance_data
   end
 
@@ -443,14 +455,15 @@ class PlayersController < ApplicationController
     # Get player performance data from player_matches per game
     performance_data = {}
 
-    player.player_matches.includes(match: [:home_team, :away_team]).each do |player_match|
+    player.player_matches.includes(match: [:home_team, :away_team]).order('matches.date ASC').each do |player_match|
       # Only include matches where player actually played and has ratings
       if player_match.time_played > 0 && player_match.has_ratings?
         match = player_match.match
 
-        # Show only the opponent team's name
+        # Show opponent team's name with match date to make it unique
         opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
-        match_key = "#{opponent_team.name}"
+        match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+        match_key = "#{opponent_team.name} (#{match_date})"
         performance_data[match_key] = player_match.overall_rating
       end
     end
@@ -490,7 +503,7 @@ class PlayersController < ApplicationController
     # Calculate average performance for the position group per game
     performance_data = {}
 
-    player.team.matches.includes(:player_matches, :home_team, :away_team).each do |match|
+    player.team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
       # Get all players from the same position group who played in this match
       group_players = match.player_matches
                           .joins(:player)
@@ -505,7 +518,8 @@ class PlayersController < ApplicationController
           average_rating = (ratings.sum / ratings.size.to_f).round(1)
 
           opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
-          match_key = "#{opponent_team.name}"
+          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+          match_key = "#{opponent_team.name} (#{match_date})"
           performance_data[match_key] = average_rating
         end
       end

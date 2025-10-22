@@ -178,19 +178,30 @@ class TeamsController < ApplicationController
   end
 
   def calculate_team_performance(player_matches)
-    # Get team performance data from teamstats
+    # Get team performance data by averaging player ratings per game
     performance_data = {}
 
-    @team.matches.includes(:teamstat).each do |match|
-      # Find the teamstat for this specific team using team_id
-      team_stat = match.teamstat.find { |ts| ts.team_id == @team.id }
+    @team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
+      # Get all player matches for this team in this match with ratings
+      team_player_matches = match.player_matches
+                                .joins(:player)
+                                .where(players: { team_id: @team.id })
+                                .where('time_played > 0')
+                                .where.not(overall_rating: nil)
 
-        if team_stat&.has_ratings?
-          # Show only the opponent team's name
+      if team_player_matches.any?
+        # Calculate average overall rating for the team in this match
+        team_ratings = team_player_matches.pluck(:overall_rating).compact
+        if team_ratings.any?
+          average_rating = (team_ratings.sum / team_ratings.size.to_f).round(1)
+
+          # Show opponent team's name with match date to make it unique
           opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
-          match_key = "#{opponent_team.name}"
-          performance_data[match_key] = team_stat.overall_rating
+          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+          match_key = "#{opponent_team.name} (#{match_date})"
+          performance_data[match_key] = average_rating
         end
+      end
     end
 
     performance_data
@@ -201,7 +212,7 @@ class TeamsController < ApplicationController
     performance_data = {}
     forward_positions = ["Loosehead Prop", "Hooker", "Tighthead Prop", "Lock", "Flanker", "Number 8"]
 
-    @team.matches.includes(:player_matches, :home_team, :away_team).each do |match|
+    @team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
       # Get forwards who played in this specific match
       match_forwards = match.player_matches
                            .joins(:player)
@@ -216,7 +227,8 @@ class TeamsController < ApplicationController
           average_rating = (ratings.sum / ratings.size.to_f).round(1)
 
           opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
-          match_key = "#{opponent_team.name}"
+          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+          match_key = "#{opponent_team.name} (#{match_date})"
           performance_data[match_key] = average_rating
         end
       end
@@ -230,7 +242,7 @@ class TeamsController < ApplicationController
     performance_data = {}
     back_positions = ["Scrum-half", "Fly-half", "Wing", "Centre", "Full-back"]
 
-    @team.matches.includes(:player_matches, :home_team, :away_team).each do |match|
+    @team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
       # Get backs who played in this specific match
       match_backs = match.player_matches
                         .joins(:player)
@@ -245,7 +257,8 @@ class TeamsController < ApplicationController
           average_rating = (ratings.sum / ratings.size.to_f).round(1)
 
           opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
-          match_key = "#{opponent_team.name}"
+          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+          match_key = "#{opponent_team.name} (#{match_date})"
           performance_data[match_key] = average_rating
         end
       end

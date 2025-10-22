@@ -68,11 +68,47 @@
                   ],
                   height: "220px",
                   colors: ["#4dc9f6", "#ffd166", "#f72585"],
+                  curve: false,
+                  points: true,
                   library: {
+                    interaction: {
+                      intersect: false
+                    },
+                    elements: {
+                      line: {
+                        tension: 0.1,
+                        borderWidth: 2
+                      },
+                      point: {
+                        radius: 4,
+                        hoverRadius: 6,
+                        borderWidth: 2
+                      }
+                    },
                     plugins: {
                       legend: {
                         labels: {
                           color: 'white'
+                        }
+                      }
+                    },
+                    scales: {
+                      x: {
+                        type: 'category',
+                        ticks: {
+                          color: 'white'
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                      },
+                      y: {
+                        beginAtZero: false,
+                        ticks: {
+                          color: 'white'
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
                         }
                       }
                     }

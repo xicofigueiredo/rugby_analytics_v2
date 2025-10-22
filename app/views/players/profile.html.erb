@@ -52,6 +52,10 @@
               <span class="text-secondary">2025/2026</span>
             </div>
             <div>
+              <!-- Debug: Show the data being passed to the chart -->
+              <% Rails.logger.info "Chart data - Player: #{@player_performance_data.inspect}" %>
+              <% Rails.logger.info "Chart data - Team: #{@performance_data.inspect}" %>
+              <% Rails.logger.info "Chart data - Group: #{@group_performance_data.inspect}" %>
               <%= turbo_frame_tag "performance_chart" do %>
                 <%= line_chart [
                     { name: "You", data: @player_performance_data },
@@ -60,11 +64,47 @@
                   ],
                   height: "220px",
                   colors: ["#4dc9f6", "#f72585", "#ffd166"],
+                  curve: false,
+                  points: true,
                   library: {
+                    interaction: {
+                      intersect: false
+                    },
+                    elements: {
+                      line: {
+                        tension: 0.1,
+                        borderWidth: 2
+                      },
+                      point: {
+                        radius: 4,
+                        hoverRadius: 6,
+                        borderWidth: 2
+                      }
+                    },
                     plugins: {
                       legend: {
                         labels: {
                           color: 'white'
+                        }
+                      }
+                    },
+                    scales: {
+                      x: {
+                        type: 'category',
+                        ticks: {
+                          color: 'white'
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                      },
+                      y: {
+                        beginAtZero: false,
+                        ticks: {
+                          color: 'white'
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
                         }
                       }
                     }
