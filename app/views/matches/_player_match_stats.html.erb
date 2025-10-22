@@ -715,10 +715,10 @@
       // Create rankings with proper tie handling
       let currentRank = 1;
       let playersWithRanks = [];
-      
+
       for (let i = 0; i < Math.min(sortedData.length, 5); i++) {
         const player = sortedData[i];
-        
+
         // Check if this player is tied with the previous player
         if (i > 0) {
           const prevPlayer = sortedData[i - 1];
