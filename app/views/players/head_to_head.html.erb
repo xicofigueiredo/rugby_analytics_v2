@@ -168,53 +168,6 @@
       <% end %>
     </div>
 
-    <!-- Performance Comparison Chart (Bar Chart) -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card main-card p-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="text-white mb-0">Performance Comparison</h5>
-            <span class="text-secondary">2025/2026 Season</span>
-          </div>
-          <div style="height: 400px;">
-            <%= column_chart [
-                { name: @player1.name, data: @player1_stats },
-                { name: @player2.name, data: @player2_stats }
-              ].concat(@player3.present? ? [{ name: @player3.name, data: @player3_stats }] : []),
-              height: "350px",
-              colors: @player3.present? ? ["#4dc9f6", "#f72585", "#28a745"] : ["#4dc9f6", "#f72585"],
-              library: {
-                plugins: {
-                  legend: {
-                    labels: {
-                      color: 'white'
-                    }
-                  }
-                },
-                scales: {
-                  x: {
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                      color: 'white'
-                    }
-                  },
-                  y: {
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                      color: 'white'
-                    }
-                  }
-                }
-              } %>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Combined Radar Chart -->
     <div class="row mb-4">
       <div class="col-12">
@@ -227,74 +180,127 @@
       </div>
     </div>
 
-    <!-- Detailed Stats Table -->
+    <!-- Detailed Stats Tables by Category -->
     <div class="row">
       <div class="col-12">
-        <div class="card main-card p-4">
-          <h5 class="text-white mb-3">Detailed Statistics Comparison</h5>
+        <div class="card main-card p-0">
+          <h5 class="text-white mb-3 p-4 pb-0">Detailed Statistics Comparison</h5>
           <div class="table-responsive">
-            <table class="table table-hover table-dark-custom">
-              <thead>
-                <tr>
-                  <th class="text-white">Statistic</th>
-                  <th class="text-center text-white"><%= @player1.name %></th>
-                  <th class="text-center text-white"><%= @player2.name %></th>
-                  <% if @player3.present? %>
-                    <th class="text-center text-white"><%= @player3.name %></th>
-                  <% end %>
-                  <th class="text-center text-white"><%= @player3.present? ? 'Best Performance' : 'Difference' %></th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @player1_stats.each do |stat, value1| %>
-                  <% value2 = @player2_stats[stat] %>
-                  <% value3 = @player3.present? ? @player3_stats[stat] : nil %>
-                  <tr>
-                    <td class="text-white"><%= stat %></td>
-                    <td class="text-center text-white"><%= value1 %></td>
-                    <td class="text-center text-white"><%= value2 %></td>
-                    <% if @player3.present? %>
-                      <td class="text-center text-white"><%= value3 %></td>
-                    <% end %>
-                    <td class="text-center">
-                      <% if @player3.present? %>
-                        <% values = { @player1.name => value1, @player2.name => value2, @player3.name => value3 } %>
-                        <% sorted_values = values.sort_by { |k, v| -v } %>
-                        <% best_player = sorted_values.first %>
-                        <% second_best = sorted_values.length > 1 ? sorted_values[1] : nil %>
+            <%
+              # Define stats organized by category based on Python rating system
+              stats_by_category = {
+                "Attack" => [
+                  "Tries", "Assists", "Linebreak", "Linebreak Assists", "Carries With Gain",
+                  "Carries Without Gain", "Conversions Made", "Conversions Missed", "Kicks Made",
+                  "Kicks Missed", "Drops Made", "Drops Missed", "Mod Game Plus"
+                ],
+                "Defense" => [
+                  "Positive Tackles", "Neutral Tackles", "Negative Tackles", "Assist Tackles",
+                  "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won", "Aerial Duels Lost"
+                ],
+                "Skills" => [
+                  "Offloads Good", "Offloads Bad", "Lineouts w/ Jump", "Lineouts w/o Jump",
+                  "Lineout Intros Won", "Lineout Intros Lost", "Scrum Dominant"
+                ],
+                "Discipline" => [
+                  "Total Penalties", "Offside Penalties", "Ruck Penalties", "Scrum Penalties",
+                  "Other Penalties", "Yellow Cards", "Red Cards", "Knock On", "Other Mistakes"
+                ],
+                "Work Rate" => [
+                  "Total Carries", "Total Tackles", "Mod Game Minus"
+                ],
+                "Consistency" => [
+                  "Time Played", "Conversions Attempted", "Kicks Attempted", "Drops Attempted",
+                  "Lineout Intros Total", "Total Offloads", "Total Aerial Duels", "Total Mod Game"
+                ]
+              }
 
-                        <% if values.values.uniq.length == 1 %>
-                          <span class="text-warning">All Tied</span>
-                        <% elsif second_best && best_player[1] == second_best[1] %>
-                          <span class="text-warning">
-                            Multiple tied for first (<%= best_player[1] %>)
-                          </span>
+              # Display each category
+              stats_by_category.each do |category, stats|
+                # Check if this category has any non-zero stats
+                has_non_zero_stats = stats.any? do |stat|
+                  value1 = @player1_stats[stat] || 0
+                  value2 = @player2_stats[stat] || 0
+                  value3 = @player3.present? ? (@player3_stats[stat] || 0) : nil
+                  all_values = @player3.present? ? [value1, value2, value3] : [value1, value2]
+                  !all_values.all? { |v| v == 0 }
+                end
+
+                # Skip this entire category if no stats have non-zero values
+                next unless has_non_zero_stats
+            %>
+              <table class="table table-dark mb-3">
+                <thead class="bg-danger">
+                  <tr>
+                    <th colspan="<%= @player3.present? ? 5 : 4 %>" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
+                  </tr>
+                  <tr>
+                    <th class="text-white fw-bold px-3 py-2">Statistic</th>
+                    <th class="text-center text-white fw-bold px-3 py-2"><%= @player1.name %></th>
+                    <th class="text-center text-white fw-bold px-3 py-2"><%= @player2.name %></th>
+                    <% if @player3.present? %>
+                      <th class="text-center text-white fw-bold px-3 py-2"><%= @player3.name %></th>
+                    <% end %>
+                    <th class="text-center text-white fw-bold px-3 py-2"><%= @player3.present? ? 'Best Performance' : 'Difference' %></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% stats.each do |stat| %>
+                    <% value1 = @player1_stats[stat] || 0 %>
+                    <% value2 = @player2_stats[stat] || 0 %>
+                    <% value3 = @player3.present? ? (@player3_stats[stat] || 0) : nil %>
+                    <%
+                      # Skip this stat if all players have 0
+                      all_values = @player3.present? ? [value1, value2, value3] : [value1, value2]
+                      next if all_values.all? { |v| v == 0 }
+                    %>
+                    <tr class="border-secondary">
+                      <td class="text-white px-3 py-2"><%= stat %></td>
+                      <td class="text-center text-white px-3 py-2"><%= value1 %></td>
+                      <td class="text-center text-white px-3 py-2"><%= value2 %></td>
+                      <% if @player3.present? %>
+                        <td class="text-center text-white px-3 py-2"><%= value3 %></td>
+                      <% end %>
+                      <td class="text-center px-3 py-2">
+                        <% if @player3.present? %>
+                          <% values = { @player1.name => value1, @player2.name => value2, @player3.name => value3 } %>
+                          <% sorted_values = values.sort_by { |k, v| -v } %>
+                          <% best_player = sorted_values.first %>
+                          <% second_best = sorted_values.length > 1 ? sorted_values[1] : nil %>
+
+                          <% if values.values.uniq.length == 1 %>
+                            <span class="text-warning">All Tied</span>
+                          <% elsif second_best && best_player[1] == second_best[1] %>
+                            <span class="text-warning">
+                              Multiple tied for first (<%= best_player[1] %>)
+                            </span>
+                          <% else %>
+                            <% difference = second_best ? (best_player[1] - second_best[1]) : 0 %>
+                            <span style="color: <%= best_player[0] == @player1.name ? '#4dc9f6' : (best_player[0] == @player2.name ? '#f72585' : '#28a745') %>">
+                              <%= best_player[0] %>
+                            </span>
+                            <% if difference > 0 %>
+                              <br><small class="text-secondary">+<%= difference %> ahead</small>
+                            <% end %>
+                          <% end %>
                         <% else %>
-                          <% difference = second_best ? (best_player[1] - second_best[1]) : 0 %>
-                          <span style="color: <%= best_player[0] == @player1.name ? '#4dc9f6' : (best_player[0] == @player2.name ? '#f72585' : '#28a745') %>">
-                            <%= best_player[0] %>
-                          </span>
-                          <% if difference > 0 %>
-                            <br><small class="text-secondary">+<%= difference %> ahead</small>
+                          <% diff = value1 - value2 %>
+                          <% if diff > 0 %>
+                            <span style="color: #4dc9f6"><%= @player1.name %></span>
+                            <br><small class="text-secondary">+<%= diff %> ahead</small>
+                          <% elsif diff < 0 %>
+                            <span style="color: #f72585"><%= @player2.name %></span>
+                            <br><small class="text-secondary">+<%= diff.abs %> ahead</small>
+                          <% else %>
+                            <span class="text-warning">Tie</span>
                           <% end %>
                         <% end %>
-                      <% else %>
-                        <% diff = value1 - value2 %>
-                        <% if diff > 0 %>
-                          <span style="color: #4dc9f6"><%= @player1.name %></span>
-                          <br><small class="text-secondary">+<%= diff %> ahead</small>
-                        <% elsif diff < 0 %>
-                          <span style="color: #f72585"><%= @player2.name %></span>
-                          <br><small class="text-secondary">+<%= diff.abs %> ahead</small>
-                        <% else %>
-                          <span class="text-warning">Tie</span>
-                        <% end %>
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            <% end %>
           </div>
         </div>
       </div>
