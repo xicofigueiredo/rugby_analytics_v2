@@ -94,6 +94,19 @@ class MatchesController < ApplicationController
     @staff = @team.users.where.not(role: ["player", "fan"])
     calculate_top_players(@match)
 
+    # Create stats data for JavaScript (after calculate_top_players)
+    @stats_data = {
+      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
+      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
+      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
+      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
+      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
+      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
+      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+    }
+
+    Rails.logger.info "Stats data created: #{@stats_data.inspect}"
+
     # if current_user.role == "player"
     #   @player = current_user.player
 
@@ -252,16 +265,6 @@ class MatchesController < ApplicationController
         # Calculate team average ratings for this match
         @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
 
-        # Create stats data for JavaScript
-        @stats_data = {
-          "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
-          "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
-          "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
-          "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
-          "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
-          "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
-          "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
-        }
       end
 
     @minutes_data = {
@@ -352,17 +355,6 @@ class MatchesController < ApplicationController
       ["Positive Offloads", "positive_offloads"],
       ["Linebreaks", "linebreaks"]
     ]
-
-    # Create a hash for JavaScript access
-    @stats_data = {
-      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
-      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
-      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
-      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
-      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
-      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
-      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
-    }
 
     Rails.logger.info "Stats data: #{@stats_data.inspect}"
 
@@ -1084,16 +1076,27 @@ class MatchesController < ApplicationController
   end
 
   def calculate_top_players(match)
-    @positive_tackles_top_players = match.player_matches.order(Arel.sql("COALESCE(positive_tackle, 0) DESC")).limit(5)
-    @turnovers_top_players = match.player_matches.order(Arel.sql("COALESCE(turnover, 0) DESC")).limit(5)
-    @penalties_top_players = match.player_matches
-      .select(Arel.sql("*, (COALESCE(pen_offside, 0) + COALESCE(pen_breakdown, 0) + COALESCE(pen_scrum, 0) + COALESCE(pen_others, 0)) as total_penalties"))
-      .order(Arel.sql("total_penalties DESC"))
-      .limit(5)
-    @carries_top_players = match.player_matches.order(Arel.sql("COALESCE(carries, 0) DESC")).limit(5)
-    @positive_carries_top_players = match.player_matches.order(Arel.sql("COALESCE(positive_carry, 0) DESC")).limit(5)
-    @positive_offloads_top_players = match.player_matches.order(Arel.sql("COALESCE(positive_offload, 0) DESC")).limit(5)
-    @linebreaks_top_players = match.player_matches.order(Arel.sql("COALESCE(linebreak, 0) DESC")).limit(5)
+    @positive_tackles_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_tackle, 0) DESC")).limit(5)
+    @turnovers_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(turnover, 0) DESC")).limit(5)
+    # Calculate penalties in Ruby to avoid SQL conflicts
+    all_players_with_penalties = match.player_matches.includes(:player).map do |pm|
+      total_penalties = (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0)
+      OpenStruct.new(
+        player: pm.player,
+        total_penalties: total_penalties,
+        player_match: pm
+      )
+    end
+    @penalties_top_players = all_players_with_penalties.sort_by(&:total_penalties).reverse.first(5)
+    @carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(carries, 0) DESC")).limit(5)
+    @positive_carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_carry, 0) DESC")).limit(5)
+    @positive_offloads_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_offload, 0) DESC")).limit(5)
+    @linebreaks_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(linebreak, 0) DESC")).limit(5)
+
+    Rails.logger.info "Top players calculated:"
+    Rails.logger.info "Positive tackles: #{@positive_tackles_top_players.count} players"
+    Rails.logger.info "Penalties: #{@penalties_top_players.count} players"
+    Rails.logger.info "Sample penalty player: #{@penalties_top_players.first&.player&.name} - #{@penalties_top_players.first&.total_penalties}"
   end
 
   def calculate_best_worst_metrics(player_match, match, team_id)

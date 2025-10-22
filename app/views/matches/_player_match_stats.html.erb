@@ -246,8 +246,23 @@
             </table>
           </div>
         </div>
+
+        <br>
+        <!-- Team Stats -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="h5 text-white mb-0">Team Leaders</div>
+              <div style="width: 45%;">
+                <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options&.first&.last),
+                    { class: "form-select form-select-sm", id: "stats_dropdown",
+                      style: "background-color: #2a2a2a; color: white; border-color: #666; font-size: 0.875rem;",
+                      onchange: "handleStatsDropdownChange(event)" } %>
+              </div>
+            </div>
+            <div class="text-white" id="stats_container" style="min-height: 200px;">
+              <!-- Content will be populated by JavaScript -->
+            </div>
+          </div>
       </div>
-    </div>
 
     <!-- Player Stats Section -->
     <div class="col-md-8">
@@ -376,15 +391,6 @@
   <br>
   <br>
 </div>
-<!-- Debug radar data -->
-<% if Rails.env.development? %>
-  <div style="display: none;">
-    DEBUG - Player Data: <%= @radar_player_data.inspect %><br>
-    DEBUG - Team Data: <%= @radar_team_data.inspect %><br>
-    DEBUG - Player Match ID: <%= @player_match&.id %><br>
-    DEBUG - Player Name: <%= @player&.name %>
-  </div>
-<% end %>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -664,5 +670,89 @@
         });
       }
     }
+
+    // Stats dropdown functionality
+    const statsData = <%= raw @stats_data.to_json %>;
+
+    // Global function for handling dropdown changes (accessible to onchange attribute)
+    window.handleStatsDropdownChange = function(event) {
+      console.log('Dropdown changed to:', event.target.value);
+      console.log('Available data keys:', Object.keys(statsData));
+      updateStatsContainer(event.target.value);
+    };
+
+    function updateStatsContainer(statType) {
+      console.log('updateStatsContainer called with:', statType);
+      const container = document.getElementById('stats_container');
+      if (!container) {
+        console.error('Stats container not found');
+        return;
+      }
+
+      const data = statsData[statType] || [];
+      console.log('Data for', statType, ':', data);
+
+      if (data.length === 0) {
+        console.log('No data found for', statType);
+        container.innerHTML = '<div class="text-center text-secondary mt-4"><i class="fas fa-chart-bar fa-2x mb-2"></i><p>No data available for ' + statType + '</p></div>';
+        return;
+      }
+
+      // Sort data by value in descending order
+      const sortedData = data.sort((a, b) => b.value - a.value);
+
+      // Create a clean list of top players for this stat
+      let html = '<div class="stats-list mt-3">';
+      sortedData.slice(0, 5).forEach((player, index) => {
+        const position = index + 1;
+        const isTop3 = position <= 3;
+        const positionClass = isTop3 ? 'text-warning fw-bold' : 'text-secondary';
+        const nameClass = isTop3 ? 'text-white fw-bold' : 'text-white';
+        const valueClass = isTop3 ? 'text-success fw-bold' : 'text-primary';
+
+        html += `
+          <div class="d-flex justify-content-between align-items-center py-2 px-3 mb-2 rounded border-secondary" style="background: linear-gradient(90deg, rgba(77, 201, 246, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="d-flex align-items-center">
+              <span class="${positionClass} me-3" style="min-width: 20px; font-size: 0.9rem;">#${position}</span>
+              <span class="${nameClass}" style="font-size: 0.9rem;">${player.name}</span>
+            </div>
+            <span class="${valueClass}" style="font-size: 1rem;">${player.value}</span>
+          </div>
+        `;
+      });
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Initialize with first option
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Setting up stats dropdown...');
+      const dropdown = document.getElementById('stats_dropdown');
+      console.log('Dropdown element:', dropdown);
+
+      if (dropdown) {
+        // Remove any existing event listeners
+        dropdown.removeEventListener('change', handleStatsDropdownChange);
+
+        // Initialize with current dropdown value or first option
+        const initialValue = dropdown.value || 'positive_tackles';
+        console.log('Initial value:', initialValue);
+        updateStatsContainer(initialValue);
+
+        // Add event listener for dropdown changes
+        dropdown.addEventListener('change', handleStatsDropdownChange);
+        console.log('Event listener added to dropdown');
+      }
+    });
+
+    // Also try to initialize after a short delay in case DOM isn't fully ready
+    setTimeout(function() {
+      const dropdown = document.getElementById('stats_dropdown');
+      if (dropdown && dropdown.value) {
+        console.log('Timeout initialization with:', dropdown.value);
+        updateStatsContainer(dropdown.value);
+      }
+    }, 500);
   });
 </script>
