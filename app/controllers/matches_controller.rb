@@ -1159,6 +1159,20 @@ class MatchesController < ApplicationController
         team_avg: team_player_matches.sum("COALESCE(missed_tackle, 0)").to_f / team_player_matches.count,
         format: :integer,
         inverse: true
+      },
+      {
+        name: "Offloads Bad",
+        player_value: player_match.negative_offload || 0,
+        team_avg: team_player_matches.sum("COALESCE(negative_offload, 0)").to_f / team_player_matches.count,
+        format: :integer,
+        inverse: true
+      },
+      {
+        name: "Other Mistakes",
+        player_value: player_match.other_mistakes || 0,
+        team_avg: team_player_matches.sum("COALESCE(other_mistakes, 0)").to_f / team_player_matches.count,
+        format: :integer,
+        inverse: true
       }
     ]
 

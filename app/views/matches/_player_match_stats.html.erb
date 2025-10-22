@@ -146,15 +146,15 @@
                                    rounded_team_avg.to_s
                                  end
 
-                    # Calculate raw difference using rounded team average for consistency
-                    raw_difference = metric[:player_value] - rounded_team_avg
-                    diff_sign = raw_difference > 0 ? "+" : ""
+                    # Use the already calculated difference from controller (which handles inverse logic)
+                    display_difference = sorting_difference
+                    diff_sign = display_difference > 0 ? "+" : ""
 
                     diff_display = case metric[:format]
                                  when :percentage
-                                   "#{diff_sign}#{raw_difference.round(1)}%"
+                                   "#{diff_sign}#{display_difference.round(1)}%"
                                  else
-                                   "#{diff_sign}#{raw_difference.round(1)}"
+                                   "#{diff_sign}#{display_difference.round(1)}"
                                  end
                 %>
                   <tr class="border-secondary">
@@ -222,15 +222,15 @@
                                    rounded_team_avg.to_s
                                  end
 
-                    # Calculate raw difference using rounded team average for consistency
-                    raw_difference = metric[:player_value] - rounded_team_avg
-                    diff_sign = raw_difference > 0 ? "+" : ""
+                    # Use the already calculated difference from controller (which handles inverse logic)
+                    display_difference = sorting_difference
+                    diff_sign = display_difference > 0 ? "+" : ""
 
                     diff_display = case metric[:format]
                                  when :percentage
-                                   "#{diff_sign}#{raw_difference.round(1)}%"
+                                   "#{diff_sign}#{display_difference.round(1)}%"
                                  else
-                                   "#{diff_sign}#{raw_difference.round(1)}"
+                                   "#{diff_sign}#{display_difference.round(1)}"
                                  end
                 %>
                   <tr class="border-secondary">
@@ -538,8 +538,8 @@
         const diffColor = metric.difference > 0 ? 'text-success' : 'text-danger';
         const diffSign = metric.difference > 0 ? '+' : '';
         const diffDisplay = metric.format === 'percentage' ?
-          `${diffSign}${(metric.player_value - metric.team_avg).toFixed(1)}%` :
-          `${diffSign}${(metric.player_value - metric.team_avg).toFixed(1)}`;
+          `${diffSign}${metric.difference.toFixed(1)}%` :
+          `${diffSign}${metric.difference.toFixed(1)}`;
 
         row.innerHTML = `
           <td class="text-white px-2 py-1 small">${metric.name}</td>
