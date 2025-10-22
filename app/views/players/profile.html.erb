@@ -245,7 +245,12 @@
   });
 
   document.addEventListener("DOMContentLoaded", function () {
-    const ctx = document.getElementById('lineChart').getContext('2d');
+    const lineChartElement = document.getElementById('lineChart');
+    if (!lineChartElement) {
+      console.log('lineChart element not found, skipping chart initialization');
+      return;
+    }
+    const ctx = lineChartElement.getContext('2d');
     let lineChart;
 
     // Define your datasets with multiple statistics per category
