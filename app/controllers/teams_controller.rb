@@ -1,7 +1,7 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_team, only: [:show, :edit, :update, :destroy]
-  before_action :require_admin, except: [ :index, :show, :team_profile]
+  before_action :require_admin, except: [ :index, :show, :team_profile, :all_stats]
 
 
   def index
@@ -66,6 +66,36 @@ class TeamsController < ApplicationController
       total_points: calculate_total_points(@team).first,
       points_conceded: calculate_total_points(@team).second
     }
+  end
+
+  def all_stats
+    @team = current_user.team
+    @players = @team.players.includes(:user)
+
+    # Get all player matches for this team with playing time
+    team_player_matches = PlayerMatch.joins(:player)
+                                    .where(players: { team_id: @team.id })
+                                    .where('time_played > 0')
+
+    # Calculate comprehensive team stats using the same method as individual players
+    @team_stats = calculate_team_season_stats(team_player_matches)
+
+    # Calculate total minutes played for per-minute calculations
+    @total_minutes = team_player_matches.sum(:time_played) || 0
+
+    # Calculate per-10-minute rates for each stat
+    @per_10min_stats = {}
+    @team_stats.each do |stat_name, value|
+      if @total_minutes > 0
+        per_10min_rate = (value.to_f / @total_minutes * 10).round(2)
+        @per_10min_stats[stat_name] = per_10min_rate
+      else
+        @per_10min_stats[stat_name] = 0
+      end
+    end
+
+    # Get match count for this team
+    @matches_played = Match.where('home_team_id = ? OR away_team_id = ?', @team.id, @team.id).count
   end
 
   def new
@@ -265,6 +295,137 @@ class TeamsController < ApplicationController
     end
 
     performance_data
+  end
+
+  def calculate_team_season_stats(player_matches)
+    if player_matches.empty?
+      return {
+        # Attack stats
+        "Tries" => 0,
+        "Assists" => 0,
+        "Linebreak" => 0,
+        "Linebreak Assists" => 0,
+        "Carries With Gain" => 0,
+        "Carries Without Gain" => 0,
+        "Conversions Made" => 0,
+        "Conversions Missed" => 0,
+        "Kicks Made" => 0,
+        "Kicks Missed" => 0,
+        "Drops Made" => 0,
+        "Drops Missed" => 0,
+        "Mod Game Plus" => 0,
+
+        # Defense stats
+        "Positive Tackles" => 0,
+        "Neutral Tackles" => 0,
+        "Negative Tackles" => 0,
+        "Assist Tackles" => 0,
+        "Missed Tackles" => 0,
+        "Turnovers Won" => 0,
+        "Lineout Steals" => 0,
+        "Aerial Duels Won" => 0,
+        "Aerial Duels Lost" => 0,
+
+        # Skills stats
+        "Offloads Good" => 0,
+        "Offloads Bad" => 0,
+        "Lineouts w/ Jump" => 0,
+        "Lineouts w/o Jump" => 0,
+        "Lineout Intros Won" => 0,
+        "Lineout Intros Lost" => 0,
+        "Scrum Dominant" => 0,
+
+        # Discipline stats
+        "Total Penalties" => 0,
+        "Offside Penalties" => 0,
+        "Ruck Penalties" => 0,
+        "Scrum Penalties" => 0,
+        "Other Penalties" => 0,
+        "Yellow Cards" => 0,
+        "Red Cards" => 0,
+        "Knock On" => 0,
+        "Other Mistakes" => 0,
+
+        # Work Rate stats
+        "Total Carries" => 0,
+        "Total Tackles" => 0,
+        "Mod Game Minus" => 0,
+
+        # Consistency stats
+        "Time Played" => 0,
+        "Conversions Attempted" => 0,
+        "Kicks Attempted" => 0,
+        "Drops Attempted" => 0,
+        "Lineout Intros Total" => 0,
+        "Total Offloads" => 0,
+        "Total Aerial Duels" => 0,
+        "Total Mod Game" => 0
+      }
+    end
+
+    # Calculate totals for the team across all players
+    {
+      # Attack stats
+      "Tries" => player_matches.sum(:try) || 0,
+      "Assists" => player_matches.sum(:try_assist) || 0,
+      "Linebreak" => player_matches.sum(:linebreak) || 0,
+      "Linebreak Assists" => player_matches.sum(:linebreak_assists) || 0,
+      "Carries With Gain" => player_matches.sum(:positive_carry) || 0,
+      "Carries Without Gain" => player_matches.sum(:carries) || 0,
+      "Conversions Made" => player_matches.sum(:conversion) || 0,
+      "Conversions Missed" => player_matches.sum(:missed_conversion) || 0,
+      "Kicks Made" => player_matches.sum(:penalty_kick_goal) || 0,
+      "Kicks Missed" => player_matches.sum(:missed_penalty_kick_goals) || 0,
+      "Drops Made" => player_matches.sum(:drop_goal) || 0,
+      "Drops Missed" => player_matches.sum(:missed_drop_goals) || 0,
+      "Mod Game Plus" => player_matches.sum(:mod_game_plus) || 0,
+
+      # Defense stats
+      "Positive Tackles" => player_matches.sum(:positive_tackle) || 0,
+      "Neutral Tackles" => player_matches.sum(:neutral_tackle) || 0,
+      "Negative Tackles" => player_matches.sum(:negative_tackle) || 0,
+      "Assist Tackles" => player_matches.sum(:assist_tackle) || 0,
+      "Missed Tackles" => player_matches.sum(:missed_tackle) || 0,
+      "Turnovers Won" => player_matches.sum(:turnover) || 0,
+      "Lineout Steals" => player_matches.sum(:lineout_turnover) || 0,
+      "Aerial Duels Won" => player_matches.sum(:aerial_duel_won) || 0,
+      "Aerial Duels Lost" => player_matches.sum(:aerial_duel_lost) || 0,
+
+      # Skills stats
+      "Offloads Good" => player_matches.sum(:positive_offload) || 0,
+      "Offloads Bad" => player_matches.sum(:negative_offload) || 0,
+      "Lineouts w/ Jump" => player_matches.sum(:lineout_won_jump) || 0,
+      "Lineouts w/o Jump" => player_matches.sum(:lineout_won_no_jump) || 0,
+      "Lineout Intros Won" => player_matches.sum(:introduction_won) || 0,
+      "Lineout Intros Lost" => player_matches.sum(:introduction_lost) || 0,
+      "Scrum Dominant" => player_matches.sum(:scrum_dominant) || 0,
+
+      # Discipline stats
+      "Total Penalties" => (player_matches.sum(:pen_offside) || 0) + (player_matches.sum(:pen_breakdown) || 0) + (player_matches.sum(:pen_scrum) || 0) + (player_matches.sum(:pen_others) || 0),
+      "Offside Penalties" => player_matches.sum(:pen_offside) || 0,
+      "Ruck Penalties" => player_matches.sum(:pen_breakdown) || 0,
+      "Scrum Penalties" => player_matches.sum(:pen_scrum) || 0,
+      "Other Penalties" => player_matches.sum(:pen_others) || 0,
+      "Yellow Cards" => player_matches.sum(:yellow) || 0,
+      "Red Cards" => player_matches.sum(:red) || 0,
+      "Knock On" => player_matches.sum(:knock_on) || 0,
+      "Other Mistakes" => player_matches.sum(:other_mistakes) || 0,
+
+      # Work Rate stats
+      "Total Carries" => player_matches.sum(:carries) || 0,
+      "Total Tackles" => (player_matches.sum(:positive_tackle) || 0) + (player_matches.sum(:neutral_tackle) || 0) + (player_matches.sum(:negative_tackle) || 0) + (player_matches.sum(:assist_tackle) || 0),
+      "Mod Game Minus" => player_matches.sum(:mod_game_minus) || 0,
+
+      # Consistency stats
+      "Time Played" => player_matches.sum(:time_played) || 0,
+      "Conversions Attempted" => (player_matches.sum(:conversion) || 0) + (player_matches.sum(:missed_conversion) || 0),
+      "Kicks Attempted" => (player_matches.sum(:penalty_kick_goal) || 0) + (player_matches.sum(:missed_penalty_kick_goals) || 0),
+      "Drops Attempted" => (player_matches.sum(:drop_goal) || 0) + (player_matches.sum(:missed_drop_goals) || 0),
+      "Lineout Intros Total" => (player_matches.sum(:introduction_won) || 0) + (player_matches.sum(:introduction_lost) || 0),
+      "Total Offloads" => (player_matches.sum(:positive_offload) || 0) + (player_matches.sum(:negative_offload) || 0),
+      "Total Aerial Duels" => (player_matches.sum(:aerial_duel_won) || 0) + (player_matches.sum(:aerial_duel_lost) || 0),
+      "Total Mod Game" => (player_matches.sum(:mod_game_plus) || 0) + (player_matches.sum(:mod_game_minus) || 0)
+    }
   end
 
 end

@@ -1,0 +1,222 @@
+<div class="container">
+  <div class="mb-3 d-flex justify-content-between align-items-center">
+    <h2 class="text-white mb-0"><%= @team.name %> - Team Stats</h2>
+    <button class="btn btn-outline-light" onclick="history.back()">
+      <i class="fas fa-arrow-left me-1"></i> Back
+    </button>
+  </div>
+
+  <!-- Summary Info -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card main-card p-4">
+        <div class="row text-center">
+          <div class="col-md-3">
+            <h5 class="text-white mb-1"><%= @matches_played %></h5>
+            <small class="text-secondary">Total Matches</small>
+          </div>
+          <div class="col-md-3">
+            <h5 class="text-white mb-1"><%= @total_minutes %></h5>
+            <small class="text-secondary">Total Minutes Played</small>
+          </div>
+          <div class="col-md-3">
+            <h5 class="text-white mb-1"><%= @players.count %></h5>
+            <small class="text-secondary">Team Players</small>
+          </div>
+          <div class="col-md-3">
+            <h5 class="text-white mb-1"><%= (@total_minutes / 80.0).round(1) rescue 0 %></h5>
+            <small class="text-secondary">Full Games Equivalent</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Stats Tables by Category -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card main-card p-0">
+        <h5 class="text-white mb-3 p-4 pb-0">Detailed Team Statistics <small class="text-secondary">(season totals)</small></h5>
+        <div class="table-responsive">
+          <%
+            # Define stats organized by category based on Python rating system
+            stats_by_category = {
+              "Attack" => [
+                "Tries", "Assists", "Linebreak", "Linebreak Assists", "Carries With Gain",
+                "Carries Without Gain", "Conversions Made", "Conversions Missed", "Kicks Made",
+                "Kicks Missed", "Drops Made", "Drops Missed", "Mod Game Plus"
+              ],
+              "Defense" => [
+                "Positive Tackles", "Neutral Tackles", "Negative Tackles", "Assist Tackles",
+                "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won", "Aerial Duels Lost"
+              ],
+              "Skills" => [
+                "Offloads Good", "Offloads Bad", "Lineouts w/ Jump", "Lineouts w/o Jump",
+                "Lineout Intros Won", "Lineout Intros Lost", "Scrum Dominant"
+              ],
+              "Discipline" => [
+                "Total Penalties", "Offside Penalties", "Ruck Penalties", "Scrum Penalties",
+                "Other Penalties", "Yellow Cards", "Red Cards", "Knock On", "Other Mistakes"
+              ],
+              "Work Rate" => [
+                "Total Carries", "Total Tackles", "Mod Game Minus"
+              ],
+              "Consistency" => [
+                "Time Played", "Conversions Attempted", "Kicks Attempted", "Drops Attempted",
+                "Lineout Intros Total", "Total Offloads", "Total Aerial Duels", "Total Mod Game"
+              ]
+            }
+
+            # Display each category
+            stats_by_category.each do |category, stats|
+          %>
+            <table class="table table-dark mb-3">
+              <thead class="bg-danger">
+                <tr>
+                  <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
+                </tr>
+                <tr>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  # Group stats into rows of 3
+                  stats.each_slice(3) do |stat_group|
+                %>
+                  <tr>
+                    <% stat_group.each do |stat_name| %>
+                      <td class="px-3 py-2 text-white"><%= stat_name %></td>
+                      <td class="px-3 py-2 text-center text-white fw-bold">
+                        <%= @team_stats[stat_name] || 0 %>
+                      </td>
+                    <% end %>
+                    <% # Fill remaining cells if less than 3 stats in group
+                       (3 - stat_group.length).times do %>
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per 10 Minutes Stats -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card main-card p-0">
+        <h5 class="text-white mb-3 p-4 pb-0">Team Performance Rates <small class="text-secondary">(per 10 minutes)</small></h5>
+        <div class="table-responsive">
+          <%
+            # Define stats organized by category for per-10-minute rates
+            per_10min_stats_by_category = {
+              "Attack" => [
+                "Tries", "Assists", "Linebreak", "Linebreak Assists", "Carries With Gain",
+                "Carries Without Gain", "Conversions Made", "Conversions Missed", "Kicks Made",
+                "Kicks Missed", "Drops Made", "Drops Missed", "Mod Game Plus"
+              ],
+              "Defense" => [
+                "Positive Tackles", "Neutral Tackles", "Negative Tackles", "Assist Tackles",
+                "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won", "Aerial Duels Lost"
+              ],
+              "Skills" => [
+                "Offloads Good", "Offloads Bad", "Lineouts w/ Jump", "Lineouts w/o Jump",
+                "Lineout Intros Won", "Lineout Intros Lost", "Scrum Dominant"
+              ],
+              "Discipline" => [
+                "Total Penalties", "Offside Penalties", "Ruck Penalties", "Scrum Penalties",
+                "Other Penalties", "Yellow Cards", "Red Cards", "Knock On", "Other Mistakes"
+              ],
+              "Work Rate" => [
+                "Total Carries", "Total Tackles", "Mod Game Minus"
+              ],
+              "Consistency" => [
+                "Time Played", "Conversions Attempted", "Kicks Attempted", "Drops Attempted",
+                "Lineout Intros Total", "Total Offloads", "Total Aerial Duels", "Total Mod Game"
+              ]
+            }
+
+            # Display each category for per-10-minute rates
+            per_10min_stats_by_category.each do |category, stats|
+          %>
+            <table class="table table-dark mb-3">
+              <thead class="bg-success">
+                <tr>
+                  <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %> (Per 10 Minutes)</th>
+                </tr>
+                <tr>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  # Group stats into rows of 3
+                  stats.each_slice(3) do |stat_group|
+                %>
+                  <tr>
+                    <% stat_group.each do |stat_name| %>
+                      <td class="px-3 py-2 text-white"><%= stat_name %></td>
+                      <td class="px-3 py-2 text-center text-white fw-bold">
+                        <%= @per_10min_stats[stat_name] || 0 %>
+                      </td>
+                    <% end %>
+                    <% # Fill remaining cells if less than 3 stats in group
+                       (3 - stat_group.length).times do %>
+                      <td class="px-3 py-2"></td>
+                      <td class="px-3 py-2"></td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .main-card {
+    background-color: #23263a;
+    border: 1px solid #3a3f5c;
+    border-radius: 8px;
+  }
+
+  .table-dark {
+    background-color: #23263a;
+    border-color: #3a3f5c;
+  }
+
+  .table-dark th {
+    background-color: #2a2d47;
+    border-color: #3a3f5c;
+  }
+
+  .table-dark td {
+    border-color: #3a3f5c;
+  }
+
+  .bg-danger {
+    background-color: #dc3545 !important;
+  }
+
+  .bg-success {
+    background-color: #198754 !important;
+  }
+</style>

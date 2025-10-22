@@ -51,6 +51,7 @@ Rails.application.routes.draw do
 
   get 'my_team_player', to: 'teams#my_team_player', as: :my_team_player
   get 'team_profile', to: 'teams#team_profile', as: :team_profile
+  get 'all_stats_team', to: 'teams#all_stats', as: :all_stats_team
 
   resources :matches do
     collection do
