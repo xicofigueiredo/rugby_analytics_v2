@@ -96,13 +96,19 @@ class MatchesController < ApplicationController
 
     # Create stats data for JavaScript (after calculate_top_players)
     @stats_data = {
-      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0 } },
-      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0 } },
-      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0 } },
-      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0 } },
-      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0 } },
-      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0 } },
-      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0 } }
+      "positive_tackles" => (@positive_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_tackle || 0, minutes_played: pm.time_played || 0 } },
+      "total_tackles" => (@total_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_tackles || 0, minutes_played: pm.player_match.time_played || 0 } },
+      "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0, minutes_played: pm.time_played || 0 } },
+      "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0, minutes_played: pm.player_match.time_played || 0 } },
+      "total_penalties" => (@total_penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0, minutes_played: pm.player_match.time_played || 0 } },
+      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0, minutes_played: pm.time_played || 0 } },
+      "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0, minutes_played: pm.time_played || 0 } },
+      "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0, minutes_played: pm.time_played || 0 } },
+      "offloads_good" => (@offloads_good_top_players || []).map { |pm| { name: pm.player.name, value: pm.offloads_good || 0, minutes_played: pm.player_match.time_played || 0 } },
+      "offloads_bad" => (@offloads_bad_top_players || []).map { |pm| { name: pm.player.name, value: pm.offloads_bad || 0, minutes_played: pm.player_match.time_played || 0 } },
+      "linebreaks" => (@linebreaks_top_players || []).map { |pm| { name: pm.player.name, value: pm.linebreak || 0, minutes_played: pm.time_played || 0 } },
+      "knock_ons" => (@knock_ons_top_players || []).map { |pm| { name: pm.player.name, value: pm.knock_on || 0, minutes_played: pm.time_played || 0 } },
+      "missed_tackles" => (@missed_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.missed_tackle || 0, minutes_played: pm.time_played || 0 } }
     }
 
     Rails.logger.info "Stats data created: #{@stats_data.inspect}"
@@ -348,12 +354,18 @@ class MatchesController < ApplicationController
 
     @stats_dropdown_options = [
       ["Positive Tackles", "positive_tackles"],
+      ["Total Tackles", "total_tackles"],
       ["Turnovers", "turnovers"],
       ["Penalties", "penalties"],
+      ["Total Penalties", "total_penalties"],
       ["Carries", "carries"],
       ["Positive Carries", "positive_carries"],
       ["Positive Offloads", "positive_offloads"],
-      ["Linebreaks", "linebreaks"]
+      ["Offloads Good", "offloads_good"],
+      ["Offloads Bad", "offloads_bad"],
+      ["Linebreaks", "linebreaks"],
+      ["Knock Ons", "knock_ons"],
+      ["Missed Tackles", "missed_tackles"]
     ]
 
     Rails.logger.info "Stats data: #{@stats_data.inspect}"
@@ -1078,25 +1090,40 @@ class MatchesController < ApplicationController
   def calculate_top_players(match)
     @positive_tackles_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_tackle, 0) DESC")).limit(5)
     @turnovers_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(turnover, 0) DESC")).limit(5)
-    # Calculate penalties in Ruby to avoid SQL conflicts
-    all_players_with_penalties = match.player_matches.includes(:player).map do |pm|
-      total_penalties = (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0)
-      OpenStruct.new(
-        player: pm.player,
-        total_penalties: total_penalties,
-        player_match: pm
-      )
-    end
-    @penalties_top_players = all_players_with_penalties.sort_by(&:total_penalties).reverse.first(5)
     @carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(carries, 0) DESC")).limit(5)
     @positive_carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_carry, 0) DESC")).limit(5)
     @positive_offloads_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_offload, 0) DESC")).limit(5)
     @linebreaks_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(linebreak, 0) DESC")).limit(5)
+    @knock_ons_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(knock_on, 0) DESC")).limit(5)
+    @missed_tackles_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(missed_tackle, 0) DESC")).limit(5)
+
+    # Calculate complex stats in Ruby to avoid SQL conflicts
+    all_players_with_stats = match.player_matches.includes(:player).map do |pm|
+      total_penalties = (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0)
+      total_tackles = (pm.positive_tackle || 0) + (pm.neutral_tackle || 0) + (pm.negative_tackle || 0) + (pm.assist_tackle || 0)
+      offloads_good = pm.positive_offload || 0
+      offloads_bad = pm.negative_offload || 0
+
+      OpenStruct.new(
+        player: pm.player,
+        total_penalties: total_penalties,
+        total_tackles: total_tackles,
+        offloads_good: offloads_good,
+        offloads_bad: offloads_bad,
+        player_match: pm
+      )
+    end
+
+    @penalties_top_players = all_players_with_stats.sort_by(&:total_penalties).reverse.first(5)
+    @total_penalties_top_players = all_players_with_stats.sort_by(&:total_penalties).reverse.first(5)
+    @total_tackles_top_players = all_players_with_stats.sort_by(&:total_tackles).reverse.first(5)
+    @offloads_good_top_players = all_players_with_stats.sort_by(&:offloads_good).reverse.first(5)
+    @offloads_bad_top_players = all_players_with_stats.sort_by(&:offloads_bad).reverse.first(5)
 
     Rails.logger.info "Top players calculated:"
     Rails.logger.info "Positive tackles: #{@positive_tackles_top_players.count} players"
+    Rails.logger.info "Total tackles: #{@total_tackles_top_players.count} players"
     Rails.logger.info "Penalties: #{@penalties_top_players.count} players"
-    Rails.logger.info "Sample penalty player: #{@penalties_top_players.first&.player&.name} - #{@penalties_top_players.first&.total_penalties}"
   end
 
   def calculate_best_worst_metrics(player_match, match, team_id)

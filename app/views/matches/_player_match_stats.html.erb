@@ -250,7 +250,7 @@
         <br>
         <!-- Team Stats -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Team Leaders</div>
+              <div class="h5 text-white mb-0">Top 5 Players</div>
               <div style="width: 45%;">
                 <%= select_tag "stats_dropdown", options_for_select(@stats_dropdown_options, @stats_dropdown_options&.first&.last),
                     { class: "form-select form-select-sm", id: "stats_dropdown",
@@ -698,13 +698,57 @@
         return;
       }
 
-      // Sort data by value in descending order
-      const sortedData = data.sort((a, b) => b.value - a.value);
+      // Sort data with tie-breaking: 1) by value (desc), 2) by minutes played (asc), 3) by name (asc)
+      const sortedData = data.sort((a, b) => {
+        // First sort by value (descending - higher is better)
+        if (b.value !== a.value) {
+          return b.value - a.value;
+        }
+        // If values are tied, sort by minutes played (ascending - fewer minutes wins)
+        if (a.minutes_played !== b.minutes_played) {
+          return a.minutes_played - b.minutes_played;
+        }
+        // If still tied, sort alphabetically by name for consistency
+        return a.name.localeCompare(b.name);
+      });
+
+      // Create rankings with proper tie handling
+      let currentRank = 1;
+      let playersWithRanks = [];
+      
+      for (let i = 0; i < Math.min(sortedData.length, 5); i++) {
+        const player = sortedData[i];
+        
+        // Check if this player is tied with the previous player
+        if (i > 0) {
+          const prevPlayer = sortedData[i - 1];
+          if (player.value === prevPlayer.value && player.minutes_played === prevPlayer.minutes_played) {
+            // Same rank as previous player (true tie)
+            playersWithRanks.push({
+              ...player,
+              rank: playersWithRanks[i - 1].rank
+            });
+          } else {
+            // New rank
+            currentRank = i + 1;
+            playersWithRanks.push({
+              ...player,
+              rank: currentRank
+            });
+          }
+        } else {
+          // First player
+          playersWithRanks.push({
+            ...player,
+            rank: 1
+          });
+        }
+      }
 
       // Create a clean list of top players for this stat
       let html = '<div class="stats-list mt-3">';
-      sortedData.slice(0, 5).forEach((player, index) => {
-        const position = index + 1;
+      playersWithRanks.forEach((player, index) => {
+        const position = player.rank;
         const isTop3 = position <= 3;
         const positionClass = isTop3 ? 'text-warning fw-bold' : 'text-secondary';
         const nameClass = isTop3 ? 'text-white fw-bold' : 'text-white';
@@ -714,7 +758,10 @@
           <div class="d-flex justify-content-between align-items-center py-2 px-3 mb-2 rounded border-secondary" style="background: linear-gradient(90deg, rgba(77, 201, 246, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%); border: 1px solid rgba(255, 255, 255, 0.1);">
             <div class="d-flex align-items-center">
               <span class="${positionClass} me-3" style="min-width: 20px; font-size: 0.9rem;">#${position}</span>
-              <span class="${nameClass}" style="font-size: 0.9rem;">${player.name}</span>
+              <div>
+                <span class="${nameClass}" style="font-size: 0.9rem;">${player.name}</span>
+                <div class="text-secondary" style="font-size: 0.75rem;">${player.minutes_played}' played</div>
+              </div>
             </div>
             <span class="${valueClass}" style="font-size: 1rem;">${player.value}</span>
           </div>
