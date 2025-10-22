@@ -78,15 +78,23 @@
         <div class="col-md-6">
           <div class="card chart-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="h5 text-white mb-0">Stats <br>( coming soon...)</div>
+              <div class="h5 text-white mb-0">Stats
+              </div>
               <div class="d-flex align-items-center gap-2">
                 <select id="statsSelector" class="form-select form-select-sm" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
                   <option value="attack">Attack</option>
                   <option value="defense">Defense</option>
-                  <option value="kicking">Kicking</option>
+                  <option value="kicking">Set Pieces</option>
+                  <option value="kicking">And many more...</option>
                 </select>
               </div>
             </div>
+            <br>
+            <br>
+            <br>
+            <p class="text-white">A small sample of stats will be available here for you to view. For a more comprehensive view, please click the button below. <br><br>Thank you for your patience.</p>
+            <br>
+            <br>
             <%# <canvas id="lineChart" width="400" height="400"></canvas> %>
             <br>
              <%= link_to all_stats_player_path(@player),
