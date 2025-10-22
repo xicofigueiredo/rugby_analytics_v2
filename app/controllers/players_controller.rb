@@ -173,6 +173,24 @@ class PlayersController < ApplicationController
 
   def all_stats
     @player = Player.find(params[:id])
+
+    # Calculate all detailed stats using the same method as head_to_head
+    @player_stats = calculate_player_season_stats(@player)
+
+    # Calculate total minutes played for per-minute calculations
+    player_matches = @player.player_matches.where("CAST(time_played AS INTEGER) > 0")
+    @total_minutes = player_matches.sum(:time_played) || 0
+
+    # Calculate per-10-minute rates for each stat
+    @per_10min_stats = {}
+    @player_stats.each do |stat_name, value|
+      if @total_minutes > 0
+        per_10min_rate = (value.to_f / @total_minutes * 10).round(2)
+        @per_10min_stats[stat_name] = per_10min_rate
+      else
+        @per_10min_stats[stat_name] = 0
+      end
+    end
   end
 
   def head_to_head

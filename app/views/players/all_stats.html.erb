@@ -1,6 +1,4 @@
-
-<!-- app/views/players/show_all_stats.html.erb or similar -->
-<div class="container" data-controller="charts">
+<div class="container">
   <div class="mb-3 d-flex justify-content-between align-items-center">
     <h2 class="text-white mb-0"><%= @player.name %> - All Stats</h2>
     <%= link_to profile_path(@player), class: "btn btn-outline-light", data: { turbo: true } do %>
@@ -8,117 +6,135 @@
     <% end %>
   </div>
 
-  <div class="row g-4">
-    <!-- Performance Chart -->
+  <!-- Summary Info -->
+  <div class="row mb-4">
     <div class="col-12">
-      <div class="card chart-card p-4 mb-2">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">All Ratings</div>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-primary active">All</button>
-            <button class="btn btn-outline-light">At home</button>
-            <button class="btn btn-outline-light">Away</button>
+      <div class="card main-card p-4">
+        <div class="row text-center">
+          <div class="col-md-4">
+            <h5 class="text-white mb-1"><%= @total_minutes %></h5>
+            <small class="text-secondary">Total Minutes Played</small>
+          </div>
+          <div class="col-md-4">
+            <h5 class="text-white mb-1"><%= (@player_stats["Time Played"] / 80.0).round(1) rescue 0 %></h5>
+            <small class="text-secondary">Matches Played (80min equiv.)</small>
+          </div>
+          <div class="col-md-4">
+            <h5 class="text-white mb-1"><%= (@total_minutes / 80.0).round(1) rescue 0 %></h5>
+            <small class="text-secondary">Full Games Equivalent</small>
           </div>
         </div>
-        <div style="height: 300px;">
-          <%= line_chart [
-            ["12 Dec", 40], ["17 Dec", 65], ["25 Dec", 75], ["29 Dec", 50],
-            ["4 Jan", 35], ["8 Jan", 60], ["15 Jan", 45], ["29 Jan", 35],
-            ["6 Feb", 40], ["17 Feb", 70], ["24 Feb", 50]
-          ], height: "300px" %>
-        </div>
-      </div>
-    </div>
-
-    <!-- Four Small Charts -->
-    <div class="col-md-6">
-      <div class="card chart-card p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">Tackles</div>
-          <span class="text-secondary">per game</span>
-        </div>
-        <div style="height: 200px;">
-          <%= line_chart [
-            ["Match 1", 80], ["Match 2", 65], ["Match 3", 80], ["Match 4", 75], ["Match 5", 80], ["Match 6", 70]
-          ], height: "200px" %>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card chart-card p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">Tries/Assists</div>
-          <span class="text-secondary">per game</span>
-        </div>
-        <div style="height: 200px;">
-          <%= bar_chart [
-            ["Match 1", 1], ["Match 2", 0], ["Match 3", 2], ["Match 4", 1], ["Match 5", 0], ["Match 6", 1]
-          ], height: "200px" %>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card chart-card p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">Lineout</div>
-          <span class="text-secondary">per game</span>
-        </div>
-        <div style="height: 200px;">
-          <%= line_chart [
-            ["Match 1", 5], ["Match 2", 0], ["Match 3", 10], ["Match 4", 5], ["Match 5", 0], ["Match 6", 5]
-          ], height: "200px" %>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card chart-card p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">Discipline</div>
-          <span class="text-secondary">per game</span>
-        </div>
-        <div style="height: 200px;">
-          <%= column_chart [
-            {name: "Yellow Cards", data: [["Match 1", 0], ["Match 2", 1], ["Match 3", 0], ["Match 4", 0], ["Match 5", 1], ["Match 6", 0]]},
-            {name: "Red Cards", data: [["Match 1", 0], ["Match 2", 0], ["Match 3", 0], ["Match 4", 0], ["Match 5", 0], ["Match 6", 0]]}
-          ], height: "200px" %>
-        </div>
-      </div>
-    </div>
-
-    <!-- General Info Cards -->
-    <div class="col-md-6">
-      <div class="card chart-card p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">Season Stats</div>
-          <span class="text-secondary">2025/2026</span>
-        </div>
-        <ul class="list-unstyled stats-list">
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-clock"></i> Total Tackles</span><span class="stat-value">740</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-bar-chart"></i> Total Carries</span><span class="stat-value">14</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-people"></i> Total Errors</span><span class="stat-value">13</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-trophy"></i> Total Tries</span><span class="stat-value">5</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-exclamation-triangle"></i> Yellow / Red Cards</span><span class="stat-value">2 / 0</span></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card chart-card p-4 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="h5 text-white mb-0">Performance Stats</div>
-          <span class="text-secondary">2025/2026</span>
-        </div>
-        <ul class="list-unstyled stats-list">
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-graph-up"></i> Average Rating</span><span class="stat-value">7.5</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-trophy"></i> Man of the Match</span><span class="stat-value">2</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-flag"></i> Penalties</span><span class="stat-value">3</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-arrow-up-circle"></i> Conversions</span><span class="stat-value">8</span></li>
-          <li class="d-flex justify-content-between align-items-center mb-2"><span><i class="bi bi-shield"></i> Tackles</span><span class="stat-value">45</span></li>
-        </ul>
       </div>
     </div>
   </div>
+
+  <!-- Detailed Stats Tables by Category -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card main-card p-0">
+        <h5 class="text-white mb-3 p-4 pb-0">Detailed Season Statistics <small class="text-secondary">(per 10 minutes)</small></h5>
+        <div class="table-responsive">
+          <%
+            # Define stats organized by category based on Python rating system
+            stats_by_category = {
+              "Attack" => [
+                "Tries", "Assists", "Linebreak", "Linebreak Assists", "Carries With Gain",
+                "Carries Without Gain", "Conversions Made", "Conversions Missed", "Kicks Made",
+                "Kicks Missed", "Drops Made", "Drops Missed", "Mod Game Plus"
+              ],
+              "Defense" => [
+                "Positive Tackles", "Neutral Tackles", "Negative Tackles", "Assist Tackles",
+                "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won", "Aerial Duels Lost"
+              ],
+              "Skills" => [
+                "Offloads Good", "Offloads Bad", "Lineouts w/ Jump", "Lineouts w/o Jump",
+                "Lineout Intros Won", "Lineout Intros Lost", "Scrum Dominant"
+              ],
+              "Discipline" => [
+                "Total Penalties", "Offside Penalties", "Ruck Penalties", "Scrum Penalties",
+                "Other Penalties", "Yellow Cards", "Red Cards", "Knock On", "Other Mistakes"
+              ],
+              "Work Rate" => [
+                "Total Carries", "Total Tackles", "Mod Game Minus"
+              ],
+              "Consistency" => [
+                "Time Played", "Conversions Attempted", "Kicks Attempted", "Drops Attempted",
+                "Lineout Intros Total", "Total Offloads", "Total Aerial Duels", "Total Mod Game"
+              ]
+            }
+
+            # Display each category
+            stats_by_category.each do |category, stats|
+          %>
+            <table class="table table-dark mb-3">
+              <thead class="bg-danger">
+                <tr>
+                  <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
+                </tr>
+                <tr>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Total</th>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Total</th>
+                  <th class="text-white fw-bold px-3 py-2">Stat</th>
+                  <th class="text-white fw-bold px-3 py-2 text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%
+                  # Split all stats into three columns (no filtering)
+                  stats_per_column = (stats.length / 3.0).ceil
+                  stats_column_1 = stats[0, stats_per_column] || []
+                  stats_column_2 = stats[stats_per_column, stats_per_column] || []
+                  stats_column_3 = stats[stats_per_column * 2, stats_per_column] || []
+
+                  # Create rows by combining the three columns
+                  max_rows = [stats_column_1.length, stats_column_2.length, stats_column_3.length].max
+                  (0...max_rows).each do |i|
+                    stat1 = stats_column_1[i]
+                    stat2 = stats_column_2[i]
+                    stat3 = stats_column_3[i]
+                %>
+                  <tr class="border-secondary">
+                    <td class="text-white px-3 py-2">
+                      <%= stat1 || "" %>
+                    </td>
+                    <td class="text-white text-center px-3 py-2">
+                      <% if stat1 %>
+                        <% value = @player_stats[stat1] || 0 %>
+                        <% per_10min = @per_10min_stats[stat1] || 0 %>
+                        <%= value %> <small class="text-secondary">(<%= per_10min %>)</small>
+                      <% end %>
+                    </td>
+                    <td class="text-white px-3 py-2">
+                      <%= stat2 || "" %>
+                    </td>
+                    <td class="text-white text-center px-3 py-2">
+                      <% if stat2 %>
+                        <% value = @player_stats[stat2] || 0 %>
+                        <% per_10min = @per_10min_stats[stat2] || 0 %>
+                        <%= value %> <small class="text-secondary">(<%= per_10min %>)</small>
+                      <% end %>
+                    </td>
+                    <td class="text-white px-3 py-2">
+                      <%= stat3 || "" %>
+                    </td>
+                    <td class="text-white text-center px-3 py-2">
+                      <% if stat3 %>
+                        <% value = @player_stats[stat3] || 0 %>
+                        <% per_10min = @per_10min_stats[stat3] || 0 %>
+                        <%= value %> <small class="text-secondary">(<%= per_10min %>)</small>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
 </div>
