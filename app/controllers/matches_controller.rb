@@ -1188,7 +1188,9 @@ class MatchesController < ApplicationController
 
     # Get best 5 and worst 5
     @best_5_metrics = sorted_metrics.first(5)
-    @worst_5_metrics = sorted_metrics.last(5).reverse
+    # Only include metrics with negative differences in worst metrics (actual poor performance)
+    worst_candidates = sorted_metrics.select { |m| m[:difference] < 0 }
+    @worst_5_metrics = worst_candidates.empty? ? [] : worst_candidates.last(5).reverse
   end
 
   def calculate_tackle_success_rate(player_match)

@@ -222,9 +222,9 @@
                                    rounded_team_avg.to_s
                                  end
 
-                    # Use the already calculated difference from controller (which handles inverse logic)
-                    display_difference = sorting_difference
-                    diff_sign = display_difference > 0 ? "+" : ""
+                    # For worst metrics, show absolute difference with + sign (how much worse)
+                    display_difference = sorting_difference.abs
+                    diff_sign = "+"
 
                     diff_display = case metric[:format]
                                  when :percentage
