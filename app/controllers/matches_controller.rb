@@ -439,8 +439,13 @@ class MatchesController < ApplicationController
 
     Rails.logger.info "CSV file received: #{uploaded_file.original_filename}"
     begin
-      # Read CSV with comma delimiter (default)
-      csv_data = CSV.read(uploaded_file.path, headers: true)
+      # Auto-detect delimiter by reading first line
+      first_line = File.open(uploaded_file.path, &:readline)
+      delimiter = first_line.include?(';') ? ';' : ','
+      Rails.logger.info "Detected CSV delimiter: '#{delimiter}'"
+
+      # Read CSV with detected delimiter
+      csv_data = CSV.read(uploaded_file.path, headers: true, col_sep: delimiter)
       Rails.logger.info "CSV read successfully, rows: #{csv_data.count}"
       process_match_csv(csv_data)
       redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
