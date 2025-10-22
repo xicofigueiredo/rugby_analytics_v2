@@ -111,7 +111,7 @@ class MatchesController < ApplicationController
       "missed_tackles" => (@missed_tackles_top_players || []).map { |pm| { name: pm.player.name, value: pm.missed_tackle || 0, minutes_played: pm.time_played || 0 } }
     }
 
-    Rails.logger.info "Stats data created: #{@stats_data.inspect}"
+    # Rails.logger.info "Stats data created: #{@stats_data.inspect}"
 
     # if current_user.role == "player"
     #   @player = current_user.player
