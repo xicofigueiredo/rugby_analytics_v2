@@ -121,38 +121,17 @@ class PlayersController < ApplicationController
     @group_performance_data = calculate_position_group_performance_per_game(@player)
     @position_group_name = get_position_group_name(@player)
 
-    # Calculate radar chart data - get actual rating values from player matches
+    # Calculate radar chart data - use average ratings across all player matches
     if player_matches.any?
-      # Get the first match with ratings (since you have one game, this will be your game)
-      match_with_ratings = player_matches.where.not(
-        attack_rating: nil,
-        defense_rating: nil,
-        work_rate_rating: nil,
-        discipline_rating: nil,
-        skills_rating: nil,
-        consistency_rating: nil
-      ).first
-
-      if match_with_ratings
-        @overall_data = {
-          "Attack" => match_with_ratings.attack_rating&.round(1) || 5.0,
-          "Defense" => match_with_ratings.defense_rating&.round(1) || 5.0,
-          "Work Rate" => match_with_ratings.work_rate_rating&.round(1) || 5.0,
-          "Discipline" => match_with_ratings.discipline_rating&.round(1) || 5.0,
-          "Skills" => match_with_ratings.skills_rating&.round(1) || 5.0,
-          "Consistency" => match_with_ratings.consistency_rating&.round(1) || 5.0
-        }
-      else
-        # Fallback: use averages if no complete rating set found
-        @overall_data = {
-          "Attack" => player_matches.where.not(attack_rating: nil).average(:attack_rating)&.round(1) || 5.0,
-          "Defense" => player_matches.where.not(defense_rating: nil).average(:defense_rating)&.round(1) || 5.0,
-          "Work Rate" => player_matches.where.not(work_rate_rating: nil).average(:work_rate_rating)&.round(1) || 5.0,
-          "Discipline" => player_matches.where.not(discipline_rating: nil).average(:discipline_rating)&.round(1) || 5.0,
-          "Skills" => player_matches.where.not(skills_rating: nil).average(:skills_rating)&.round(1) || 5.0,
-          "Consistency" => player_matches.where.not(consistency_rating: nil).average(:consistency_rating)&.round(1) || 5.0
-        }
-      end
+      # Always use averages across all matches
+      @overall_data = {
+        "Attack" => player_matches.where.not(attack_rating: nil).average(:attack_rating)&.round(1) || 5.0,
+        "Defense" => player_matches.where.not(defense_rating: nil).average(:defense_rating)&.round(1) || 5.0,
+        "Work Rate" => player_matches.where.not(work_rate_rating: nil).average(:work_rate_rating)&.round(1) || 5.0,
+        "Discipline" => player_matches.where.not(discipline_rating: nil).average(:discipline_rating)&.round(1) || 5.0,
+        "Skills" => player_matches.where.not(skills_rating: nil).average(:skills_rating)&.round(1) || 5.0,
+        "Consistency" => player_matches.where.not(consistency_rating: nil).average(:consistency_rating)&.round(1) || 5.0
+      }
     else
       @overall_data = {
         "Attack" => 5.0,
