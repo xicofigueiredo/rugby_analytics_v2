@@ -168,13 +168,84 @@
       <% end %>
     </div>
 
-    <!-- Combined Radar Chart -->
+    <!-- Combined Radar Chart and Comparison Table -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card main-card p-4">
           <h5 class="text-white mb-3">Skills Radar - Season Average</h5>
-          <div style="height: 400px;">
-            <canvas id="radarChart" width="400" height="400"></canvas>
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div style="height: 400px;">
+                <canvas id="radarChart" width="400" height="400"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6 d-flex align-items-center">
+              <div class="table-responsive w-100">
+                <table class="table table-dark table-sm mb-0">
+                  <thead class="bg-danger">
+                    <tr>
+                      <th class="text-white fw-bold px-2 py-2 small">Category</th>
+                      <th class="text-white fw-bold px-2 py-2 text-center small"><%= @player1.name.split(' ').first %></th>
+                      <th class="text-white fw-bold px-2 py-2 text-center small"><%= @player2.name.split(' ').first %></th>
+                      <% if @player3.present? %>
+                        <th class="text-white fw-bold px-2 py-2 text-center small"><%= @player3.name.split(' ').first %></th>
+                      <% end %>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <%
+                      # Use season average data for comparison
+                      categories_data = [
+                        ["Attack", @player1_season_avg["Attack"], @player2_season_avg["Attack"], @player3.present? ? @player3_season_avg["Attack"] : nil],
+                        ["Defense", @player1_season_avg["Defense"], @player2_season_avg["Defense"], @player3.present? ? @player3_season_avg["Defense"] : nil],
+                        ["Discipline", @player1_season_avg["Discipline"], @player2_season_avg["Discipline"], @player3.present? ? @player3_season_avg["Discipline"] : nil],
+                        ["Work Rate", @player1_season_avg["Work Rate"], @player2_season_avg["Work Rate"], @player3.present? ? @player3_season_avg["Work Rate"] : nil],
+                        ["Skills", @player1_season_avg["Skills"], @player2_season_avg["Skills"], @player3.present? ? @player3_season_avg["Skills"] : nil],
+                        ["Consistency", @player1_season_avg["Consistency"], @player2_season_avg["Consistency"], @player3.present? ? @player3_season_avg["Consistency"] : nil]
+                      ]
+
+                      # Calculate overall averages
+                      player1_overall = ((@player1_season_avg["Attack"] + @player1_season_avg["Defense"] + @player1_season_avg["Discipline"] + @player1_season_avg["Work Rate"] + @player1_season_avg["Skills"] + @player1_season_avg["Consistency"]) / 6.0).round(1)
+                      player2_overall = ((@player2_season_avg["Attack"] + @player2_season_avg["Defense"] + @player2_season_avg["Discipline"] + @player2_season_avg["Work Rate"] + @player2_season_avg["Skills"] + @player2_season_avg["Consistency"]) / 6.0).round(1)
+                      player3_overall = @player3.present? ? ((@player3_season_avg["Attack"] + @player3_season_avg["Defense"] + @player3_season_avg["Discipline"] + @player3_season_avg["Work Rate"] + @player3_season_avg["Skills"] + @player3_season_avg["Consistency"]) / 6.0).round(1) : nil
+
+                      # Add overall rating to categories
+                      categories_data << ["Overall", player1_overall, player2_overall, player3_overall]
+
+                      categories_data.each do |category, player1_value, player2_value, player3_value|
+                        # Find the best performer for highlighting
+                        values = @player3.present? ? [player1_value, player2_value, player3_value] : [player1_value, player2_value]
+                        max_value = values.max
+                        is_overall = category == "Overall"
+                    %>
+                      <tr class="<%= is_overall ? 'border-warning bg-dark' : 'border-secondary' %>">
+                        <td class="<%= is_overall ? 'text-warning fw-bold' : 'text-white' %> px-2 py-2 small"><%= category %></td>
+                        <td class="text-center px-2 py-2">
+                          <span class="text-white fw-bold small <%= 'text-success' if player1_value == max_value %>"><%= player1_value %></span>
+                          <% if player1_value == max_value && values.count(max_value) == 1 %>
+                            <span class="text-success ms-1 small">★</span>
+                          <% end %>
+                        </td>
+                        <td class="text-center px-2 py-2">
+                          <span class="text-white fw-bold small <%= 'text-success' if player2_value == max_value %>"><%= player2_value %></span>
+                          <% if player2_value == max_value && values.count(max_value) == 1 %>
+                            <span class="text-success ms-1 small">★</span>
+                          <% end %>
+                        </td>
+                        <% if @player3.present? %>
+                          <td class="text-center px-2 py-2">
+                            <span class="text-white fw-bold small <%= 'text-success' if player3_value == max_value %>"><%= player3_value %></span>
+                            <% if player3_value == max_value && values.count(max_value) == 1 %>
+                              <span class="text-success ms-1 small">★</span>
+                            <% end %>
+                          </td>
+                        <% end %>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -314,7 +385,7 @@
           labels: ["Attack", "Defense", "Discipline", "Work Rate", "Skills", "Consistency"],
           datasets: [{
             label: "<%= @player1.name %>",
-            data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Skills"] %>, <%= @player1_season_avg["Consistency"] %>, <%= (@player1_season_avg["Attack"] + @player1_season_avg["Defense"]) / 2 %>],
+            data: [<%= @player1_season_avg["Attack"] %>, <%= @player1_season_avg["Defense"] %>, <%= @player1_season_avg["Discipline"] %>, <%= @player1_season_avg["Work Rate"] %>, <%= @player1_season_avg["Skills"] %>, <%= @player1_season_avg["Consistency"] %>],
             fill: true,
             backgroundColor: '#4dc9f67a',
             borderColor: '#4dc9f6',
@@ -322,7 +393,7 @@
           },
           {
             label: "<%= @player2.name %>",
-            data: [<%= @player2_season_avg["Attack"] %>, <%= @player2_season_avg["Defense"] %>, <%= @player2_season_avg["Work Rate"] %>, <%= @player2_season_avg["Discipline"] %>, <%= @player2_season_avg["Skills"] %>, <%= @player2_season_avg["Consistency"] %>, <%= (@player2_season_avg["Attack"] + @player2_season_avg["Defense"]) / 2 %>],
+            data: [<%= @player2_season_avg["Attack"] %>, <%= @player2_season_avg["Defense"] %>, <%= @player2_season_avg["Discipline"] %>, <%= @player2_season_avg["Work Rate"] %>, <%= @player2_season_avg["Skills"] %>, <%= @player2_season_avg["Consistency"] %>],
             fill: true,
             backgroundColor: '#f725857a',
             borderColor: '#f72585',
@@ -330,7 +401,7 @@
           }<% if @player3.present? %>,
           {
             label: "<%= @player3.name %>",
-            data: [<%= @player3_season_avg["Attack"] %>, <%= @player3_season_avg["Defense"] %>, <%= @player3_season_avg["Work Rate"] %>, <%= @player3_season_avg["Discipline"] %>, <%= @player3_season_avg["Skills"] %>, <%= @player3_season_avg["Consistency"] %>, <%= (@player3_season_avg["Attack"] + @player3_season_avg["Defense"]) / 2 %>],
+            data: [<%= @player3_season_avg["Attack"] %>, <%= @player3_season_avg["Defense"] %>, <%= @player3_season_avg["Discipline"] %>, <%= @player3_season_avg["Work Rate"] %>, <%= @player3_season_avg["Skills"] %>, <%= @player3_season_avg["Consistency"] %>],
             fill: true,
             backgroundColor: '#28a7457a',
             borderColor: '#28a745',
