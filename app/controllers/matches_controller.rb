@@ -48,6 +48,16 @@ class MatchesController < ApplicationController
     @starting_players = @players.where(started: true)
     @bench_players = @players.where(started: false)
     @scorer_players = @players.where("try > 0 OR conversion > 0 OR penalty_kick_goal > 0 OR drop_goal > 0")
+
+    # Calculate overall ratings for all players in this match
+    @player_overall_ratings = {}
+    @players.includes(:player).each do |player_match|
+      player = player_match.player
+      ratings = calculate_player_rating_averages(player)
+      overall_rating = (ratings["Attack"] + ratings["Defense"] + ratings["Discipline"] +
+                       ratings["Work Rate"] + ratings["Skills"] + ratings["Consistency"]) / 6.0
+      @player_overall_ratings[player.id] = overall_rating.round(1)
+    end
     # Set player match based on user role and context
     Rails.logger.info "Current user role: #{current_user.role}, player_id: #{current_user.player_id}, team_id: #{current_user.team_id}"
 
@@ -1259,6 +1269,40 @@ class MatchesController < ApplicationController
       (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0)
     end
     (penalties.sum / penalties.count.to_f).round(1)
+  end
+
+  def calculate_player_rating_averages(player)
+    # Get all player matches with ratings
+    player_matches = player.player_matches.where.not(
+      attack_rating: nil,
+      defense_rating: nil,
+      consistency_rating: nil,
+      discipline_rating: nil,
+      skills_rating: nil,
+      work_rate_rating: nil
+    )
+
+    if player_matches.empty?
+      # Return default values if no ratings available
+      return {
+        "Attack" => 5.0,
+        "Defense" => 5.0,
+        "Work Rate" => 5.0,
+        "Discipline" => 5.0,
+        "Skills" => 5.0,
+        "Consistency" => 5.0
+      }
+    end
+
+    # Calculate averages
+    {
+      "Attack" => player_matches.average(:attack_rating)&.round(1) || 5.0,
+      "Defense" => player_matches.average(:defense_rating)&.round(1) || 5.0,
+      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 5.0,
+      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 5.0,
+      "Skills" => player_matches.average(:skills_rating)&.round(1) || 5.0,
+      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 5.0
+    }
   end
 
 end

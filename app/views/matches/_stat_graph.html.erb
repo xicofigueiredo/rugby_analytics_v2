@@ -42,17 +42,19 @@
     <div class="team-column" style="width: 20%;">
 
       <div class="d-flex justify-content-between align-items-center subtopic">
-        <div>STARTING PLAYERS</div>
-        <div>Min</div>
+        <div style="width: 70%;">STARTING PLAYERS</div>
+        <div style="width: 30%; text-align: right;">Min /★</div>
       </div>
       <ul class="player-list text-white">
         <% @starting_players.each do |player| %>
           <li class="player-row d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center" style="width: 80%;">
+            <div class="d-flex align-items-center" style="width: 70%;">
               <span class="player-number me-2"><%= player.position %></span>
               <span class="player-name text-truncate"><%= player.player.name %></span>
             </div>
-            <span class="player-minutes text-end"><%= player.time_played %>'</span>
+            <div class="text-end" style="width: 30%;">
+             <%= player.time_played %>' <span class="text-primary fw-bold"><%= @player_overall_ratings[player.player.id] %></span>
+            </div>
           </li>
         <% end %>
       </ul>
@@ -101,7 +103,7 @@
         <ul class="player-list text-white">
         <% @scorer_players.each do |player| %>
           <li class="player-row d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center" style="width: 80%;">
+            <div class="d-flex align-items-center" style="width: 70%;">
               <span class="player-number me-2"><%= player.player.name %></span>
             </div>
             <span class="player-minutes text-end">
@@ -117,17 +119,19 @@
     <div class="team-column" style="width: 20%;">
 
       <div class="d-flex justify-content-between align-items-center subtopic">
-        <div>FINISHERS</div>
-        <div>Min</div>
+        <div style="width: 70%;">FINISHERS</div>
+        <div style="width: 30%; text-align: right;">Min / ★</div>
       </div>
       <ul class="player-list text-white">
         <% @bench_players.each do |player| %>
           <li class="player-row d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center" style="width: 80%;">
+            <div class="d-flex align-items-center" style="width: 70%;">
               <span class="player-number me-2"><%= player.position %></span>
               <span class="player-name text-truncate"><%= player.player.name %></span>
             </div>
-            <span class="player-minutes text-end"><%= player.time_played %>'</span>
+            <div class="text-end" style="width: 30%;">
+             <%= player.time_played %>' <span class="text-primary fw-bold"><%= @player_overall_ratings[player.player.id] %></span>
+            </div>
           </li>
         <% end %>
       </ul>
@@ -140,7 +144,7 @@
       <ul class="player-list text-white">
         <% @staff.each do |staff| %>
           <li class="player-row d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center" style="width: 80%;">
+            <div class="d-flex align-items-center" style="width: 70%;">
               <span class="player-name text-truncate"><%= staff.name %></span>
             </div>
             <span class="player-minutes text-end"><%= staff.role %></span>
