@@ -57,7 +57,7 @@ def calculate_discipline_rating(df):
     discipline_rating = [max(1, min(10, dr)) for dr in discipline_rating]
 
     # Only return ratings for players with valid minutes (exclude others)
-    return [dr for dr, valid in zip(discipline_rating, valid_players) if valid]
+    return [round(dr, 2) for dr, valid in zip(discipline_rating, valid_players) if valid]
 
 def calculate_defense_rating(df):
     """
@@ -209,7 +209,7 @@ def calculate_defense_rating(df):
     defense_rating = [max(1, min(10, dr)) for dr in defense_rating]
 
     # Only return ratings for players with valid minutes (exclude others)
-    return [dr for dr, valid in zip(defense_rating, valid_players) if valid]
+    return [round(dr, 2) for dr, valid in zip(defense_rating, valid_players) if valid]
 
 def calculate_attack_rating(df):
     """
@@ -403,7 +403,7 @@ def calculate_attack_rating(df):
     attack_rating = [max(1, min(10, ar)) for ar in attack_rating]
 
     # Only return ratings for players with valid minutes (exclude others)
-    return [ar for ar, valid in zip(attack_rating, valid_players) if valid]
+    return [round(ar, 2) for ar, valid in zip(attack_rating, valid_players) if valid]
 
 def calculate_work_rate_rating(df):
     """
@@ -466,7 +466,7 @@ def calculate_work_rate_rating(df):
     # Clamp to 1-10
     work_rate_rating = [max(1, min(10, wrr)) for wrr in work_rate_rating]
 
-    return [wrr for wrr, valid in zip(work_rate_rating, valid_players) if valid]
+    return [round(wrr, 2) for wrr, valid in zip(work_rate_rating, valid_players) if valid]
 
 def calculate_skills_rating(df):
     """
@@ -559,7 +559,7 @@ def calculate_skills_rating(df):
     skills_rating = [max(1, min(10, sr)) for sr in skills_rating]
 
     # Only return ratings for players with valid minutes (exclude others)
-    return [sr for sr, valid in zip(skills_rating, valid_players) if valid]
+    return [round(sr, 2) for sr, valid in zip(skills_rating, valid_players) if valid]
 
 def calculate_consistency_rating(df):
     """
@@ -693,7 +693,7 @@ def calculate_consistency_rating(df):
     #  Only adjust scores outside 1-10 range (don't change scores already in range)
     consistency_rating = [max(1, min(10, cr)) for cr in consistency_rating]
 
-    return [cr for cr, valid in zip(consistency_rating, valid_players) if valid]
+    return [round(cr, 2) for cr, valid in zip(consistency_rating, valid_players) if valid]
 
 def calculate_weighted_overall_rating(df):
     """
@@ -728,7 +728,7 @@ def calculate_weighted_overall_rating(df):
             overall_rating = (attack_ratings[valid_index] * 0.35 + defense_ratings[valid_index] * 0.35 +
                             work_rate_ratings[valid_index] * 0.10 + consistency_ratings[valid_index] * 0.10 +
                             discipline_ratings[valid_index] * 0.05 + skills_ratings[valid_index] * 0.05)
-            overall_ratings.append(overall_rating)
+            overall_ratings.append(round(overall_rating, 2))
             valid_index += 1
         else:
             overall_ratings.append(float('nan'))
@@ -769,13 +769,13 @@ def calculate_player_ratings_from_json(json_data):
         for i, player_idx in enumerate(valid_indices):
             results.append({
                 'player_index': player_idx,
-                'attack_rating': round(attack_ratings[i], 2),
-                'defense_rating': round(defense_ratings[i], 2),
-                'discipline_rating': round(discipline_ratings[i], 2),
-                'work_rate_rating': round(work_rate_ratings[i], 2),
-                'skills_rating': round(skills_ratings[i], 2),
-                'consistency_rating': round(consistency_ratings[i], 2),
-                'overall_rating': round(overall_ratings[player_idx], 2)
+                'attack_rating': attack_ratings[i],
+                'defense_rating': defense_ratings[i],
+                'discipline_rating': discipline_ratings[i],
+                'work_rate_rating': work_rate_ratings[i],
+                'skills_rating': skills_ratings[i],
+                'consistency_rating': consistency_ratings[i],
+                'overall_rating': overall_ratings[player_idx]
             })
 
         return json.dumps(results)

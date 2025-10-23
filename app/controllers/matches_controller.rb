@@ -45,6 +45,7 @@ class MatchesController < ApplicationController
   def show
     @team = current_user.team
     @players = PlayerMatch.where(match_id: @match.id).order(position: :asc)
+    @mvp_player = @players.where(overall_rating: @players.maximum(:overall_rating)).first
     @starting_players = @players.where(started: true)
     @bench_players = @players.where(started: false)
     @scorer_players = @players.where("try > 0 OR conversion > 0 OR penalty_kick_goal > 0 OR drop_goal > 0")
