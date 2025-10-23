@@ -101,7 +101,7 @@ class MatchesController < ApplicationController
       "turnovers" => (@turnovers_top_players || []).map { |pm| { name: pm.player.name, value: pm.turnover || 0, minutes_played: pm.time_played || 0 } },
       "penalties" => (@penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0, minutes_played: pm.player_match.time_played || 0 } },
       "total_penalties" => (@total_penalties_top_players || []).map { |pm| { name: pm.player.name, value: pm.total_penalties || 0, minutes_played: pm.player_match.time_played || 0 } },
-      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.carries || 0, minutes_played: pm.time_played || 0 } },
+      "carries" => (@carries_top_players || []).map { |pm| { name: pm.player.name, value: (pm.carries || 0) + (pm.positive_carry || 0), minutes_played: pm.time_played || 0 } },
       "positive_carries" => (@positive_carries_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_carry || 0, minutes_played: pm.time_played || 0 } },
       "positive_offloads" => (@positive_offloads_top_players || []).map { |pm| { name: pm.player.name, value: pm.positive_offload || 0, minutes_played: pm.time_played || 0 } },
       "offloads_good" => (@offloads_good_top_players || []).map { |pm| { name: pm.player.name, value: pm.offloads_good || 0, minutes_played: pm.player_match.time_played || 0 } },
@@ -1090,7 +1090,7 @@ class MatchesController < ApplicationController
   def calculate_top_players(match)
     @positive_tackles_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_tackle, 0) DESC")).limit(5)
     @turnovers_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(turnover, 0) DESC")).limit(5)
-    @carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(carries, 0) DESC")).limit(5)
+    @carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(carries, 0) + COALESCE(positive_carry, 0) DESC")).limit(5)
     @positive_carries_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_carry, 0) DESC")).limit(5)
     @positive_offloads_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(positive_offload, 0) DESC")).limit(5)
     @linebreaks_top_players = match.player_matches.includes(:player).order(Arel.sql("COALESCE(linebreak, 0) DESC")).limit(5)
