@@ -288,7 +288,7 @@
                     ["Kicks Missed", @player_match&.missed_penalty_kick_goals || 0],
                     ["Drops Made", @player_match&.drop_goal || 0],
                     ["Drops Missed", @player_match&.missed_drop_goals || 0],
-                    ["Mod Game Plus", @player_match&.mod_game_plus || 0]
+                    ["Game Model +", @player_match&.mod_game_plus || 0]
                   ],
                   "Defense" => [
                     ["Positive Tackles", @player_match&.positive_tackle || 0],
@@ -324,7 +324,7 @@
                   "Work Rate" => [
                     ["Total Carries", (@player_match&.positive_carry || 0) + (@player_match&.carries || 0)],
                     ["Total Tackles", (@player_match&.positive_tackle || 0) + (@player_match&.neutral_tackle || 0) + (@player_match&.negative_tackle || 0) + (@player_match&.assist_tackle || 0)],
-                    ["Mod Game Minus", @player_match&.mod_game_minus || 0]
+                    ["Game Model -", @player_match&.mod_game_minus || 0]
                   ],
                   "Consistency" => [
                     ["Time Played", @player_match&.time_played || 0],
@@ -606,7 +606,7 @@
         // Work Rate stats
         'Total Carries': playerMatch.positive_carry + playerMatch.carries,
         'Total Tackles': playerMatch.positive_tackle + playerMatch.neutral_tackle + playerMatch.negative_tackle + playerMatch.assist_tackle,
-        'Mod Game Minus': playerMatch.mod_game_minus,
+        'Game Model -': playerMatch.mod_game_minus,
         // Consistency stats
         'Time Played': playerMatch.time_played,
         'Conversions Attempted': playerMatch.conversion + playerMatch.missed_conversion,
