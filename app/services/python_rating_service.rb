@@ -38,7 +38,7 @@ class PythonRatingService
 
         # Carry stats
         carries_with_gain: pm.positive_carry || 0,
-        carries_without_gain: (pm.carries || 0) - (pm.positive_carry || 0),
+        carries_without_gain: (pm.carries || 0),
 
         # Other attacking stats
         linebreak: pm.linebreak || 0,
