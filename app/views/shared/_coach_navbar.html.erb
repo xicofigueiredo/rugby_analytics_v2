@@ -40,9 +40,11 @@
       <ul class="navbar-nav">
         <% if user_signed_in? %>
           <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <%= current_user.name %>
             </a>
             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-              <%= link_to root_path, class: "dropdown-item" do %>
+              <%= link_to profile_path, class: "dropdown-item" do %>
                 <i class="fa fa-user"></i> Profile
               <% end %>
               <%= link_to root_path, class: "dropdown-item" do %>
@@ -51,27 +53,10 @@
               <%= link_to root_path, class: "dropdown-item" do %>
                 <i class="fa-solid fa-rotate"></i> Password
               <% end %>
-              <%= link_to root_path, class: "dropdown-item", data: {turbo_method: :delete} do %>
+              <%= link_to destroy_user_session_path, class: "dropdown-item", data: {turbo_method: :delete} do %>
                 <i class="fa fa-sign-out"></i> Logout
               <% end %>
             </div>
-          </li>
-          <li class="nav-item">
-            <%= link_to profile_path, class: "nav-link text-white" do %>
-              <%= current_user.name %>
-            <% end %>
-          </li>
-          <li class="nav-item">
-            <%= button_to destroy_user_session_path,
-                method: :delete,
-                class: "btn btn-outline-light ms-2",
-                data: {
-                  bs_toggle: "tooltip",
-                  bs_placement: "bottom",
-                  bs_title: "Sign Out"
-                } do %>
-              <i class="fas fa-sign-out-alt"></i>
-            <% end %>
           </li>
         <% else %>
           <li class="nav-item">

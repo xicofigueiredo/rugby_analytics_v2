@@ -4,14 +4,14 @@
       <h2 class="mb-0">Matches</h2>
       <%= form_tag matches_path,
           method: :get,
-          class: "d-flex gap-2",
+          class: "d-flex flex-wrap gap-2",
           data: { turbo_frame: "matches-table" } do %>
         <% if @role == 'admin' %>
           <%= select_tag :team_id,
               options_from_collection_for_select(Team.all, :id, :name, params[:team_id]),
               prompt: "All Teams",
               class: "form-select form-select-sm",
-              style: "background-color: #23263a; color: white; border-color: white;",
+              style: "background-color: #23263a; color: white; border-color: white; min-width: 120px;",
               onchange: "this.form.submit()"
           %>
         <% end %>
@@ -23,14 +23,14 @@
             ], params[:month]),
             prompt: "All Months",
             class: "form-select form-select-sm",
-            style: "background-color: #23263a; color: white; border-color: white;",
+            style: "background-color: #23263a; color: white; border-color: white; min-width: 120px;",
             onchange: "this.form.submit()"
         %>
         <%= select_tag :season,
             options_for_select(Match.distinct.pluck(:season).sort.reverse, params[:season]),
             prompt: "All Seasons",
             class: "form-select form-select-sm",
-            style: "background-color: #23263a; color: white; border-color: white;",
+            style: "background-color: #23263a; color: white; border-color: white; min-width: 120px;",
             onchange: "this.form.submit()"
         %>
         <%= hidden_field_tag :sort_direction, @sort_direction %>
@@ -55,7 +55,8 @@
     <%= turbo_frame_tag "matches-table" do %>
       <div class="card-body" style="background-color: #23263a;">
         <% if @matches.any? %>
-          <div class="table-responsive">
+          <!-- Desktop Table -->
+          <div class="table-responsive d-none d-md-block">
             <table class="table table-hover table-dark-custom">
               <thead>
                 <tr>
@@ -81,8 +82,8 @@
               </thead>
               <tbody>
                 <% @matches.each do |match| %>
-                  <tr style="cursor: pointer;"
-                      onclick="window.location.href='<%= match_path(match) %>'">
+                  <tr class="match-row" style="cursor: pointer;"
+                      onclick="handleMatchClick(this, '<%= match_path(match) %>')">
                     <td class="text-start"><%= match.date.strftime("%B %d") %></td>
                     <td class="text-center">
                       <span class="badge" style="background-color: <%= match.home_team.main_color %>;">
@@ -134,6 +135,68 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Mobile Cards -->
+          <div class="d-md-none">
+            <% @matches.each do |match| %>
+              <div class="card mb-3 match-card" style="background-color: #23263a; border: 1px solid #35395a; cursor: pointer;" onclick="handleMatchClick(this, '<%= match_path(match) %>')">
+                <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-white mb-0"><%= match.date.strftime("%B %d, %Y") %></h6>
+                    <span class="badge bg-secondary"><%= match.competition %></span>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-center flex-fill">
+                      <span class="badge d-block mb-1" style="background-color: <%= match.home_team.main_color %>;">
+                        <%= match.home_team&.name || 'Not assigned' %>
+                      </span>
+                    </div>
+
+                    <div class="text-center mx-3">
+                      <% if @current_team.present? %>
+                        <% if match.result.present? %>
+                          <% if match.home_team_id == @current_team.id || match.away_team_id == @current_team.id %>
+                            <% if match.result.split('-').first.to_i == match.result.split('-').last.to_i %>
+                              <span class="badge" style="background-color:rgb(161, 161, 42);">
+                                <%= match.result %>
+                              </span>
+                            <% elsif match.home_team_id == @current_team.id %>
+                              <span class="badge" style="background-color:<%= match.result.split('-').first.to_i > match.result.split('-').last.to_i ? 'green' : 'red' %>">
+                                <%= match.result %>
+                              </span>
+                            <% else %>
+                              <span class="badge" style="background-color:<%= match.result.split('-').first.to_i < match.result.split('-').last.to_i ? 'green' : 'red' %>">
+                                <%= match.result %>
+                              </span>
+                            <% end %>
+                          <% else %>
+                            <span class="badge" style="background-color:gray">
+                              <%= match.result %>
+                            </span>
+                          <% end %>
+                        <% else %>
+                          <span class="text-muted">-</span>
+                        <% end %>
+                      <% else %>
+                        <% if match.result.present? %>
+                          <span class="badge bg-secondary"><%= match.result %></span>
+                        <% else %>
+                          <span class="text-muted">-</span>
+                        <% end %>
+                      <% end %>
+                    </div>
+
+                    <div class="text-center flex-fill">
+                      <span class="badge d-block mb-1" style="background-color: <%= match.away_team.main_color %>;">
+                        <%= match.away_team&.name || 'Not assigned' %>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
         <% else %>
           <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>No matches found.
@@ -176,3 +239,117 @@
     </div>
   </div>
 </div>
+
+<style>
+/* Match row click animations */
+.match-row {
+  transition: all 0.2s ease;
+}
+
+.match-row:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.match-row:active {
+  transform: scale(0.98);
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.match-card {
+  transition: all 0.2s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-color: #4dc9f6 !important;
+}
+
+.match-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Click animation classes */
+.click-animation {
+  animation: clickPulse 0.3s ease;
+}
+
+@keyframes clickPulse {
+  0% {
+    transform: scale(1);
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    transform: scale(0.95);
+    background-color: rgba(77, 201, 246, 0.2);
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Loading state */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #4dc9f6;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+function handleMatchClick(element, url) {
+  // Add click animation
+  element.classList.add('click-animation');
+
+  // Add loading state
+  element.classList.add('loading');
+
+  // Remove animation class after animation completes
+  setTimeout(() => {
+    element.classList.remove('click-animation');
+  }, 300);
+
+  // Navigate after a short delay to show the animation
+  setTimeout(() => {
+    window.location.href = url;
+  }, 150);
+}
+
+// Add hover effects for better UX
+document.addEventListener('DOMContentLoaded', function() {
+  const matchRows = document.querySelectorAll('.match-row, .match-card');
+
+  matchRows.forEach(row => {
+    // Add touch feedback for mobile
+    row.addEventListener('touchstart', function() {
+      this.style.transform = 'scale(0.98)';
+    });
+
+    row.addEventListener('touchend', function() {
+      this.style.transform = '';
+    });
+  });
+});
+</script>

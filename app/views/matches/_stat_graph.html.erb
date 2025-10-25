@@ -1,10 +1,8 @@
 <div class="match-stats-container">
   <!-- Stats Sections for mobile - will show side by side -->
   <div class="stats-mobile-container d-md-none">
-    <!-- General Stats Section -->
-
     <!-- Set Pieces Stats Section -->
-    <div class="stats-section mb-4" style="width: 50%;">
+    <div class="stats-section mb-4" style="width: 100%;">
       <h6 class="text-white text-center mb-3" style="font-size: 1.2em;">SET PIECES</h6>
       <% @setpiece_stats.each do |stat| %>
         <div class="row">
@@ -21,9 +19,9 @@
               <span style="font-size: 0.8em; color: #aaa;">(<%= stat[:home_detail] %>)</span>
             <% end %>
           </div>
-          <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 300px; background:rgba(0, 30, 41, 0.31)">
-            <div class="stat-bar stat-bar-home" style="width: <%= stat[:home].to_f %>%;"></div>
-            <div class="stat-bar stat-bar-away" style="width: <%= stat[:away].to_f %>%;"></div>
+          <div class="stat-bar-center d-flex align-items-center justify-content-center" style="width: 100%; min-width: 200px; background:rgba(0, 30, 41, 0.31)">
+            <div class="stat-bar stat-bar-home" style="width: <%= stat[:bar_home] || stat[:home] %>%;"></div>
+            <div class="stat-bar stat-bar-away" style="width: <%= stat[:bar_away] || stat[:away] %>%;"></div>
           </div>
           <div class="stat-value ps-2" style="width: 60px; color: #fff;">
             <%= stat[:percent] ? "#{stat[:away]}%" : stat[:away] %>
@@ -33,6 +31,23 @@
           </div>
         </div>
       <% end %>
+    </div>
+
+    <!-- Points Scorers Section for Mobile -->
+    <div class="stats-section mb-4" style="width: 100%;">
+      <h6 class="text-white text-center mb-3" style="font-size: 1.2em;">POINTS SCORERS</h6>
+      <ul class="player-list text-white">
+        <% @scorer_players.each do |player| %>
+          <li class="player-row d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center" style="width: 70%;">
+              <span class="player-number me-2"><%= player.player.name %></span>
+            </div>
+            <span class="player-minutes text-end">
+              <%= player.try.to_i * 5 + player.conversion.to_i * 2 + player.penalty_kick_goal.to_i * 3 + player.drop_goal.to_i * 3 %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
     </div>
   </div>
 
@@ -65,9 +80,6 @@
 
     <!-- Stats Column (Middle) - hidden on mobile -->
     <div class="stats d-none d-md-block" style="width: 40%;">
-      <!-- General Stats Section -->
-
-
       <!-- Set Pieces Stats Section -->
       <div class="stats-section">
         <br>
@@ -282,35 +294,46 @@ h6 {
 /* Mobile specific styles */
 @media (max-width: 768px) {
   .match-stats-container {
-    padding: 1rem;
+    padding: 0.5rem;
   }
 
   .stats-mobile-container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 
   .team-column {
-    width: 50% !important;
-    font-size: 0.9em;
+    width: 100% !important;
+    font-size: 0.85em;
+    margin-bottom: 1rem;
   }
 
   .player-row {
-    font-size: 0.9em;
+    font-size: 0.85em;
+    padding: 0.25rem 0;
   }
 
   .stat-bar-center {
-    min-width: 100px !important;
+    min-width: 150px !important;
+    max-width: 200px;
   }
 
   .stat-value {
-    min-width: 30px;
-    font-size: 0.9em;
+    min-width: 25px;
+    font-size: 0.8em;
   }
 
   .stat-label {
+    font-size: 0.75em;
+  }
+
+  .player-name {
+    font-size: 0.8em;
+  }
+
+  .player-number {
     font-size: 0.8em;
   }
 }
@@ -343,6 +366,16 @@ h6 {
 
   .player-minutes {
     margin-left: 4px !important;
+  }
+
+  .stat-bar-center {
+    min-width: 120px !important;
+    max-width: 150px;
+  }
+
+  .stat-value {
+    min-width: 20px;
+    font-size: 0.75em;
   }
 }
 </style>
