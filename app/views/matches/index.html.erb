@@ -2,10 +2,11 @@
   <div class="card main-card">
     <div class="card-header text-danger d-flex justify-content-between align-items-center" style="background-color: #23263a;">
       <h2 class="mb-0">Matches</h2>
-      <%= form_tag matches_path,
-          method: :get,
-          class: "d-flex flex-wrap gap-2",
-          data: { turbo_frame: "matches-table" } do %>
+      <div class="d-flex align-items-center gap-3">
+        <%= form_tag matches_path,
+            method: :get,
+            class: "d-flex gap-2",
+            data: { turbo_frame: "matches-table" } do %>
         <% if @role == 'admin' %>
           <%= select_tag :team_id,
               options_from_collection_for_select(Team.all, :id, :name, params[:team_id]),
@@ -33,23 +34,17 @@
             style: "background-color: #23263a; color: white; border-color: white; min-width: 120px;",
             onchange: "this.form.submit()"
         %>
-        <%= hidden_field_tag :sort_direction, @sort_direction %>
-      <% end %>
-      <% if @role == 'admin' || @role == 'coach' %>
-        <div class="d-flex justify-content-end gap-2 p-3" style="background-color: #23263a;">
+          <%= hidden_field_tag :sort_direction, @sort_direction %>
+        <% end %>
+        <% if @role == 'admin' || @role == 'coach' %>
           <!-- CSV Upload Button -->
           <%= button_tag class: "btn btn-outline-warning",
                          type: "button",
                          data: { bs_toggle: "modal", bs_target: "#uploadModal" } do %>
             <i class="fas fa-upload me-1"></i> Upload Match
           <% end %>
-
-          <%# <%= link_to new_match_path,
-              class: "btn btn-outline-light" do %>
-            <%# <i class="fas fa-plus me-1"></i> Add Match
-          <% end %>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
     </div>
 
     <%= turbo_frame_tag "matches-table" do %>
