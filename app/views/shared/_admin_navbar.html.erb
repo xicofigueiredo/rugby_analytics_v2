@@ -33,7 +33,7 @@
           </li>
           <li class="nav-item">
             <%= link_to team_profile_path, class: "nav-link text-white #{'active' if controller.class.name.start_with?('Teams') && action_name == 'team_profile'}" do %>
-              Team Profile
+              My Team
             <% end %>
           </li>
           <li class="nav-item">
@@ -47,54 +47,15 @@
               H2H
             <% end %>
           </li>
-        <% end %>
-      </ul>
-
-      <ul class="navbar-nav me-3">
-        <% if user_signed_in? %>
-          <li class="nav-item dropdown">
-            </a>
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-              <%= link_to root_path, class: "dropdown-item" do %>
-                <i class="fa fa-user"></i> Profile
-              <% end %>
-              <%= link_to root_path, class: "dropdown-item" do %>
-                <i class="fa-regular fa-circle-question"></i> About
-              <% end %>
-              <%= link_to root_path, class: "dropdown-item" do %>
-                <i class="fa-solid fa-rotate"></i> Password
-              <% end %>
-              <%= link_to root_path, class: "dropdown-item", data: {turbo_method: :delete} do %>
-                <i class="fa fa-sign-out"></i> Logout
-              <% end %>
-            </div>
-          </li>
           <li class="nav-item">
-            <%= link_to profile_path, class: "nav-link text-white" do %>
-              <%= current_user.name %>
-            <% end %>
-          </li>
-          <li class="nav-item">
-            <%= button_to destroy_user_session_path,
-                method: :delete,
-                class: "btn btn-outline-light ms-2",
-                data: {
-                  bs_toggle: "tooltip",
-                  bs_placement: "bottom",
-                  bs_title: "Sign Out"
-                } do %>
-              <i class="fas fa-sign-out-alt"></i>
+            <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light ms-3" do %>
+              <i class="fas fa-sign-out-alt me-1"></i>
             <% end %>
           </li>
         <% else %>
           <li class="nav-item">
-            <%= link_to new_user_session_path, class: "nav-link text-white" do %>
+            <%= link_to new_user_session_path, class: "btn btn-outline-light" do %>
               <i class="fas fa-sign-in-alt me-1"></i> Sign In
-            <% end %>
-          </li>
-          <li class="nav-item">
-            <%= link_to new_user_registration_path, class: "nav-link text-white" do %>
-              <i class="fas fa-user-plus me-1"></i> Sign Up
             <% end %>
           </li>
         <% end %>

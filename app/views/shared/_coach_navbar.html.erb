@@ -24,7 +24,7 @@
           <li class="nav-item">
             <%= link_to team_profile_path,
                 class: "nav-link text-white #{'active' if controller.class.name.start_with?('Teams') && action_name == 'team_profile'}" do %>
-              Team Profile
+              My Team
             <% end %>
           </li>
           <li class="nav-item">
@@ -34,25 +34,15 @@
               H2H
             <% end %>
           </li>
-        <% end %>
-      </ul>
-
-      <ul class="navbar-nav me-3">
-        <% if user_signed_in? %>
           <li class="nav-item">
-            <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-link nav-link text-white p-0 border-0 bg-transparent" do %>
-              <i class="fa fa-sign-out"></i> <%= current_user.name %>
+            <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light ms-3" do %>
+              <i class="fas fa-sign-out-alt me-1"></i>
             <% end %>
           </li>
         <% else %>
           <li class="nav-item">
-            <%= link_to new_user_session_path, class: "nav-link text-white" do %>
+            <%= link_to new_user_session_path, class: "btn btn-outline-light" do %>
               <i class="fas fa-sign-in-alt me-1"></i> Sign In
-            <% end %>
-          </li>
-          <li class="nav-item">
-            <%= link_to new_user_registration_path, class: "nav-link text-white" do %>
-              <i class="fas fa-user-plus me-1"></i> Sign Up
             <% end %>
           </li>
         <% end %>
