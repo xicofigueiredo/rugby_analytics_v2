@@ -37,7 +37,81 @@
     <div class="col-12">
       <div class="card main-card p-0">
         <h5 class="text-white mb-3 p-4 pb-0">Detailed Team Statistics <small class="text-secondary">(season totals)</small></h5>
-        <div class="table-responsive">
+        <div class="d-none d-lg-block">
+          <div class="table-responsive">
+            <%
+              # Define stats organized by category based on Python rating system
+              stats_by_category = {
+                "Attack" => [
+                  "Tries", "Assists", "Linebreak", "Linebreak Assists", "Carries With Gain",
+                  "Carries Without Gain", "Conversions Made", "Conversions Missed", "Kicks Made",
+                  "Kicks Missed", "Drops Made", "Drops Missed", "Game Model +"
+                ],
+                "Defense" => [
+                  "Positive Tackles", "Neutral Tackles", "Negative Tackles", "Assist Tackles",
+                  "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won", "Aerial Duels Lost"
+                ],
+                "Skills" => [
+                  "Offloads Good", "Offloads Bad", "Lineouts w/ Jump", "Lineouts w/o Jump",
+                  "Lineout Intros Won", "Lineout Intros Lost", "Scrum Dominant"
+                ],
+                "Discipline" => [
+                  "Total Penalties", "Offside Penalties", "Ruck Penalties", "Scrum Penalties",
+                  "Other Penalties", "Yellow Cards", "Red Cards", "Knock On", "Other Mistakes"
+                ],
+                "Work Rate" => [
+                  "Total Carries", "Total Tackles", "Game Model -"
+                ],
+                "Consistency" => [
+                  "Time Played", "Conversions Attempted", "Kicks Attempted", "Drops Attempted",
+                  "Lineout Intros Total", "Total Offloads", "Total Aerial Duels", "Total Mod Game"
+                ]
+              }
+
+              # Display each category
+              stats_by_category.each do |category, stats|
+            %>
+              <table class="table table-dark mb-3">
+                <thead class="bg-danger">
+                  <tr>
+                    <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
+                  </tr>
+                  <tr>
+                    <th class="text-white fw-bold px-3 py-2">Stat</th>
+                    <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
+                    <th class="text-white fw-bold px-3 py-2">Stat</th>
+                    <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
+                    <th class="text-white fw-bold px-3 py-2">Stat</th>
+                    <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <%
+                    # Group stats into rows of 3
+                    stats.each_slice(3) do |stat_group|
+                  %>
+                    <tr>
+                      <% stat_group.each do |stat_name| %>
+                        <td class="px-3 py-2 text-white"><%= stat_name %></td>
+                        <td class="px-3 py-2 text-center text-white fw-bold">
+                          <%= @team_stats[stat_name] || 0 %>
+                        </td>
+                      <% end %>
+                      <% # Fill remaining cells if less than 3 stats in group
+                         (3 - stat_group.length).times do %>
+                        <td class="px-3 py-2"></td>
+                        <td class="px-3 py-2"></td>
+                      <% end %>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Mobile-friendly card layout -->
+        <div class="d-lg-none">
           <%
             # Define stats organized by category based on Python rating system
             stats_by_category = {
@@ -70,41 +144,19 @@
             # Display each category
             stats_by_category.each do |category, stats|
           %>
-            <table class="table table-dark mb-3">
-              <thead class="bg-danger">
-                <tr>
-                  <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
-                </tr>
-                <tr>
-                  <th class="text-white fw-bold px-3 py-2">Stat</th>
-                  <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
-                  <th class="text-white fw-bold px-3 py-2">Stat</th>
-                  <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
-                  <th class="text-white fw-bold px-3 py-2">Stat</th>
-                  <th class="text-white fw-bold px-3 py-2 text-center">Season Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%
-                  # Group stats into rows of 3
-                  stats.each_slice(3) do |stat_group|
-                %>
-                  <tr>
-                    <% stat_group.each do |stat_name| %>
-                      <td class="px-3 py-2 text-white"><%= stat_name %></td>
-                      <td class="px-3 py-2 text-center text-white fw-bold">
-                        <%= @team_stats[stat_name] || 0 %>
-                      </td>
-                    <% end %>
-                    <% # Fill remaining cells if less than 3 stats in group
-                       (3 - stat_group.length).times do %>
-                      <td class="px-3 py-2"></td>
-                      <td class="px-3 py-2"></td>
-                    <% end %>
-                  </tr>
+            <div class="mobile-category mb-4">
+              <h6 class="text-white bg-danger p-3 mb-0 text-center"><%= category %></h6>
+              <div class="row g-2 p-3">
+                <% stats.each do |stat_name| %>
+                  <div class="col-6">
+                    <div class="mobile-stat-card">
+                      <div class="stat-name"><%= stat_name %></div>
+                      <div class="stat-value"><%= @team_stats[stat_name] || 0 %></div>
+                    </div>
+                  </div>
                 <% end %>
-              </tbody>
-            </table>
+              </div>
+            </div>
           <% end %>
         </div>
       </div>
@@ -116,7 +168,81 @@
     <div class="col-12">
       <div class="card main-card p-0">
         <h5 class="text-white mb-3 p-4 pb-0">Team Performance Rates <small class="text-secondary">(per 10 minutes)</small></h5>
-        <div class="table-responsive">
+        <div class="d-none d-lg-block">
+          <div class="table-responsive">
+            <%
+              # Define stats organized by category for per-10-minute rates
+              per_10min_stats_by_category = {
+                "Attack" => [
+                  "Tries", "Assists", "Linebreak", "Linebreak Assists", "Carries With Gain",
+                  "Carries Without Gain", "Conversions Made", "Conversions Missed", "Kicks Made",
+                  "Kicks Missed", "Drops Made", "Drops Missed", "Game Model +"
+                ],
+                "Defense" => [
+                  "Positive Tackles", "Neutral Tackles", "Negative Tackles", "Assist Tackles",
+                  "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won", "Aerial Duels Lost"
+                ],
+                "Skills" => [
+                  "Offloads Good", "Offloads Bad", "Lineouts w/ Jump", "Lineouts w/o Jump",
+                  "Lineout Intros Won", "Lineout Intros Lost", "Scrum Dominant"
+                ],
+                "Discipline" => [
+                  "Total Penalties", "Offside Penalties", "Ruck Penalties", "Scrum Penalties",
+                  "Other Penalties", "Yellow Cards", "Red Cards", "Knock On", "Other Mistakes"
+                ],
+                "Work Rate" => [
+                  "Total Carries", "Total Tackles", "Game Model -"
+                ],
+                "Consistency" => [
+                  "Time Played", "Conversions Attempted", "Kicks Attempted", "Drops Attempted",
+                  "Lineout Intros Total", "Total Offloads", "Total Aerial Duels", "Total Mod Game"
+                ]
+              }
+
+              # Display each category for per-10-minute rates
+              per_10min_stats_by_category.each do |category, stats|
+            %>
+              <table class="table table-dark mb-3">
+                <thead class="bg-success">
+                  <tr>
+                    <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %> (Per 10 Minutes)</th>
+                  </tr>
+                  <tr>
+                    <th class="text-white fw-bold px-3 py-2">Stat</th>
+                    <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
+                    <th class="text-white fw-bold px-3 py-2">Stat</th>
+                    <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
+                    <th class="text-white fw-bold px-3 py-2">Stat</th>
+                    <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <%
+                    # Group stats into rows of 3
+                    stats.each_slice(3) do |stat_group|
+                  %>
+                    <tr>
+                      <% stat_group.each do |stat_name| %>
+                        <td class="px-3 py-2 text-white"><%= stat_name %></td>
+                        <td class="px-3 py-2 text-center text-white fw-bold">
+                          <%= @per_10min_stats[stat_name] || 0 %>
+                        </td>
+                      <% end %>
+                      <% # Fill remaining cells if less than 3 stats in group
+                         (3 - stat_group.length).times do %>
+                        <td class="px-3 py-2"></td>
+                        <td class="px-3 py-2"></td>
+                      <% end %>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Mobile-friendly card layout for per 10 minutes -->
+        <div class="d-lg-none">
           <%
             # Define stats organized by category for per-10-minute rates
             per_10min_stats_by_category = {
@@ -149,41 +275,19 @@
             # Display each category for per-10-minute rates
             per_10min_stats_by_category.each do |category, stats|
           %>
-            <table class="table table-dark mb-3">
-              <thead class="bg-success">
-                <tr>
-                  <th colspan="6" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %> (Per 10 Minutes)</th>
-                </tr>
-                <tr>
-                  <th class="text-white fw-bold px-3 py-2">Stat</th>
-                  <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
-                  <th class="text-white fw-bold px-3 py-2">Stat</th>
-                  <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
-                  <th class="text-white fw-bold px-3 py-2">Stat</th>
-                  <th class="text-white fw-bold px-3 py-2 text-center">Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%
-                  # Group stats into rows of 3
-                  stats.each_slice(3) do |stat_group|
-                %>
-                  <tr>
-                    <% stat_group.each do |stat_name| %>
-                      <td class="px-3 py-2 text-white"><%= stat_name %></td>
-                      <td class="px-3 py-2 text-center text-white fw-bold">
-                        <%= @per_10min_stats[stat_name] || 0 %>
-                      </td>
-                    <% end %>
-                    <% # Fill remaining cells if less than 3 stats in group
-                       (3 - stat_group.length).times do %>
-                      <td class="px-3 py-2"></td>
-                      <td class="px-3 py-2"></td>
-                    <% end %>
-                  </tr>
+            <div class="mobile-category mb-4">
+              <h6 class="text-white bg-success p-3 mb-0 text-center"><%= category %> (Per 10 Minutes)</h6>
+              <div class="row g-2 p-3">
+                <% stats.each do |stat_name| %>
+                  <div class="col-6">
+                    <div class="mobile-stat-card">
+                      <div class="stat-name"><%= stat_name %></div>
+                      <div class="stat-value"><%= @per_10min_stats[stat_name] || 0 %></div>
+                    </div>
+                  </div>
                 <% end %>
-              </tbody>
-            </table>
+              </div>
+            </div>
           <% end %>
         </div>
       </div>
@@ -218,5 +322,52 @@
 
   .bg-success {
     background-color: #198754 !important;
+  }
+
+  /* Mobile-specific styles */
+  .mobile-category {
+    border: 1px solid #3a3f5c;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .mobile-stat-card {
+    background-color: #2a2d47;
+    border: 1px solid #3a3f5c;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .stat-name {
+    font-size: 0.8rem;
+    color: #adb5bd;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 576px) {
+    .mobile-stat-card {
+      padding: 8px;
+    }
+
+    .stat-name {
+      font-size: 0.75rem;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+    }
   }
 </style>

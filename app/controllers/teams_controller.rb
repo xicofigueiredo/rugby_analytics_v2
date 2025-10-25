@@ -209,7 +209,7 @@ class TeamsController < ApplicationController
 
   def calculate_team_performance(player_matches)
     # Get team performance data by averaging player ratings per game
-    performance_data = {}
+    performance_data = []
 
     @team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
       # Get all player matches for this team in this match with ratings
@@ -229,7 +229,7 @@ class TeamsController < ApplicationController
           opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
           match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
           match_key = "#{opponent_team.name} (#{match_date})"
-          performance_data[match_key] = average_rating
+          performance_data << [match_key, average_rating]
         end
       end
     end
@@ -239,7 +239,7 @@ class TeamsController < ApplicationController
 
   def calculate_forwards_performance(players)
     # Calculate forwards performance data for each match
-    performance_data = {}
+    performance_data = []
     forward_positions = ["Loosehead Prop", "Hooker", "Tighthead Prop", "Lock", "Flanker", "Number 8"]
 
     @team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
@@ -259,7 +259,7 @@ class TeamsController < ApplicationController
           opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
           match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
           match_key = "#{opponent_team.name} (#{match_date})"
-          performance_data[match_key] = average_rating
+          performance_data << [match_key, average_rating]
         end
       end
     end
@@ -269,7 +269,7 @@ class TeamsController < ApplicationController
 
   def calculate_backs_performance(players)
     # Calculate backs performance data for each match
-    performance_data = {}
+    performance_data = []
     back_positions = ["Scrum-half", "Fly-half", "Wing", "Centre", "Full-back"]
 
     @team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
@@ -289,7 +289,7 @@ class TeamsController < ApplicationController
           opponent_team = match.home_team_id == @team.id ? match.away_team : match.home_team
           match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
           match_key = "#{opponent_team.name} (#{match_date})"
-          performance_data[match_key] = average_rating
+          performance_data << [match_key, average_rating]
         end
       end
     end
