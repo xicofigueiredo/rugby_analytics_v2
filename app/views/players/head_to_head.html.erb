@@ -56,74 +56,74 @@
 
   <% if @player1 && @player2 %>
     <!-- Player Cards -->
-    <div class="row mb-4">
+    <div class="row mb-4 g-1">
       <div class="<%= @player3.present? ? 'col-md-4' : 'col-md-6' %>">
-        <div class="card main-card p-4">
-          <div class="d-flex align-items-center mb-3">
-            <div class="me-3">
+        <div class="card main-card p-2">
+          <div class="d-flex align-items-center mb-1">
+            <div class="me-1">
               <% if @player1.id == 1 %>
-                <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player1.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player1.name %>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
               <% elsif @player1.id == 2 %>
-                <img src="<%= asset_path('puto.png') %>" alt="<%= @player1.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <img src="<%= asset_path('puto.png') %>" alt="<%= @player1.name %>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
               <% else %>
-                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                   <i class="fas fa-user text-white"></i>
                 </div>
               <% end %>
             </div>
             <div>
-              <h5 class="text-white mb-1"><%= @player1.name %></h5>
-              <small class="text-white"><%= @player1.positions.join(", ") %></small>
+              <h6 class="text-white mb-0" style="font-size: 0.9rem;"><%= @player1.name %></h6>
+              <small class="text-white" style="font-size: 0.7rem;"><%= @player1.positions.join(", ") %></small>
             </div>
           </div>
           <div class="row text-center">
             <div class="col-4">
-              <div class="text-info fw-bold"><%= @player1.age %></div>
-              <small class="text-white">Age</small>
+              <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player1.age %></div>
+              <small class="text-white" style="font-size: 0.7rem;">Age</small>
             </div>
             <div class="col-4">
-              <div class="text-info fw-bold"><%= @player1.height %>cm</div>
-              <small class="text-white">Height</small>
+              <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player1.height %>cm</div>
+              <small class="text-white" style="font-size: 0.7rem;">Height</small>
             </div>
             <div class="col-4">
-              <div class="text-info fw-bold"><%= @player1.weight %>kg</div>
-              <small class="text-white">Weight</small>
+              <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player1.weight %>kg</div>
+              <small class="text-white" style="font-size: 0.7rem;">Weight</small>
             </div>
           </div>
         </div>
       </div>
 
       <div class="<%= @player3.present? ? 'col-md-4' : 'col-md-6' %>">
-        <div class="card main-card p-4">
-          <div class="d-flex align-items-center mb-3">
-            <div class="me-3">
+        <div class="card main-card p-2">
+          <div class="d-flex align-items-center mb-1">
+            <div class="me-1">
               <% if @player2.id == 1 %>
-                <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player2.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player2.name %>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
               <% elsif @player2.id == 2 %>
-                <img src="<%= asset_path('puto.png') %>" alt="<%= @player2.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                <img src="<%= asset_path('puto.png') %>" alt="<%= @player2.name %>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
               <% else %>
-                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                   <i class="fas fa-user text-white"></i>
                 </div>
               <% end %>
             </div>
             <div>
-              <h5 class="text-white mb-1"><%= @player2.name %></h5>
-              <small class="text-white"><%= @player2.positions.join(", ") %></small>
+              <h6 class="text-white mb-0" style="font-size: 0.9rem;"><%= @player2.name %></h6>
+              <small class="text-white" style="font-size: 0.7rem;"><%= @player2.positions.join(", ") %></small>
             </div>
           </div>
           <div class="row text-center">
             <div class="col-4">
-              <div class="text-info fw-bold"><%= @player2.age %></div>
-              <small class="text-white">Age</small>
+              <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player2.age %></div>
+              <small class="text-white" style="font-size: 0.7rem;">Age</small>
             </div>
             <div class="col-4">
-              <div class="text-info fw-bold"><%= @player2.height %>cm</div>
-              <small class="text-white">Height</small>
+              <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player2.height %>cm</div>
+              <small class="text-white" style="font-size: 0.7rem;">Height</small>
             </div>
             <div class="col-4">
-              <div class="text-info fw-bold"><%= @player2.weight %>kg</div>
-              <small class="text-white">Weight</small>
+              <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player2.weight %>kg</div>
+              <small class="text-white" style="font-size: 0.7rem;">Weight</small>
             </div>
           </div>
         </div>
@@ -131,36 +131,36 @@
 
       <% if @player3.present? %>
         <div class="col-md-4">
-          <div class="card main-card p-4">
-            <div class="d-flex align-items-center mb-3">
-              <div class="me-3">
+          <div class="card main-card p-2">
+            <div class="d-flex align-items-center mb-1">
+              <div class="me-1">
                 <% if @player3.id == 1 %>
-                  <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player3.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                  <img src="<%= asset_path('eu.jpg') %>" alt="<%= @player3.name %>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                 <% elsif @player3.id == 2 %>
-                  <img src="<%= asset_path('puto.png') %>" alt="<%= @player3.name %>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                  <img src="<%= asset_path('puto.png') %>" alt="<%= @player3.name %>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                 <% else %>
-                  <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                  <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                     <i class="fas fa-user text-white"></i>
                   </div>
                 <% end %>
               </div>
               <div>
-                <h5 class="text-white mb-1"><%= @player3.name %></h5>
-                <small class="text-white"><%= @player3.positions.join(", ") %></small>
+                <h6 class="text-white mb-0" style="font-size: 0.9rem;"><%= @player3.name %></h6>
+                <small class="text-white" style="font-size: 0.7rem;"><%= @player3.positions.join(", ") %></small>
               </div>
             </div>
             <div class="row text-center">
               <div class="col-4">
-                <div class="text-info fw-bold"><%= @player3.age %></div>
-                <small class="text-white">Age</small>
+                <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player3.age %></div>
+                <small class="text-white" style="font-size: 0.7rem;">Age</small>
               </div>
               <div class="col-4">
-                <div class="text-info fw-bold"><%= @player3.height %>cm</div>
-                <small class="text-white">Height</small>
+                <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player3.height %>cm</div>
+                <small class="text-white" style="font-size: 0.7rem;">Height</small>
               </div>
               <div class="col-4">
-                <div class="text-info fw-bold"><%= @player3.weight %>kg</div>
-                <small class="text-white">Weight</small>
+                <div class="text-info fw-bold" style="font-size: 0.9rem;"><%= @player3.weight %>kg</div>
+                <small class="text-white" style="font-size: 0.7rem;">Weight</small>
               </div>
             </div>
           </div>
@@ -306,13 +306,13 @@
                     <th colspan="<%= @player3.present? ? 5 : 4 %>" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
                   </tr>
                   <tr>
-                    <th class="text-white fw-bold px-3 py-2">Statistic</th>
-                    <th class="text-center text-white fw-bold px-3 py-2"><%= @player1.name %></th>
-                    <th class="text-center text-white fw-bold px-3 py-2"><%= @player2.name %></th>
+                    <th class="text-white fw-bold px-2 py-1">Stat</th>
+                    <th class="text-center text-white fw-bold px-2 py-1"><%= @player1.name %></th>
+                    <th class="text-center text-white fw-bold px-2 py-1"><%= @player2.name %></th>
                     <% if @player3.present? %>
-                      <th class="text-center text-white fw-bold px-3 py-2"><%= @player3.name %></th>
+                      <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.name %></th>
                     <% end %>
-                    <th class="text-center text-white fw-bold px-3 py-2"><%= @player3.present? ? 'Best Performance' : 'Difference' %></th>
+                    <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.present? ? 'Best Performance' : 'Difference' %></th>
                   </tr>
                 </thead>
                 <tbody>
