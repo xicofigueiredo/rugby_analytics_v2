@@ -47,8 +47,13 @@
               H2H
             <% end %>
           </li>
+        <% end %>
+      </ul>
+
+      <ul class="navbar-nav me-3">
+        <% if user_signed_in? %>
           <li class="nav-item">
-            <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light ms-3" do %>
+            <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light" do %>
               <i class="fas fa-sign-out-alt me-1"></i>
             <% end %>
           </li>

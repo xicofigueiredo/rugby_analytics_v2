@@ -1,29 +1,21 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-rugby-purple mb-4">
-  <div class="container">
+<nav class="navbar navbar-dark bg-rugby-purple mb-4">
+  <div class="container d-flex justify-content-between align-items-center">
     <div class="h4 fw-bold text-white mb-0 ms-3">
       BreakDown<span class="text-danger">Lab</span>
     </div>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav mx-auto flex-row gap-0">
-        <% if user_signed_in? %>
-          <li class="nav-item">
-            <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light" do %>
-              <i class="fas fa-sign-out-alt me-1"></i>
-            <% end %>
-          </li>
-        <% else %>
-          <li class="nav-item">
-            <%= link_to new_user_session_path, class: "btn btn-outline-light" do %>
-              <i class="fas fa-sign-in-alt me-1"></i> Sign In
-            <% end %>
-          </li>
+    <% if user_signed_in? %>
+      <div class="me-3">
+        <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light" do %>
+          <i class="fas fa-sign-out-alt me-1"></i>
         <% end %>
-      </ul>
-    </div>
+      </div>
+    <% else %>
+      <div class="me-3">
+        <%= link_to new_user_session_path, class: "btn btn-outline-light" do %>
+          <i class="fas fa-sign-in-alt me-1"></i> Sign In
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </nav>
