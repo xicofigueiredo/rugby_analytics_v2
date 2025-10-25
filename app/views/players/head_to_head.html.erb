@@ -306,13 +306,13 @@
                     <th colspan="<%= @player3.present? ? 5 : 4 %>" class="text-white fw-bold px-3 py-3 text-center fs-5"><%= category %></th>
                   </tr>
                   <tr>
-                    <th class="text-white fw-bold px-2 py-1">Stat</th>
+                    <th class="text-white fw-bold px-2 py-1 text-start">Stat</th>
                     <th class="text-center text-white fw-bold px-2 py-1"><%= @player1.name %></th>
                     <th class="text-center text-white fw-bold px-2 py-1"><%= @player2.name %></th>
                     <% if @player3.present? %>
                       <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.name %></th>
                     <% end %>
-                    <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.present? ? 'Best Performance' : 'Difference' %></th>
+                    <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.present? ? 'Best' : 'Difference' %></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -326,13 +326,13 @@
                       next if all_values.all? { |v| v == 0 }
                     %>
                     <tr class="border-secondary">
-                      <td class="text-white px-3 py-2"><%= stat %></td>
-                      <td class="text-center text-white px-3 py-2"><%= value1 %></td>
-                      <td class="text-center text-white px-3 py-2"><%= value2 %></td>
+                      <td class="text-white px-2 py-1 text-start"><%= stat %></td>
+                      <td class="text-center text-white px-2 py-1"><%= value1 %></td>
+                      <td class="text-center text-white px-2 py-1"><%= value2 %></td>
                       <% if @player3.present? %>
-                        <td class="text-center text-white px-3 py-2"><%= value3 %></td>
+                        <td class="text-center text-white px-2 py-1"><%= value3 %></td>
                       <% end %>
-                      <td class="text-center px-3 py-2">
+                      <td class="text-center px-2 py-1">
                         <% if @player3.present? %>
                           <% values = { @player1.name => value1, @player2.name => value2, @player3.name => value3 } %>
                           <% sorted_values = values.sort_by { |k, v| -v } %>
