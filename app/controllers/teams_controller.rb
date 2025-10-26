@@ -53,15 +53,35 @@ class TeamsController < ApplicationController
     Rails.logger.info "Team #{@team.name} has #{rated_matches_count} player matches with ratings"
 
     # Team stats aggregated
+    team_matches = Match.where('home_team_id = ? OR away_team_id = ?', @team.id, @team.id).where.not(result: [nil, ''])
+    wins = 0
+    losses = 0
+
+    team_matches.each do |match|
+      next unless match.result.present? && match.result.include?('-')
+
+      home_score, away_score = match.result.split('-').map(&:to_i)
+
+      if match.home_team_id == @team.id
+        # Team is home team
+        wins += 1 if home_score > away_score
+        losses += 1 if home_score < away_score
+      else
+        # Team is away team
+        wins += 1 if away_score > home_score
+        losses += 1 if away_score < home_score
+      end
+    end
+
     @team_stats = {
       total_players: @players.count,
       active_users: @players.joins(:user).count,
       average_age: @players.average(:age)&.round(1) || 0,
       average_height: @players.average(:height)&.round(1) || 0,
       average_weight: @players.average(:weight)&.round(1) || 0,
-      matches_played: Match.where('home_team_id = ? OR away_team_id = ?', @team.id, @team.id).count,
-      wins: Match.where('home_team_id = ? AND result LIKE ?', @team.id, '%-%').count,
-      losses: Match.where('away_team_id = ? AND result LIKE ?', @team.id, '%-%').count,
+      matches_played: team_matches.count,
+      wins: wins,
+      losses: losses,
       tries_scored: PlayerMatch.joins(:player).where(players: { team_id: @team.id }).sum(:try),
       total_points: calculate_total_points(@team).first,
       points_conceded: calculate_total_points(@team).second
