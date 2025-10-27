@@ -67,10 +67,11 @@
               <span class="player-number me-2"><%= player.position %></span>
               <span class="player-name text-truncate">
                 <%= player.player.name %>
-                <%= player == @mvp_player ? '<i class="fa-solid fa-star fa-lg fa-fw text-warning"></i>'.html_safe : '' %>
               </span>
             </div>
             <div class="text-end" style="width: 30%;">
+                              <%= player == @mvp_player ? '<i class="fa-solid fa-star fa-lg fa-fw text-warning"></i>'.html_safe : '' %>
+
              <%= player.time_played %>' <span class="text-primary fw-bold"><%= @player_overall_ratings[player.player.id] %></span>
             </div>
           </li>
