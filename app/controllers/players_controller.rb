@@ -112,7 +112,7 @@ class PlayersController < ApplicationController
     }
 
     # Calculate team performance per game (using teamstats)
-    @performance_data = calculate_team_performance_per_game(@player.team)
+    @performance_data = calculate_team_performance_per_game(@player)
 
     # Calculate player performance per game (using player_matches)
     @player_performance_data = calculate_player_performance_per_game(@player)
@@ -420,29 +420,35 @@ class PlayersController < ApplicationController
           .tap { |params| params[:positions]&.reject!(&:blank?) }
   end
 
-  def calculate_team_performance_per_game(team)
+  def calculate_team_performance_per_game(player)
     # Get team performance data by averaging player ratings per game
+    # Only for matches where the current player played
     performance_data = []
 
-    team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
-      # Get all player matches for this team in this match with ratings
-      team_player_matches = match.player_matches
-                                .joins(:player)
-                                .where(players: { team_id: team.id })
-                                .where('time_played > 0')
-                                .where.not(overall_rating: nil)
+    player.player_matches.includes(match: [:player_matches, :home_team, :away_team]).order('matches.date ASC').each do |player_match|
+      # Only include matches where player actually played and has ratings
+      if player_match.time_played > 0 && player_match.has_ratings?
+        match = player_match.match
 
-      if team_player_matches.any?
-        # Calculate average overall rating for the team in this match
-        team_ratings = team_player_matches.pluck(:overall_rating).compact
-        if team_ratings.any?
-          average_rating = (team_ratings.sum / team_ratings.size.to_f).round(1)
+        # Get all player matches for this team in this match with ratings
+        team_player_matches = match.player_matches
+                                  .joins(:player)
+                                  .where(players: { team_id: player.team_id })
+                                  .where('time_played > 0')
+                                  .where.not(overall_rating: nil)
 
-          # Show opponent team's name with match date to make it unique
-          opponent_team = match.home_team_id == team.id ? match.away_team : match.home_team
-          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
-          match_key = "#{opponent_team.name} (#{match_date})"
-          performance_data << [match_key, average_rating]
+        if team_player_matches.any?
+          # Calculate average overall rating for the team in this match
+          team_ratings = team_player_matches.pluck(:overall_rating).compact
+          if team_ratings.any?
+            average_rating = (team_ratings.sum / team_ratings.size.to_f).round(1)
+
+            # Show opponent team's name with match date to make it unique
+            opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
+            match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+            match_key = "#{opponent_team.name} (#{match_date})"
+            performance_data << [match_key, average_rating]
+          end
         end
       end
     end
@@ -501,26 +507,32 @@ class PlayersController < ApplicationController
     group_positions = position_groups[player_group]
 
     # Calculate average performance for the position group per game
+    # Only for matches where the current player played
     performance_data = []
 
-    player.team.matches.includes(:player_matches, :home_team, :away_team).order(:date).each do |match|
-      # Get all players from the same position group who played in this match
-      group_players = match.player_matches
-                          .joins(:player)
-                          .where(players: { team_id: player.team_id })
-                          .where('players.positions && ARRAY[?]::varchar[]', group_positions)
-                          .where('time_played > 0')
+    player.player_matches.includes(match: [:player_matches, :home_team, :away_team]).order('matches.date ASC').each do |player_match|
+      # Only include matches where player actually played and has ratings
+      if player_match.time_played > 0 && player_match.has_ratings?
+        match = player_match.match
 
-      # Calculate average overall rating for the position group in this match
-      if group_players.any?
-        ratings = group_players.filter_map(&:overall_rating).compact
-        if ratings.any?
-          average_rating = (ratings.sum / ratings.size.to_f).round(1)
+        # Get all players from the same position group who played in this match
+        group_players = match.player_matches
+                            .joins(:player)
+                            .where(players: { team_id: player.team_id })
+                            .where('players.positions && ARRAY[?]::varchar[]', group_positions)
+                            .where('time_played > 0')
 
-          opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
-          match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
-          match_key = "#{opponent_team.name} (#{match_date})"
-          performance_data << [match_key, average_rating]
+        # Calculate average overall rating for the position group in this match
+        if group_players.any?
+          ratings = group_players.filter_map(&:overall_rating).compact
+          if ratings.any?
+            average_rating = (ratings.sum / ratings.size.to_f).round(1)
+
+            opponent_team = match.home_team_id == player.team_id ? match.away_team : match.home_team
+            match_date = match.date ? match.date.strftime("%d/%m") : "Match #{match.id}"
+            match_key = "#{opponent_team.name} (#{match_date})"
+            performance_data << [match_key, average_rating]
+          end
         end
       end
     end
