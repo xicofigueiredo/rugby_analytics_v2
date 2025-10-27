@@ -312,7 +312,7 @@
                     <% if @player3.present? %>
                       <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.name %></th>
                     <% end %>
-                    <th class="text-center text-white fw-bold px-2 py-1"><%= @player3.present? ? 'Best' : 'Difference' %></th>
+                    <th class="text-center text-white fw-bold px-2 py-1">Difference</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -351,17 +351,17 @@
                               <%= best_player[0] %>
                             </span>
                             <% if difference > 0 %>
-                              <br><small class="text-secondary">+<%= difference %> ahead</small>
+                              <br><small class="text-secondary">+<%= difference %></small>
                             <% end %>
                           <% end %>
                         <% else %>
                           <% diff = value1 - value2 %>
                           <% if diff > 0 %>
                             <span style="color: #4dc9f6"><%= @player1.name %></span>
-                            <br><small class="text-secondary">+<%= diff %> ahead</small>
+                            <br><small class="text-secondary">+<%= diff %></small>
                           <% elsif diff < 0 %>
                             <span style="color: #f72585"><%= @player2.name %></span>
-                            <br><small class="text-secondary">+<%= diff.abs %> ahead</small>
+                            <br><small class="text-secondary">+<%= diff.abs %></small>
                           <% else %>
                             <span class="text-warning">Tie</span>
                           <% end %>
