@@ -6,7 +6,7 @@
     <div class="row mb-4">
       <div class="col-12">
         <div class="card main-card p-4">
-          <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="text-white mb-0">Select Player</h5>
             <select id="playerSelector" class="form-select" style="width: auto; background-color: #2a2a2a; color: white; border-color: #666;">
               <% @players.each do |player_match| %>
@@ -15,6 +15,27 @@
                 </option>
               <% end %>
             </select>
+          </div>
+
+          <!-- Coach Notes -->
+          <div>
+            <label for="coachNotes" class="text-white mb-2 d-block">Coach Notes for this player</label>
+            <textarea
+              id="coachNotes"
+              class="form-control"
+              rows="3"
+              placeholder="Add notes for this player's performance in this match..."
+              style="background-color: #2a2a2a; color: white; border-color: #666;"
+            ><%= @player_match&.coach_notes %></textarea>
+            <div class="mt-2 d-flex justify-content-between align-items-center">
+              <small class="text-secondary" id="notesCharCount">0/1000 characters</small>
+              <button
+                id="saveNotesBtn"
+                class="btn btn-sm btn-success"
+                style="display: none;"
+              >
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -481,6 +502,9 @@
 
           // Update detailed stats tables
           updateDetailedStats(data.player_match);
+
+          // Update coach notes
+          updateCoachNotes(data.player_match.coach_notes);
         })
         .catch(error => {
           console.error('Error updating player stats:', error);
@@ -669,6 +693,228 @@
           categoryTable.appendChild(row);
         });
       }
+    }
+
+    // Track original notes value for change detection
+    let originalNotesValue = '';
+    let isSaving = false;
+
+    // Function to update coach notes
+    function updateCoachNotes(notes) {
+      const notesTextarea = document.getElementById('coachNotes');
+      if (notesTextarea) {
+        notesTextarea.value = notes || '';
+        originalNotesValue = notes || ''; // Update tracked original value
+        updateCharCount();
+
+        // Hide save button
+        const saveBtn = document.getElementById('saveNotesBtn');
+        if (saveBtn) {
+          saveBtn.style.display = 'none';
+        }
+      }
+    }
+
+    // Function to save notes automatically
+    function saveNotesAutomatically() {
+      if (isSaving) return; // Prevent multiple simultaneous saves
+
+      const notesTextarea = document.getElementById('coachNotes');
+      const playerMatchId = document.getElementById('playerSelector').value;
+      const notes = notesTextarea.value;
+
+      // Check if there are actually changes
+      if (notes === originalNotesValue) {
+        return; // No changes, don't save
+      }
+
+      isSaving = true;
+
+      // Show saving indicator
+      const charCount = document.getElementById('notesCharCount');
+      const originalCharCountText = charCount ? charCount.textContent : '';
+      if (charCount) {
+        charCount.textContent = 'Saving...';
+        charCount.className = 'text-info';
+      }
+
+      fetch(`/matches/<%= @match.id %>/update_player_match/${playerMatchId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          player_match: {
+            coach_notes: notes
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Update original value to current textarea value
+          originalNotesValue = notesTextarea.value;
+
+          // Show success feedback
+          if (charCount) {
+            charCount.textContent = 'Saved!';
+            charCount.className = 'text-success';
+          }
+
+          // Hide save button if visible
+          const saveBtn = document.getElementById('saveNotesBtn');
+          if (saveBtn) {
+            saveBtn.style.display = 'none';
+          }
+
+          // Reset indicator after 2 seconds
+          setTimeout(() => {
+            if (charCount) {
+              charCount.textContent = originalCharCountText;
+              charCount.className = 'text-secondary';
+            }
+            isSaving = false;
+          }, 2000);
+        } else {
+          if (charCount) {
+            charCount.textContent = 'Error saving';
+            charCount.className = 'text-danger';
+          }
+          setTimeout(() => {
+            if (charCount) {
+              charCount.textContent = originalCharCountText;
+              charCount.className = 'text-secondary';
+            }
+            isSaving = false;
+          }, 2000);
+        }
+      })
+      .catch(error => {
+        console.error('Error saving notes:', error);
+        if (charCount) {
+          charCount.textContent = 'Error saving';
+          charCount.className = 'text-danger';
+        }
+        setTimeout(() => {
+          if (charCount) {
+            charCount.textContent = originalCharCountText;
+            charCount.className = 'text-secondary';
+          }
+          isSaving = false;
+        }, 2000);
+      });
+    }
+
+    // Update character count
+    function updateCharCount() {
+      const notesTextarea = document.getElementById('coachNotes');
+      const charCount = document.getElementById('notesCharCount');
+      if (notesTextarea && charCount) {
+        const length = notesTextarea.value.length;
+        charCount.textContent = `${length}/1000 characters`;
+
+        // Change color based on length
+        if (length > 1000) {
+          charCount.className = 'text-danger';
+        } else if (length > 900) {
+          charCount.className = 'text-warning';
+        } else {
+          charCount.className = 'text-secondary';
+        }
+      }
+    }
+
+    // Initialize notes functionality
+    const notesTextarea = document.getElementById('coachNotes');
+    const saveNotesBtn = document.getElementById('saveNotesBtn');
+
+    // Set initial tracked value
+    if (notesTextarea) {
+      originalNotesValue = notesTextarea.value;
+    }
+
+    if (notesTextarea) {
+      // Update character count on load
+      updateCharCount();
+
+      // Show save button when notes change from original value
+      notesTextarea.addEventListener('input', function() {
+        updateCharCount();
+        if (saveNotesBtn) {
+          // Only show button if value is different from original
+          if (this.value !== originalNotesValue) {
+            saveNotesBtn.style.display = 'inline-block';
+          } else {
+            saveNotesBtn.style.display = 'none';
+          }
+        }
+      });
+
+      // Auto-save when clicking outside the textarea
+      notesTextarea.addEventListener('blur', function() {
+        if (this.value !== originalNotesValue) {
+          saveNotesAutomatically();
+        }
+      });
+    }
+
+    // Save notes functionality
+    if (saveNotesBtn) {
+      saveNotesBtn.addEventListener('click', function() {
+        const playerMatchId = document.getElementById('playerSelector').value;
+        const notes = notesTextarea.value;
+
+        // Disable button during save
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+        fetch(`/matches/<%= @match.id %>/update_player_match/${playerMatchId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            player_match: {
+              coach_notes: notes
+            }
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // Show success feedback
+            this.innerHTML = '<i class="fas fa-check me-1"></i>Saved!';
+            this.classList.remove('btn-success');
+            this.classList.add('btn-primary');
+
+            // Update original value to current textarea value
+            originalNotesValue = notesTextarea.value;
+
+            // Hide button after 2 seconds
+            setTimeout(() => {
+              this.style.display = 'none';
+              this.disabled = false;
+              this.innerHTML = '<i class="fas fa-save me-1"></i>Save Notes';
+              this.classList.remove('btn-primary');
+              this.classList.add('btn-success');
+            }, 2000);
+          } else {
+            alert('Error saving notes: ' + (data.errors || 'Unknown error'));
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-save me-1"></i>Save Notes';
+          }
+        })
+        .catch(error => {
+          console.error('Error saving notes:', error);
+          alert('Error saving notes. Please try again.');
+          this.disabled = false;
+          this.innerHTML = '<i class="fas fa-save me-1"></i>Save Notes';
+        });
+      });
     }
 
     // Stats dropdown functionality

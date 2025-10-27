@@ -535,6 +535,7 @@ class MatchesController < ApplicationController
           worst_5_metrics: @worst_5_metrics,
           player_match: {
             id: @player_match.id,
+            coach_notes: @player_match.coach_notes,
             # Add all the stats needed for the detailed tables
             try: @player_match.try || 0,
             try_assist: @player_match.try_assist || 0,
