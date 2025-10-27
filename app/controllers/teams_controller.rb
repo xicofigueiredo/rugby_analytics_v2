@@ -28,6 +28,11 @@ class TeamsController < ApplicationController
 
   def show
     @players = @team.players.order(name: :asc)
+
+    # Filter by search term if present
+    if params[:search].present?
+      @players = @players.where("LOWER(name) LIKE ?", "%#{params[:search].downcase}%")
+    end
   end
 
   def team_profile

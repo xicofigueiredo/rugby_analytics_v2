@@ -48,6 +48,17 @@
             <i class="fas fa-user-plus me-1"></i> Add Player to This Team
           <% end %>
         </div>
+
+        <!-- Search Bar -->
+        <div class="mb-3">
+          <input type="text"
+                 id="player-search"
+                 placeholder="Search by name..."
+                 class="form-control"
+                 style="background-color: #2a2a2a; color: white; border-color: #666;"
+                 value="<%= params[:search] %>">
+        </div>
+
         <% if @team.users.where(role: 'player').exists? %>
           <div class="table-responsive">
             <table class="table table-hover table-dark-custom text-white">
@@ -58,12 +69,11 @@
                   <th>Age</th>
                   <th>Height</th>
                   <th>Weight</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <% @players.each do |player| %>
-                  <tr>
+                  <tr onclick="window.location.href='<%= player_path(player) %>'" style="cursor: pointer;">
                     <td><%= player.name || player.user&.name %></td>
                     <td>
                       <% if player.positions.present? %>
@@ -75,12 +85,6 @@
                     <td><%= player.age || '-' %></td>
                     <td><%= player.height ? "#{player.height} cm" : '-' %></td>
                     <td><%= player.weight ? "#{player.weight} kg" : '-' %></td>
-                    <td>
-                      <%= link_to player_path(player), class: "btn btn-sm btn-outline-primary",
-                          data: { bs_toggle: "tooltip", bs_placement: "top", bs_title: "View Details" } do %>
-                        <i class="fas fa-eye"></i>
-                      <% end %>
-                    </td>
                   </tr>
                 <% end %>
               </tbody>
@@ -95,3 +99,29 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('player-search');
+    const playerRows = document.querySelectorAll('tbody tr');
+
+    // Function to remove accents from string
+    function removeAccents(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    searchInput.addEventListener('input', function() {
+      const searchTerm = removeAccents(this.value.toLowerCase().trim());
+
+      playerRows.forEach(row => {
+        const playerName = removeAccents(row.querySelector('td:first-child').textContent.toLowerCase());
+
+        if (playerName.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>

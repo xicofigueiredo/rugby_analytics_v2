@@ -68,7 +68,7 @@ class PlayersController < ApplicationController
     }
 
     # Calculate team performance per game (using teamstats)
-    @performance_data = calculate_team_performance_per_game(@player.team)
+    @performance_data = calculate_team_performance_per_game(@player)
 
     # Calculate player performance per game (using player_matches)
     @player_performance_data = calculate_player_performance_per_game(@player)
