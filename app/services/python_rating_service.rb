@@ -77,7 +77,10 @@ class PythonRatingService
 
         # Mod game stats
         mod_game_plus: pm.mod_game_plus || 0,
-        mod_game_minus: pm.mod_game_minus || 0
+        mod_game_minus: pm.mod_game_minus || 0,
+
+        # Extra points for overall rating adjustment
+        extra_points: pm.extra_points || 0
       }
     end
 

@@ -736,6 +736,11 @@ def calculate_weighted_overall_rating(df):
             overall_rating = (attack_ratings[valid_index] * 0.35 + defense_ratings[valid_index] * 0.35 +
                             work_rate_ratings[valid_index] * 0.10 + consistency_ratings[valid_index] * 0.10 +
                             discipline_ratings[valid_index] * 0.05 + skills_ratings[valid_index] * 0.05)
+
+            # Apply extra_points adjustment: +1 adds 0.5, -1 subtracts 0.5
+            extra_points = df.iloc[i].get('extra_points', 0) or 0
+            overall_rating += extra_points * 0.5
+
             overall_ratings.append(round(overall_rating, 2))
             valid_index += 1
         else:

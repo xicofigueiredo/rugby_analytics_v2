@@ -50,13 +50,6 @@ class MatchesController < ApplicationController
     @bench_players = @players.where(started: false)
     @scorer_players = @players.where("try > 0 OR conversion > 0 OR penalty_kick_goal > 0 OR drop_goal > 0")
 
-    # Calculate overall ratings for all players in this match
-    @player_overall_ratings = {}
-    @players.each do |player_match|
-      overall_rating = ((player_match.attack_rating * 0.35) + (player_match.defense_rating * 0.35) + (player_match.discipline_rating * 0.05) +
-                       (player_match.work_rate_rating * 0.10) + (player_match.skills_rating * 0.05) + (player_match.consistency_rating * 0.10))
-      @player_overall_ratings[player_match.player.id] = overall_rating.round(1)
-    end
     # Set player match based on user role and context
     Rails.logger.info "Current user role: #{current_user.role}, player_id: #{current_user.player_id}, team_id: #{current_user.team_id}"
 
@@ -422,8 +415,14 @@ class MatchesController < ApplicationController
     @player_match = @match.player_matches.find(params[:player_match_id])
 
     if @player_match.update(player_match_params)
+      # If extra_points was changed, trigger Python recalculation for this match
+      if params[:player_match][:extra_points].present?
+        Rails.logger.info "Extra points changed for player #{@player_match.player.name}, triggering Python recalculation"
+        PythonRatingService.new(@match).calculate_all_ratings!
+      end
+
       respond_to do |format|
-        format.json { render json: { status: 'success', message: 'Player notes updated successfully.' } }
+        format.json { render json: { status: 'success', message: 'Player data updated successfully.' } }
       end
     else
       respond_to do |format|
@@ -574,7 +573,8 @@ class MatchesController < ApplicationController
             knock_on: @player_match.knock_on || 0,
             other_mistakes: @player_match.other_mistakes || 0,
             mod_game_minus: @player_match.mod_game_minus || 0,
-            time_played: @player_match.time_played || 0
+            time_played: @player_match.time_played || 0,
+            extra_points: @player_match.extra_points || 0
           }
         }
       }
@@ -655,7 +655,8 @@ class MatchesController < ApplicationController
   def player_match_params
     params.require(:player_match).permit(
       :coach_notes,
-      :player_notes
+      :player_notes,
+      :extra_points
     )
   end
 
@@ -982,7 +983,8 @@ class MatchesController < ApplicationController
       'QUEBRAS DE LINHA' => 'linebreak',
       'AVANTS' => 'knock_on',
       'CARRIES (+)' => 'positive_carry',
-      'CARRIES' => 'carries'
+      'CARRIES' => 'carries',
+      'PONTOS EXTRA' => 'extra_points'
     }
 
     # Update player_match with stats from CSV

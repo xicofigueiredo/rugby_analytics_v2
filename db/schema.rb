@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_20_195851) do
+ActiveRecord::Schema[7.1].define(version: 2025_10_28_062559) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -113,6 +113,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_20_195851) do
     t.integer "mod_game_plus"
     t.integer "mod_game_minus"
     t.decimal "overall_rating", precision: 4, scale: 2
+    t.integer "extra_points"
     t.index ["match_id"], name: "index_player_matches_on_match_id"
     t.index ["player_id"], name: "index_player_matches_on_player_id"
   end

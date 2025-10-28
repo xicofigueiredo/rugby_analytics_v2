@@ -518,6 +518,9 @@
 
           // Update coach notes
           updateCoachNotes(data.player_match.coach_notes);
+
+          // Update extra points
+          updateExtraPoints(data.player_match.extra_points);
         })
         .catch(error => {
           console.error('Error updating player stats:', error);
@@ -743,6 +746,67 @@ function updatePerformanceMetrics(bestMetrics, worstMetrics) {
           saveBtn.style.display = 'none';
         }
       }
+    }
+
+    // Function to update extra points
+    function updateExtraPoints(extraPoints) {
+      const extraPointsSelect = document.getElementById('extraPoints');
+      if (extraPointsSelect) {
+        extraPointsSelect.value = extraPoints || 0;
+      }
+    }
+
+    // Function to save extra points
+    function saveExtraPoints() {
+      const extraPointsSelect = document.getElementById('extraPoints');
+      const playerMatchId = document.getElementById('playerSelector').value;
+      const extraPoints = parseInt(extraPointsSelect.value);
+
+      // Show loading state
+      extraPointsSelect.disabled = true;
+      const originalText = extraPointsSelect.options[extraPointsSelect.selectedIndex].text;
+      extraPointsSelect.options[extraPointsSelect.selectedIndex].text = 'Recalculating...';
+
+      fetch(`/matches/<%= @match.id %>/update_player_match/${playerMatchId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          player_match: {
+            extra_points: extraPoints
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          console.log('Extra points updated successfully, Python recalculation triggered');
+          // Refresh the page to show updated overall rating from Python calculation
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          console.error('Failed to update extra points:', data.errors);
+          // Restore original state on error
+          extraPointsSelect.disabled = false;
+          extraPointsSelect.options[extraPointsSelect.selectedIndex].text = originalText;
+        }
+      })
+      .catch(error => {
+        console.error('Error updating extra points:', error);
+        // Restore original state on error
+        extraPointsSelect.disabled = false;
+        extraPointsSelect.options[extraPointsSelect.selectedIndex].text = originalText;
+      });
+    }
+
+    // Add event listener for extra points changes
+    const extraPointsSelect = document.getElementById('extraPoints');
+    if (extraPointsSelect) {
+      extraPointsSelect.addEventListener('change', saveExtraPoints);
     }
 
     // Function to save notes automatically
