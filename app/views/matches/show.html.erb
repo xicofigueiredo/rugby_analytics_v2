@@ -55,7 +55,7 @@
         <div class="toggle-buttons">
           <button class="toggle-button active" data-target="summary-chart">Summary</button>
           <% if current_user.role == "player" && current_user.player %>
-            <button class="toggle-button" data-target="player-chart">My Stats</button>
+            <button class="toggle-button" data-target="player-chart">Player Stats</button>
           <% elsif (current_user.role == "coach" || current_user.role == "admin") && @player %>
             <button class="toggle-button" data-target="coach-chart">Team Stats</button>
           <% end %>
