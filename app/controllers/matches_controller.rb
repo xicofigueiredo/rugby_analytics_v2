@@ -1125,169 +1125,167 @@ class MatchesController < ApplicationController
 
 
   # --- MAIN: build best/worst metrics for a player in a match ---
-def calculate_best_worst_metrics(player_match, match)
-  player_match.reload
+  def calculate_best_worst_metrics(player_match, match)
+    player_match.reload
 
-  team_player_matches = teammates_for_metrics(match, player_match)
-  return if team_player_matches.empty?
+    team_player_matches = teammates_for_metrics(match, player_match)
+    return if team_player_matches.empty?
 
-  metrics = [
-    # Percent / composite
-    {
-      name: "% Tackles Made",
-      player_value: calculate_tackle_success_rate(player_match),
-      team_avg:     calculate_team_avg_tackle_success_rate(team_player_matches),
-      format: :percentage
-    },
-    {
-      name: "Tackle Impact",
-      player_value: calculate_tackle_impact(player_match),
-      team_avg:     calculate_team_avg_tackle_impact(team_player_matches),
-      format: :decimal
-    },
-    {
-      name: "% Positive Tackles",
-      player_value: positive_tackle_rate(player_match),
-      team_avg:     team_avg_positive_tackle_rate(team_player_matches),
-      format: :percentage
-    },
-    {
-      name: "% Carries with Gain",
-      player_value: calculate_carry_success_rate(player_match),
-      team_avg:     calculate_team_avg_carry_success_rate(team_player_matches),
-      format: :percentage
-    },
-    {
-      name: "% Mod Game",
-      player_value: calculate_mod_game_success_rate(player_match),
-      team_avg:     calculate_team_avg_mod_game_success_rate(team_player_matches),
-      format: :percentage
-    },
+    metrics = [
+      # Percent / composite
+      {
+        name: "% Tackles Made",
+        player_value: calculate_tackle_success_rate(player_match),
+        team_avg:     calculate_team_avg_tackle_success_rate(team_player_matches),
+        format: :percentage
+      },
+      {
+        name: "Tackle Impact",
+        player_value: calculate_tackle_impact(player_match),
+        team_avg:     calculate_team_avg_tackle_impact(team_player_matches),
+        format: :decimal
+      },
+      {
+        name: "% Positive Tackles",
+        player_value: positive_tackle_rate(player_match),
+        team_avg:     team_avg_positive_tackle_rate(team_player_matches),
+        format: :percentage
+      },
+      {
+        name: "% Carries with Gain",
+        player_value: calculate_carry_success_rate(player_match),
+        team_avg:     calculate_team_avg_carry_success_rate(team_player_matches),
+        format: :percentage
+      },
+      {
+        name: "% Mod Game",
+        player_value: calculate_mod_game_success_rate(player_match),
+        team_avg:     calculate_team_avg_mod_game_success_rate(team_player_matches),
+        format: :percentage
+      },
 
-    # Workload / skill counts
-    {
-      name: "Total Aerial Duels",
-      player_value: total_aerial_duels(player_match),
-      team_avg:     team_avg_of(team_player_matches) { |pm| total_aerial_duels(pm) },
-      format: :integer
-    },
-    {
-      name: "Total Carries",
-      player_value: total_carries(player_match),
-      team_avg:     team_avg_of(team_player_matches) { |pm| total_carries(pm) },
-      format: :integer
-    },
-    {
-      name: "Offloads Good",
-      player_value: safe(pm: player_match, attr: :positive_offload),
-      team_avg:     team_avg_attr(team_player_matches, :positive_offload),
-      format: :integer
-    },
-    {
-      name: "Linebreak Assists",
-      player_value: safe(pm: player_match, attr: :linebreak_assists),
-      team_avg:     team_avg_attr(team_player_matches, :linebreak_assists),
-      format: :integer
-    },
-    {
-      name: "Total Tackles",
-      player_value: total_tackles(player_match),
-      team_avg:     team_avg_of(team_player_matches) { |pm| total_tackles(pm) },
-      format: :integer
-    },
+      # Workload / skill counts
+      {
+        name: "Total Aerial Duels",
+        player_value: total_aerial_duels(player_match),
+        team_avg:     team_avg_of(team_player_matches) { |pm| total_aerial_duels(pm) },
+        format: :integer
+      },
+      {
+        name: "Total Carries",
+        player_value: total_carries(player_match),
+        team_avg:     team_avg_of(team_player_matches) { |pm| total_carries(pm) },
+        format: :integer
+      },
+      {
+        name: "Offloads Good",
+        player_value: safe(pm: player_match, attr: :positive_offload),
+        team_avg:     team_avg_attr(team_player_matches, :positive_offload),
+        format: :integer
+      },
+      {
+        name: "Linebreak Assists",
+        player_value: safe(pm: player_match, attr: :linebreak_assists),
+        team_avg:     team_avg_attr(team_player_matches, :linebreak_assists),
+        format: :integer
+      },
+      {
+        name: "Total Tackles",
+        player_value: total_tackles(player_match),
+        team_avg:     team_avg_of(team_player_matches) { |pm| total_tackles(pm) },
+        format: :integer
+      },
 
-    # Harmful (inverse = lower is better)
-    {
-      name: "Other Mistakes",
-      player_value: safe(pm: player_match, attr: :other_mistakes),
-      team_avg:     team_avg_attr(team_player_matches, :other_mistakes),
-      format: :integer,
-      inverse: true
-    },
-    {
-      name: "Knock On",
-      player_value: safe(pm: player_match, attr: :knock_on),
-      team_avg:     team_avg_attr(team_player_matches, :knock_on),
-      format: :integer,
-      inverse: true
-    },
-    {
-      name: "Total Penalties",
-      player_value: total_penalties(player_match),
-      team_avg:     team_avg_penalties(team_player_matches),
-      format: :integer,
-      inverse: true
-    },
-    {
-      name: "Aerial Duels Won",
-      player_value: safe(pm: player_match, attr: :aerial_duel_won),
-      team_avg:     team_avg_attr(team_player_matches, :aerial_duel_won),
-      format: :integer
-    },
-    {
-      name: "Aerial Duels Lost",
-      player_value: safe(pm: player_match, attr: :aerial_duel_lost),
-      team_avg:     team_avg_attr(team_player_matches, :aerial_duel_lost),
-      format: :integer,
-      inverse: true
-    },
+      # Harmful (inverse = lower is better)
+      {
+        name: "Other Mistakes",
+        player_value: safe(pm: player_match, attr: :other_mistakes),
+        team_avg:     team_avg_attr(team_player_matches, :other_mistakes),
+        format: :integer,
+        inverse: true
+      },
+      {
+        name: "Knock On",
+        player_value: safe(pm: player_match, attr: :knock_on),
+        team_avg:     team_avg_attr(team_player_matches, :knock_on),
+        format: :integer,
+        inverse: true
+      },
+      {
+        name: "Total Penalties",
+        player_value: total_penalties(player_match),
+        team_avg:     team_avg_penalties(team_player_matches),
+        format: :integer,
+        inverse: true
+      },
+      {
+        name: "Aerial Duels Won",
+        player_value: safe(pm: player_match, attr: :aerial_duel_won),
+        team_avg:     team_avg_attr(team_player_matches, :aerial_duel_won),
+        format: :integer
+      },
+      {
+        name: "Aerial Duels Lost",
+        player_value: safe(pm: player_match, attr: :aerial_duel_lost),
+        team_avg:     team_avg_attr(team_player_matches, :aerial_duel_lost),
+        format: :integer,
+        inverse: true
+      },
 
-    # Existing positives
-    {
-      name: "Positive Carries",
-      player_value: safe(pm: player_match, attr: :positive_carry),
-      team_avg:     team_avg_attr(team_player_matches, :positive_carry),
-      format: :integer
-    },
-    {
-      name: "Linebreaks",
-      player_value: safe(pm: player_match, attr: :linebreak),
-      team_avg:     team_avg_attr(team_player_matches, :linebreak),
-      format: :integer
-    },
-    {
-      name: "Turnovers Won",
-      player_value: safe(pm: player_match, attr: :turnover),
-      team_avg:     team_avg_attr(team_player_matches, :turnover),
-      format: :integer
-    },
-    {
-      name: "Missed Tackles",
-      player_value: safe(pm: player_match, attr: :missed_tackle),
-      team_avg:     team_avg_attr(team_player_matches, :missed_tackle),
-      format: :integer,
-      inverse: true
-    },
-    {
-      name: "Offloads Bad",
-      player_value: safe(pm: player_match, attr: :negative_offload),
-      team_avg:     team_avg_attr(team_player_matches, :negative_offload),
-      format: :integer,
-      inverse: true
-    }
-  ]
+      # Existing positives
+      {
+        name: "Positive Carries",
+        player_value: safe(pm: player_match, attr: :positive_carry),
+        team_avg:     team_avg_attr(team_player_matches, :positive_carry),
+        format: :integer
+      },
+      {
+        name: "Linebreaks",
+        player_value: safe(pm: player_match, attr: :linebreak),
+        team_avg:     team_avg_attr(team_player_matches, :linebreak),
+        format: :integer
+      },
+      {
+        name: "Turnovers Won",
+        player_value: safe(pm: player_match, attr: :turnover),
+        team_avg:     team_avg_attr(team_player_matches, :turnover),
+        format: :integer
+      },
+      {
+        name: "Missed Tackles",
+        player_value: safe(pm: player_match, attr: :missed_tackle),
+        team_avg:     team_avg_attr(team_player_matches, :missed_tackle),
+        format: :integer,
+        inverse: true
+      },
+      {
+        name: "Offloads Bad",
+        player_value: safe(pm: player_match, attr: :negative_offload),
+        team_avg:     team_avg_attr(team_player_matches, :negative_offload),
+        format: :integer,
+        inverse: true
+      }
+    ]
 
-  # Differences (flip sign when lower-is-better)
-  metrics_with_diff = metrics.map do |metric|
-    player_val = (metric[:player_value] || 0).to_f
-    team_val   = (metric[:team_avg]     || 0).to_f
-    diff = player_val - team_val
-    diff = -diff if metric[:inverse]
-    metric.merge(difference: diff)
+    # Differences (flip when lower-is-better), ignore equals
+    eps = 1e-9
+    metrics_with_diff = metrics.map do |metric|
+      player_val = (metric[:player_value] || 0).to_f
+      team_val   = (metric[:team_avg]     || 0).to_f
+      diff = player_val - team_val
+      diff = -diff if metric[:inverse]
+      diff = 0.0 if diff.abs < eps # squash float noise
+      metric.merge(difference: diff)
+    end
+
+    positives = metrics_with_diff.select { |m| m[:difference] > 0.0 }
+    negatives = metrics_with_diff.select { |m| m[:difference] < 0.0 }
+
+    # Best: largest positive deltas; Worst: most negative deltas
+    @best_5_metrics  = positives.sort_by { |m| -m[:difference] }.first(5)
+    @worst_5_metrics = negatives.sort_by { |m|  m[:difference] }.first(5)
   end
 
-  sorted = metrics_with_diff.sort_by { |m| -m[:difference] }
-  @best_5_metrics = sorted.first(5)
-
-  worse = sorted.select { |m| m[:difference] < 0 }.sort_by { |m| m[:difference] }
-  @worst_5_metrics =
-    if worse.any?
-      worse.first(5)
-    else
-      # optional fallback: bottom-5 overall so the table isn't empty
-      sorted.last(5).sort_by { |m| m[:difference] }
-    end
-end
 
 # --- selection helpers ---
 

@@ -97,186 +97,133 @@
         </div>
         <br>
 
-        <!-- Advanced Performance Metrics -->
-        <div class="mb-3">
-          <h6 class="text-white text-center mb-3">Best Performance Metrics</h6>
-          <div class="table-responsive">
-            <table class="table table-dark table-sm mb-0">
-              <thead class="bg-danger">
-                <tr>
-                  <th class="text-white fw-bold px-2 py-2 small">Metric</th>
-                  <th class="text-white fw-bold px-2 py-2 text-center small">Player</th>
-                  <th class="text-white fw-bold px-2 py-2 text-center small">Team Avg</th>
-                  <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
-                </tr>
-              </thead>
-              <tbody id="best-metrics-body">
-                <%
-                  # Calculate advanced metrics
-                  total_tackles = (@player_match&.positive_tackle || 0) + (@player_match&.neutral_tackle || 0) + (@player_match&.negative_tackle || 0) + (@player_match&.assist_tackle || 0)
-                  missed_tackles = @player_match&.missed_tackle || 0
-                  tackle_success = total_tackles > 0 ? ((total_tackles.to_f / (total_tackles + missed_tackles)) * 100).round(1) : 0
+<!-- Best Performance Metrics -->
+<div class="mb-3">
+  <h6 class="text-white text-center mb-3">Best Performance Metrics</h6>
+  <div class="table-responsive">
+    <table class="table table-dark table-sm mb-0">
+      <thead class="bg-danger">
+        <tr>
+          <th class="text-white fw-bold px-2 py-2 small">Metric</th>
+          <th class="text-white fw-bold px-2 py-2 text-center small">Player</th>
+          <th class="text-white fw-bold px-2 py-2 text-center small">Team Avg</th>
+          <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
+        </tr>
+      </thead>
+      <tbody id="best-metrics-body">
+        <%
+          eps = 1e-9
+          best_metrics = (@best_5_metrics || []).select { |m| m[:difference].to_f > eps }
 
-                  total_carries = (@player_match&.positive_carry || 0) + (@player_match&.carries || 0)
-                  carries_with_gain = @player_match&.positive_carry || 0
-                  carry_success = total_carries > 0 ? ((carries_with_gain.to_f / total_carries) * 100).round(1) : 0
+          if best_metrics.empty?
+        %>
+          <tr class="border-secondary">
+            <td colspan="4" class="text-center text-secondary py-3">
+              No metrics above team average.
+            </td>
+          </tr>
+        <% else %>
+          <% best_metrics.each do |metric| %>
+            <%
+              diff = metric[:difference].to_f
+              diff_color = diff > 0 ? "text-success" : (diff < 0 ? "text-danger" : "text-secondary")
 
-                  mod_plus = @player_match&.mod_game_plus || 0
-                  mod_minus = @player_match&.mod_game_minus || 0
-                  mod_total = mod_plus + mod_minus
-                  mod_success = mod_total > 0 ? ((mod_plus.to_f / mod_total) * 100).round(1) : 0
+              player_display = case metric[:format]
+                               when :percentage then "#{metric[:player_value]}%"
+                               when :decimal    then metric[:player_value].to_s
+                               else                   metric[:player_value].to_i.to_s
+                               end
 
-                  # Tackle impact calculation (simplified)
-                  tackle_impact = ((@player_match&.positive_tackle || 0) * 1.5 + (@player_match&.neutral_tackle || 0) * 1.0 + (@player_match&.negative_tackle || 0) * 0.3 + (@player_match&.assist_tackle || 0) * 0.8).round(1)
+              team_avg_value = metric[:team_avg]
+              team_display = case metric[:format]
+                             when :percentage then "#{team_avg_value}%"
+                             when :decimal    then team_avg_value.to_s
+                             else                   team_avg_value.round(1).to_s
+                             end
 
-                  # Total actions for work rate
-                  total_actions = total_carries + total_tackles + (@player_match&.turnover || 0) + mod_plus
+              diff_display = case metric[:format]
+                             when :percentage then "#{diff.round(1)}%"
+                             else diff.round(1).to_s
+                             end
+            %>
+            <tr class="border-secondary">
+              <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
+              <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
+              <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
+              <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold"><%= diff_display %></td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-                  # Use the calculated best metrics from controller
-                  metrics = @best_5_metrics || []
+<br>
 
-                  metrics.each do |metric|
-                    # Use the flipped difference for color (already calculated for sorting)
-                    sorting_difference = metric[:difference]
-                    diff_color = sorting_difference > 0 ? "text-success" : "text-danger"
+<!-- Worst Performance Metrics -->
+<div class="mb-3">
+  <h6 class="text-white text-center mb-3">Worst Performance Metrics</h6>
+  <div class="table-responsive">
+    <table class="table table-dark table-sm mb-0">
+      <thead class="bg-danger">
+        <tr>
+          <th class="text-white fw-bold px-2 py-2 small">Metric</th>
+          <th class="text-white fw-bold px-2 py-2 text-center small">Player</th>
+          <th class="text-white fw-bold px-2 py-2 text-center small">Team Avg</th>
+          <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
+        </tr>
+      </thead>
+      <tbody id="worst-metrics-body">
+        <%
+          eps = 1e-9
+          worst_metrics = (@worst_5_metrics || []).select { |m| m[:difference].to_f < -eps }
 
-                    # Format values based on metric format first
-                    player_display = case metric[:format]
-                                   when :percentage
-                                     "#{metric[:player_value]}%"
-                                   when :decimal
-                                     metric[:player_value].to_s
-                                   else
-                                     metric[:player_value].to_i.to_s
-                                   end
+          if worst_metrics.empty?
+        %>
+          <tr class="border-secondary">
+            <td colspan="4" class="text-center text-white py-3">
+              <i class="fas fa-check-circle text-success me-2"></i>You didn't perform worse than any stat compared to the team average
+            </td>
+          </tr>
+        <% else %>
+          <% worst_metrics.each do |metric| %>
+            <%
+              diff = metric[:difference].to_f.abs  # remove negative sign entirely
+              diff_color = "text-danger"            # always red for worst metrics
 
-                    # Round team average for consistent display and calculation
-                    rounded_team_avg = case metric[:format]
-                                     when :percentage, :decimal
-                                       metric[:team_avg]
-                                     else
-                                       metric[:team_avg].round(1)
-                                     end
+              player_display = case metric[:format]
+                               when :percentage then "#{metric[:player_value]}%"
+                               when :decimal    then metric[:player_value].to_s
+                               else                   metric[:player_value].to_i.to_s
+                               end
 
-                    team_display = case metric[:format]
-                                 when :percentage
-                                   "#{rounded_team_avg}%"
-                                 when :decimal
-                                   rounded_team_avg.to_s
-                                 else
-                                   rounded_team_avg.to_s
-                                 end
+              team_avg_value = metric[:team_avg]
+              team_display = case metric[:format]
+                             when :percentage then "#{team_avg_value}%"
+                             when :decimal    then team_avg_value.to_s
+                             else                   team_avg_value.round(1).to_s
+                             end
 
-                    # Use the already calculated difference from controller (which handles inverse logic)
-                    display_difference = sorting_difference
-                    diff_sign = display_difference > 0 ? "+" : ""
+              diff_display = case metric[:format]
+                             when :percentage then "#{diff.round(1)}%"
+                             else diff.round(1).to_s
+                             end
+            %>
+            <tr class="border-secondary">
+              <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
+              <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
+              <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
+              <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold"><%= diff_display %></td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-                    diff_display = case metric[:format]
-                                 when :percentage
-                                   "#{diff_sign}#{display_difference.round(1)}%"
-                                 else
-                                   "#{diff_sign}#{display_difference.round(1)}"
-                                 end
-                %>
-                  <tr class="border-secondary">
-                    <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
-                    <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
-                    <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
-                    <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold">
-                      <%= diff_display %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <br>
 
-        <!-- Worst Performance Metrics -->
-        <div class="mb-3">
-          <h6 class="text-white text-center mb-3">Worst Performance Metrics</h6>
-          <div class="table-responsive">
-            <table class="table table-dark table-sm mb-0">
-              <thead class="bg-danger">
-                <tr>
-                  <th class="text-white fw-bold px-2 py-2 small">Metric</th>
-                  <th class="text-white fw-bold px-2 py-2 text-center small">Player</th>
-                  <th class="text-white fw-bold px-2 py-2 text-center small">Team Avg</th>
-                  <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
-                </tr>
-              </thead>
-              <tbody id="worst-metrics-body">
-                <%
-                  # Use the calculated worst metrics from controller
-                  worst_metrics = @worst_5_metrics || []
-
-                  if worst_metrics.empty?
-                %>
-                  <tr class="border-secondary">
-                    <td colspan="4" class="text-center text-white py-3">
-                      <i class="fas fa-check-circle text-success me-2"></i>You didn't perform worse than any stat compared to the team average
-                    </td>
-                  </tr>
-                <% else %>
-                  <% worst_metrics.each do |metric| %>
-                    <%
-                    # Use the flipped difference for color (already calculated for sorting)
-                    sorting_difference = metric[:difference]
-                    diff_color = sorting_difference > 0 ? "text-success" : "text-danger"
-
-                    # Format values based on metric format first
-                    player_display = case metric[:format]
-                                   when :percentage
-                                     "#{metric[:player_value]}%"
-                                   when :decimal
-                                     metric[:player_value].to_s
-                                   else
-                                     metric[:player_value].to_i.to_s
-                                   end
-
-                    # Round team average for consistent display and calculation
-                    rounded_team_avg = case metric[:format]
-                                     when :percentage, :decimal
-                                       metric[:team_avg]
-                                     else
-                                       metric[:team_avg].round(1)
-                                     end
-
-                    team_display = case metric[:format]
-                                 when :percentage
-                                   "#{rounded_team_avg}%"
-                                 when :decimal
-                                   rounded_team_avg.to_s
-                                 else
-                                   rounded_team_avg.to_s
-                                 end
-
-                    # For worst metrics, show absolute difference with + sign (how much worse)
-                    display_difference = sorting_difference.abs
-                    diff_sign = "+"
-
-                    diff_display = case metric[:format]
-                                 when :percentage
-                                   "#{diff_sign}#{display_difference.round(1)}%"
-                                 else
-                                   "#{diff_sign}#{display_difference.round(1)}"
-                                 end
-                    %>
-                    <tr class="border-secondary">
-                      <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
-                      <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
-                      <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
-                      <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold">
-                        <%= diff_display %>
-                      </td>
-                    </tr>
-                  <% end %>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         <br>
         <!-- Team Stats -->
@@ -559,44 +506,39 @@ function updatePerformanceMetrics(bestMetrics, worstMetrics) {
 
 
     // Helper function to update metrics table
- function updateMetricsTable(tbody, metrics, isWorst) {
+function updateMetricsTable(tbody, metrics) {
   tbody.innerHTML = '';
 
-  if (metrics.length === 0 && isWorst) {
+  // drop zero-difference rows
+  const filtered = (metrics || []).filter(m => Math.abs(Number(m.difference || 0)) > 1e-9);
+
+  if (filtered.length === 0) {
     const row = document.createElement('tr');
     row.className = 'border-secondary';
     row.innerHTML = `
-      <td colspan="4" class="text-center text-white py-3">
-        <i class="fas fa-check-circle text-success me-2"></i>You didn't perform worse than any stat compared to the team average
-      </td>
-    `;
+      <td colspan="4" class="text-center text-secondary py-3">
+        No metrics differ from team average.
+      </td>`;
     tbody.appendChild(row);
     return;
   }
 
-  metrics.forEach(metric => {
-    // be defensive about metric.format coming as symbol/string
-    const fmt = (metric.format || '').toString();
+  filtered.forEach(metric => {
+    const diff = Number(metric.difference || 0);
+    const isZero = Math.abs(diff) < 1e-9;
+    const diffColor = isZero ? 'text-secondary' : (diff > 0 ? 'text-success' : 'text-danger');
 
-    const playerDisplay = fmt === 'percentage' ? `${metric.player_value}%`
-                      :  fmt === 'decimal'    ? `${metric.player_value}`
-                                              : `${Number(metric.player_value).toFixed(1)}`;
+    const playerDisplay = metric.format === 'percentage'
+      ? `${metric.player_value}%`
+      : metric.player_value.toString();
 
-    const teamDisplay   = fmt === 'percentage' ? `${metric.team_avg}%`
-                      :  fmt === 'decimal'    ? `${metric.team_avg}`
-                                              : `${Number(metric.team_avg).toFixed(1)}`;
+    const teamDisplay = metric.format === 'percentage'
+      ? `${metric.team_avg}%`
+      : metric.team_avg.toString();
 
-    // color and +/- handling
-    let diffValue = Number(metric.difference || 0);
-    const diffColor = diffValue > 0 ? 'text-success' : 'text-danger';
-
-    // Worst table shows absolute with '+' sign (how much worse)
-    if (isWorst) diffValue = Math.abs(diffValue);
-
-    const diffSign = (!isWorst && Number(metric.difference) > 0) ? '+' : (isWorst ? '+' : '');
-    const diffDisplay = fmt === 'percentage'
-      ? `${diffSign}${diffValue.toFixed(1)}%`
-      : `${diffSign}${diffValue.toFixed(1)}`;
+    const diffDisplay = metric.format === 'percentage'
+      ? `${diff.toFixed(1)}%`
+      : `${diff.toFixed(1)}`;
 
     const row = document.createElement('tr');
     row.className = 'border-secondary';
@@ -609,6 +551,7 @@ function updatePerformanceMetrics(bestMetrics, worstMetrics) {
     tbody.appendChild(row);
   });
 }
+
 
 
     // Function to update detailed stats tables
