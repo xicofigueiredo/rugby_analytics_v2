@@ -107,6 +107,10 @@ def calculate_defense_rating(df):
     turnovers_won = df.get('turnovers_won', [0] * len(df))
     turnover_bonus = [tw * 1 * tm for tw, tm in zip(turnovers_won, time_multiplier)]
 
+    # Lineout steals bonuses (time-adjusted)
+    lineout_steals = df.get('lineout_steals', [0] * len(df))
+    lineout_steal_bonus = [ls * 0.5 * tm for ls, tm in zip(lineout_steals, time_multiplier)]
+
     # Offside penalty bonuses (time-adjusted)
     offside_penalties = df.get('offside_penalties', [0] * len(df))
     offside_bonus = [op * -0.6 * tm for op, tm in zip(offside_penalties, time_multiplier)]
@@ -120,8 +124,8 @@ def calculate_defense_rating(df):
     other_mistake_penalty = [om * -0.2 * tm for om, tm in zip(other_mistakes, time_multiplier)]
 
     # Total bonus points
-    total_bonus = [tb + ob + mtp + omp for tb, ob, mtp, omp in
-                  zip(turnover_bonus, offside_bonus, missed_tackle_penalty, other_mistake_penalty)]
+    total_bonus = [tb + lsb + ob + mtp + omp for tb, lsb, ob, mtp, omp in
+                  zip(turnover_bonus, lineout_steal_bonus, offside_bonus, missed_tackle_penalty, other_mistake_penalty)]
 
     # Calculate reliability factor: N/(N+k) where N=minutes, k=20
     reliability = [m / (m + 20) for m in minutes]
@@ -433,11 +437,15 @@ def calculate_work_rate_rating(df):
     assist_tackles = df.get('assist_tackles', [0] * len(df))
     total_tackles = [ot + nt + dt + at for ot, nt, dt, at in zip(offensive_tackles, neutral_tackles, defensive_tackles, assist_tackles)]
 
+    linebreak_assists = df.get('linebreak_assists', [0] * len(df))
+    offloads_good = df.get('offloads_good', [0] * len(df))
+    lineout_steals = df.get('lineout_steals', [0] * len(df))
+    scrum_dominant = df.get('scrum_dominant', [0] * len(df))
     turnovers_won = df.get('turnovers_won', [0] * len(df))
     mod_plus = df.get('mod_game_plus', [0] * len(df))
 
     # BASE: total number of actions (absolute)
-    total_actions = [tc + tt + tw + mp for tc, tt, tw, mp in zip(total_carries, total_tackles, turnovers_won, mod_plus)]
+    total_actions = [tc + tt + tw + mp + la + og + ls + sd for tc, tt, tw, mp, la, og, ls, sd in zip(total_carries, total_tackles, turnovers_won, mod_plus, linebreak_assists, offloads_good, lineout_steals, scrum_dominant)]
 
     # Reliability adjustment on absolute actions
     reliability = [m / (m + 20) for m in minutes]
@@ -534,8 +542,8 @@ def calculate_skills_rating(df):
     skills_rating = [sr + ls * 0.5 for sr, ls in zip(skills_rating, lineout_steals)]
 
     # Lineout success: +0.1 per successful lineout (up to 2.0 max)
-    own_lineouts_won = df.get('own_lineouts_won', [0] * len(df))
-    lineout_success_points = [min(olw * 0.1, 2.0) for olw in own_lineouts_won]
+    own_lineouts_with_jump = df.get('own_lineouts_with_jump', [0] * len(df))
+    lineout_success_points = [min(olw * 0.1, 2.0) for olw in own_lineouts_with_jump]
     skills_rating = [sr + lsp for sr, lsp in zip(skills_rating, lineout_success_points)]
 
     # Lineout introductions: +0.1 per successful intro (up to 2 max)
