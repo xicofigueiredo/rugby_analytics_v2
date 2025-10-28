@@ -343,7 +343,7 @@ class MatchesController < ApplicationController
       ["Positive Tackles", "positive_tackles"],
       ["Turnovers", "turnovers"],
       ["Penalties", "penalties"],
-      ["Carries", "carries"],
+      ["Total Carries", "carries"],
       ["Positive Carries", "positive_carries"],
       ["Offloads Good", "offloads_good"],
       ["Offloads Bad", "offloads_bad"],
