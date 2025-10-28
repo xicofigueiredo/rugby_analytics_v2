@@ -1,8 +1,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <div class="container">
-  <!-- Player Selector (only visible for coaches/admins) -->
-  <% if current_user.role == "coach" || current_user.role == "admin" %>
+  <!-- Player Selector (visible for coaches/admins and players) -->
+  <% if current_user.role == "coach" || current_user.role == "admin" || current_user.role == "player" %>
     <div class="row mb-4">
       <div class="col-12">
         <div class="card main-card p-4">
@@ -17,26 +17,28 @@
             </select>
           </div>
 
-          <!-- Coach Notes -->
-          <div>
-            <label for="coachNotes" class="text-white mb-2 d-block">Coach Notes for this player</label>
-            <textarea
-              id="coachNotes"
-              class="form-control"
-              rows="3"
-              placeholder="Add notes for this player's performance in this match..."
-              style="background-color: #2a2a2a; color: white; border-color: #666;"
-            ><%= @player_match&.coach_notes %></textarea>
-            <div class="mt-2 d-flex justify-content-between align-items-center">
-              <small class="text-secondary" id="notesCharCount">0/1000 characters</small>
-              <button
-                id="saveNotesBtn"
-                class="btn btn-sm btn-success"
-                style="display: none;"
-              >
-              </button>
+          <!-- Coach Notes (only visible for coaches/admins) -->
+          <% if current_user.role == "coach" || current_user.role == "admin" %>
+            <div>
+              <label for="coachNotes" class="text-white mb-2 d-block">Coach Notes for this player</label>
+              <textarea
+                id="coachNotes"
+                class="form-control"
+                rows="3"
+                placeholder="Add notes for this player's performance in this match..."
+                style="background-color: #2a2a2a; color: white; border-color: #666;"
+              ><%= @player_match&.coach_notes %></textarea>
+              <div class="mt-2 d-flex justify-content-between align-items-center">
+                <small class="text-secondary" id="notesCharCount">0/1000 characters</small>
+                <button
+                  id="saveNotesBtn"
+                  class="btn btn-sm btn-success"
+                  style="display: none;"
+                >
+                </button>
+              </div>
             </div>
-          </div>
+          <% end %>
         </div>
       </div>
     </div>

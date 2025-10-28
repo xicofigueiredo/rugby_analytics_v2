@@ -54,8 +54,20 @@ class MatchesController < ApplicationController
     Rails.logger.info "Current user role: #{current_user.role}, player_id: #{current_user.player_id}, team_id: #{current_user.team_id}"
 
     if current_user.role == "player" && current_user.player_id.present?
-      @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
-      @player = current_user.player
+      # For players, show all players from their team in the dropdown but default to themselves
+      @players = @players.joins(:player).where(players: { team_id: current_user.team_id })
+
+      # Allow players to view specific player via player_match_id parameter (but only from their team)
+      if params[:player_match_id].present?
+        @player_match = PlayerMatch.joins(:player)
+                                  .where(id: params[:player_match_id], match_id: @match.id)
+                                  .where(players: { team_id: current_user.team_id })
+                                  .first
+      else
+        # Set their own player_match as default
+        @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
+      end
+      @player = @player_match&.player
       Rails.logger.info "Player mode: Found player_match for player_id #{current_user.player_id}: #{@player_match&.id}"
     elsif current_user.role == "coach" || current_user.role == "admin"
       # Filter players to only show coach's team in the dropdown
