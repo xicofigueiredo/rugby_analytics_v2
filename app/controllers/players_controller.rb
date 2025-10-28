@@ -281,7 +281,7 @@ class PlayersController < ApplicationController
         "Kicks Missed" => 0,
         "Drops Made" => 0,
         "Drops Missed" => 0,
-        "Mod Game Plus" => 0,
+        "Game Model +" => 0,
 
         # Defense stats
         "Positive Tackles" => 0,
@@ -317,7 +317,7 @@ class PlayersController < ApplicationController
         # Work Rate stats
         "Total Carries" => 0,
         "Total Tackles" => 0,
-        "Mod Game Minus" => 0,
+        "Game Model -" => 0,
 
         # Consistency stats
         "Time Played" => 0,
@@ -346,7 +346,7 @@ class PlayersController < ApplicationController
       "Kicks Missed" => player_matches.sum(:missed_penalty_kick_goals) || 0,
       "Drops Made" => player_matches.sum(:drop_goal) || 0,
       "Drops Missed" => player_matches.sum(:missed_drop_goals) || 0,
-      "Mod Game Plus" => player_matches.sum(:mod_game_plus) || 0,
+      "Game Model +" => player_matches.sum(:mod_game_plus) || 0,
 
       # Defense stats
       "Positive Tackles" => player_matches.sum(:positive_tackle) || 0,
@@ -382,7 +382,7 @@ class PlayersController < ApplicationController
       # Work Rate stats
       "Total Carries" => (player_matches.sum(:positive_carry) || 0) + (player_matches.sum(:carries) || 0),
       "Total Tackles" => (player_matches.sum(:positive_tackle) || 0) + (player_matches.sum(:neutral_tackle) || 0) + (player_matches.sum(:negative_tackle) || 0) + (player_matches.sum(:assist_tackle) || 0),
-      "Mod Game Minus" => player_matches.sum(:mod_game_minus) || 0,
+      "Game Model -" => player_matches.sum(:mod_game_minus) || 0,
 
       # Consistency stats
       "Time Played" => player_matches.sum(:time_played) || 0,

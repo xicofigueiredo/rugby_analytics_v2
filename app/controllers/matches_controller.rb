@@ -339,8 +339,8 @@ class MatchesController < ApplicationController
     end
 
     @stats_dropdown_options = [
-      ["Positive Tackles", "positive_tackles"],
       ["Total Tackles", "total_tackles"],
+      ["Positive Tackles", "positive_tackles"],
       ["Turnovers", "turnovers"],
       ["Penalties", "penalties"],
       ["Carries", "carries"],
