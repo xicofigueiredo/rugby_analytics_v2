@@ -65,22 +65,25 @@ class MatchesController < ApplicationController
       @player = current_user.player
       Rails.logger.info "Player mode: Found player_match for player_id #{current_user.player_id}: #{@player_match&.id}"
     elsif current_user.role == "coach" || current_user.role == "admin"
+      # Filter players to only show coach's team in the dropdown
+      @players = @players.joins(:player).where(players: { team_id: current_user.team_id })
+      
       # For coaches/admins, allow viewing specific player via player_match_id parameter
       if params[:player_match_id].present?
         @player_match = PlayerMatch.joins(:player)
                                   .where(id: params[:player_match_id], match_id: @match.id)
-                                  .where(players: { team_id: current_user.team_id })
                                   .first
       elsif params[:player_id].present?
         @player_match = PlayerMatch.joins(:player)
                                   .where(match_id: @match.id, player_id: params[:player_id])
-                                  .where(players: { team_id: current_user.team_id })
                                   .first
       else
+        # Default to first player from the coach's team
         @player_match = PlayerMatch.joins(:player)
                                   .where(match_id: @match.id)
                                   .where(players: { team_id: current_user.team_id })
                                   .where("time_played > 0")
+                                  .order(:position)
                                   .first
       end
       @player = @player_match&.player
@@ -197,12 +200,12 @@ class MatchesController < ApplicationController
       if current_user.role == "coach"
         @performance_data = {}
         @player_match_performance_data = {
-          "Attack" => 5.0,
-          "Defense" => 5.0,
-          "Work Rate" => 5.0,
-          "Discipline" => 5.0,
-          "Skills" => 5.0,
-          "Consistency" => 5.0
+          "Attack" => 0,
+          "Defense" => 0,
+          "Work Rate" => 0,
+          "Discipline" => 0,
+          "Skills" => 0,
+          "Consistency" => 0
         }
         @average_player_performance_data = {
           "Tackles Made" => @match.avg_tackles_made,
@@ -218,12 +221,12 @@ class MatchesController < ApplicationController
 
         # Set team average performance data for radar chart
         @player_season_average_performance_data = {
-          "Attack" => 5.0,
-          "Defense" => 5.0,
-          "Work Rate" => 5.0,
-          "Discipline" => 5.0,
-          "Skills" => 5.0,
-          "Consistency" => 5.0
+          "Attack" => 0,
+          "Defense" => 0,
+          "Work Rate" => 0,
+          "Discipline" => 0,
+          "Skills" => 0,
+          "Consistency" => 0
         }
       else
         if @player_match
@@ -240,12 +243,12 @@ class MatchesController < ApplicationController
           }
 
           @player_match_performance_data = {
-            "Attack" => @player_match.attack_rating || 5.0,
-            "Defense" => @player_match.defense_rating || 5.0,
-            "Work Rate" => @player_match.work_rate_rating || 5.0,
-            "Discipline" => @player_match.discipline_rating || 5.0,
-            "Skills" => @player_match.skills_rating || 5.0,
-            "Consistency" => @player_match.consistency_rating || 5.0
+            "Attack" => @player_match.attack_rating || 0.0,
+            "Defense" => @player_match.defense_rating || 0.0,
+            "Work Rate" => @player_match.work_rate_rating || 0.0,
+            "Discipline" => @player_match.discipline_rating || 0.0,
+            "Skills" => @player_match.skills_rating || 0.0,
+            "Consistency" => @player_match.consistency_rating || 0.0
           }
         else
           @performance_data = { }
@@ -266,45 +269,39 @@ class MatchesController < ApplicationController
 
 
         # Calculate team average ratings for this match
-        @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
+        @player_season_average_performance_data = calculate_team_average_ratings(@match)
 
       end
-
-    @minutes_data = {
-      "CDUL" => 65,
-      "CDUP" => 72,
-      "AAC" => 50,
-      "Bel" => 78,
-      "GDD" => 58
-    }
 
     # Set up player match performance data for all teams
     if @player_match
       @player_match_performance_data = {
-        "Attack" => @player_match.attack_rating || 5.0,
-        "Defense" => @player_match.defense_rating || 5.0,
-        "Work Rate" => @player_match.work_rate_rating || 5.0,
-        "Discipline" => @player_match.discipline_rating || 5.0,
-        "Skills" => @player_match.skills_rating || 5.0,
-        "Consistency" => @player_match.consistency_rating || 5.0
+        "Attack" => @player_match.attack_rating || 0.0,
+        "Defense" => @player_match.defense_rating || 0.0,
+        "Work Rate" => @player_match.work_rate_rating || 0.0,
+        "Discipline" => @player_match.discipline_rating || 0.0,
+        "Skills" => @player_match.skills_rating || 0.0,
+        "Consistency" => @player_match.consistency_rating || 0.0
       }
     else
       @player_match_performance_data = {
-        "Attack" => 5.0,
-        "Defense" => 5.0,
-        "Work Rate" => 5.0,
-        "Discipline" => 5.0,
-        "Skills" => 5.0,
-        "Consistency" => 5.0
+        "Attack" => 0,
+        "Defense" => 0,
+        "Work Rate" => 0,
+        "Discipline" => 0,
+        "Skills" => 0,
+        "Consistency" => 0
       }
     end
 
     # Calculate team average ratings for this match
-    @player_season_average_performance_data = calculate_team_average_ratings(@match, current_user.team_id)
+    @player_season_average_performance_data = calculate_team_average_ratings(@match)
 
     # Calculate best and worst performance metrics
     if @player_match
-      calculate_best_worst_metrics(@player_match, @match, current_user.team_id)
+      # Reload to ensure fresh data
+      @player_match.reload
+      calculate_best_worst_metrics(@player_match, @match)
     end
 
     # Fetch raw database values for radar chart
@@ -324,7 +321,6 @@ class MatchesController < ApplicationController
       # Calculate team averages for radar chart
       team_players = PlayerMatch.joins(:player)
                                .where(match_id: @match.id)
-                               .where(players: { team_id: current_user.team_id })
                                .where("time_played > 0")
 
       @radar_team_data = {
@@ -479,7 +475,7 @@ class MatchesController < ApplicationController
   end
 
   def player_data
-    # Find the specific player match
+    # Find the specific player match - only from the coach's team
     if params[:player_match_id].present?
       @player_match = PlayerMatch.joins(:player)
                                 .where(id: params[:player_match_id], match_id: @match.id)
@@ -497,8 +493,11 @@ class MatchesController < ApplicationController
 
     @player = @player_match.player
 
+    # Reload player_match to ensure fresh data
+    @player_match.reload
+
     # Calculate all the same data as in the show method
-    calculate_best_worst_metrics(@player_match, @match, @player.team_id)
+    calculate_best_worst_metrics(@player_match, @match)
 
     # Radar chart data
     @radar_player_data = {
@@ -513,7 +512,6 @@ class MatchesController < ApplicationController
     # Team averages for radar chart
     team_players = PlayerMatch.joins(:player)
                              .where(match_id: @match.id)
-                             .where(players: { team_id: @player.team_id })
                              .where("time_played > 0")
 
     @radar_team_data = {
@@ -585,9 +583,9 @@ class MatchesController < ApplicationController
 
   private
 
-  def calculate_team_average_ratings(match, team_id)
+  def calculate_team_average_ratings(match)
     # Get all player matches for this team in this match with ratings
-    team_player_matches = match.player_matches.joins(:player).where(players: { team_id: team_id })
+    team_player_matches = match.player_matches
                                .where.not(
                                  attack_rating: nil,
                                  defense_rating: nil,
@@ -600,23 +598,23 @@ class MatchesController < ApplicationController
     if team_player_matches.empty?
       # Return default values if no ratings available
       return {
-        "Attack" => 5.0,
-        "Defense" => 5.0,
-        "Work Rate" => 5.0,
-        "Discipline" => 5.0,
-        "Skills" => 5.0,
-        "Consistency" => 5.0
+        "Attack" => 0,
+        "Defense" => 0,
+        "Work Rate" => 0,
+        "Discipline" => 0,
+        "Skills" => 0,
+        "Consistency" => 0
       }
     end
 
     # Calculate team averages for this match
     {
-      "Attack" => team_player_matches.average(:attack_rating)&.round(1) || 5.0,
-      "Defense" => team_player_matches.average(:defense_rating)&.round(1) || 5.0,
-      "Work Rate" => team_player_matches.average(:work_rate_rating)&.round(1) || 5.0,
-      "Discipline" => team_player_matches.average(:discipline_rating)&.round(1) || 5.0,
-      "Skills" => team_player_matches.average(:skills_rating)&.round(1) || 5.0,
-      "Consistency" => team_player_matches.average(:consistency_rating)&.round(1) || 5.0
+      "Attack" => team_player_matches.average(:attack_rating)&.round(1) || 0.0,
+      "Defense" => team_player_matches.average(:defense_rating)&.round(1) || 0.0,
+      "Work Rate" => team_player_matches.average(:work_rate_rating)&.round(1) || 0.0,
+      "Discipline" => team_player_matches.average(:discipline_rating)&.round(1) || 0.0,
+      "Skills" => team_player_matches.average(:skills_rating)&.round(1) || 0.0,
+      "Consistency" => team_player_matches.average(:consistency_rating)&.round(1) || 0.0
     }
   end
 
@@ -1123,14 +1121,22 @@ class MatchesController < ApplicationController
     Rails.logger.info "Penalties: #{@penalties_top_players.count} players"
   end
 
-  def calculate_best_worst_metrics(player_match, match, team_id)
-    # Get all player matches for this match from the same team
+  def calculate_best_worst_metrics(player_match, match)
+    # Reload player_match to ensure fresh data
+    player_match.reload
+
+    # Get all player matches for this match from the same team as the player
     team_player_matches = PlayerMatch.joins(:player)
                                     .where(match_id: match.id)
-                                    .where(players: { team_id: team_id })
+                                    .where(players: { team_id: player_match.player.team_id })
                                     .where("time_played > 0")
+                                    .includes(:player)
+                                    .order(:position)
 
     return if team_player_matches.empty?
+
+    # Reload all team player matches to ensure fresh data
+    team_player_matches.each(&:reload)
 
     # Define all metrics to compare
     metrics = [
@@ -1165,15 +1171,22 @@ class MatchesController < ApplicationController
         format: :integer
       },
       {
+        name: "Positive Carries",
+        player_value: player_match.positive_carry || 0,
+        team_avg: team_player_matches.sum { |pm| pm.positive_carry || 0 }.to_f / team_player_matches.count,
+        format: :integer,
+        inverse: false
+      },
+      {
         name: "Linebreaks",
         player_value: player_match.linebreak || 0,
-        team_avg: team_player_matches.sum("COALESCE(linebreak, 0)").to_f / team_player_matches.count,
+        team_avg: team_player_matches.sum { |pm| pm.linebreak || 0 }.to_f / team_player_matches.count,
         format: :integer
       },
       {
         name: "Turnovers Won",
         player_value: player_match.turnover || 0,
-        team_avg: team_player_matches.sum("COALESCE(turnover, 0)").to_f / team_player_matches.count,
+        team_avg: team_player_matches.sum { |pm| pm.turnover || 0 }.to_f / team_player_matches.count,
         format: :integer
       },
       {
@@ -1186,28 +1199,28 @@ class MatchesController < ApplicationController
       {
         name: "Knock Ons",
         player_value: player_match.knock_on || 0,
-        team_avg: team_player_matches.sum("COALESCE(knock_on, 0)").to_f / team_player_matches.count,
+        team_avg: team_player_matches.sum { |pm| pm.knock_on || 0 }.to_f / team_player_matches.count,
         format: :integer,
         inverse: true
       },
       {
         name: "Missed Tackles",
         player_value: player_match.missed_tackle || 0,
-        team_avg: team_player_matches.sum("COALESCE(missed_tackle, 0)").to_f / team_player_matches.count,
+        team_avg: team_player_matches.sum { |pm| pm.missed_tackle || 0 }.to_f / team_player_matches.count,
         format: :integer,
         inverse: true
       },
       {
         name: "Offloads Bad",
         player_value: player_match.negative_offload || 0,
-        team_avg: team_player_matches.sum("COALESCE(negative_offload, 0)").to_f / team_player_matches.count,
+        team_avg: team_player_matches.sum { |pm| pm.negative_offload || 0 }.to_f / team_player_matches.count,
         format: :integer,
         inverse: true
       },
       {
         name: "Other Mistakes",
         player_value: player_match.other_mistakes || 0,
-        team_avg: team_player_matches.sum("COALESCE(other_mistakes, 0)").to_f / team_player_matches.count,
+        team_avg: team_player_matches.sum { |pm| pm.other_mistakes || 0 }.to_f / team_player_matches.count,
         format: :integer,
         inverse: true
       }
@@ -1312,12 +1325,12 @@ class MatchesController < ApplicationController
     if player_matches.empty?
       # Return default values if no ratings available
       return {
-        "Attack" => 5.0,
-        "Defense" => 5.0,
-        "Work Rate" => 5.0,
-        "Discipline" => 5.0,
-        "Skills" => 5.0,
-        "Consistency" => 5.0
+        "Attack" => 0,
+        "Defense" => 0,
+        "Work Rate" => 0,
+        "Discipline" => 0,
+        "Skills" => 0,
+        "Consistency" => 0
       }
     end
 

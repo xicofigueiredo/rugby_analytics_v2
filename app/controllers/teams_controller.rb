@@ -169,23 +169,23 @@ class TeamsController < ApplicationController
     if player_matches.empty?
       # Return default values if no ratings available
       return {
-        "Attack" => 5.0,
-        "Defense" => 5.0,
-        "Work Rate" => 5.0,
-        "Discipline" => 5.0,
-        "Skills" => 5.0,
-        "Consistency" => 5.0
+        "Attack" => 0,
+        "Defense" => 0,
+        "Work Rate" => 0,
+        "Discipline" => 0,
+        "Skills" => 0,
+        "Consistency" => 0
       }
     end
 
     # Calculate averages across all player performances
     {
-      "Attack" => player_matches.average(:attack_rating)&.round(1) || 5.0,
-      "Defense" => player_matches.average(:defense_rating)&.round(1) || 5.0,
-      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 5.0,
-      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 5.0,
-      "Skills" => player_matches.average(:skills_rating)&.round(1) || 5.0,
-      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 5.0
+      "Attack" => player_matches.average(:attack_rating)&.round(1) || 0.0,
+      "Defense" => player_matches.average(:defense_rating)&.round(1) || 0.0,
+      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 0.0,
+      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 0.0,
+      "Skills" => player_matches.average(:skills_rating)&.round(1) || 0.0,
+      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 0.0
     }
   end
 

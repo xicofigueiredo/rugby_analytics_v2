@@ -110,7 +110,7 @@
                   <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="best-metrics-body">
                 <%
                   # Calculate advanced metrics
                   total_tackles = (@player_match&.positive_tackle || 0) + (@player_match&.neutral_tackle || 0) + (@player_match&.negative_tackle || 0) + (@player_match&.assist_tackle || 0)
@@ -206,12 +206,21 @@
                   <th class="text-white fw-bold px-2 py-2 text-center small">+/-</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="worst-metrics-body">
                 <%
                   # Use the calculated worst metrics from controller
                   worst_metrics = @worst_5_metrics || []
 
-                  worst_metrics.each do |metric|
+                  if worst_metrics.empty?
+                %>
+                  <tr class="border-secondary">
+                    <td colspan="4" class="text-center text-white py-3">
+                      <i class="fas fa-check-circle text-success me-2"></i>You didn't perform worse than any stat compared to the team average
+                    </td>
+                  </tr>
+                <% else %>
+                  <% worst_metrics.each do |metric| %>
+                    <%
                     # Use the flipped difference for color (already calculated for sorting)
                     sorting_difference = metric[:difference]
                     diff_color = sorting_difference > 0 ? "text-success" : "text-danger"
@@ -253,15 +262,16 @@
                                  else
                                    "#{diff_sign}#{display_difference.round(1)}"
                                  end
-                %>
-                  <tr class="border-secondary">
-                    <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
-                    <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
-                    <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
-                    <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold">
-                      <%= diff_display %>
-                    </td>
-                  </tr>
+                    %>
+                    <tr class="border-secondary">
+                      <td class="text-white px-2 py-1 small"><%= metric[:name] %></td>
+                      <td class="text-white text-center px-2 py-1 small"><%= player_display %></td>
+                      <td class="text-white text-center px-2 py-1 small"><%= team_display %></td>
+                      <td class="<%= diff_color %> text-center px-2 py-1 small fw-bold">
+                        <%= diff_display %>
+                      </td>
+                    </tr>
+                  <% end %>
                 <% end %>
               </tbody>
             </table>
@@ -345,7 +355,10 @@
                   "Work Rate" => [
                     ["Total Carries", (@player_match&.positive_carry || 0) + (@player_match&.carries || 0)],
                     ["Total Tackles", (@player_match&.positive_tackle || 0) + (@player_match&.neutral_tackle || 0) + (@player_match&.negative_tackle || 0) + (@player_match&.assist_tackle || 0)],
-                    ["Game Model -", @player_match&.mod_game_minus || 0]
+                    ["Offloads Good", @player_match&.positive_offload || 0],
+                    ["Lineout Steals", @player_match&.lineout_turnover || 0],
+                    ["Linebreak Assists", @player_match&.linebreak_assists || 0],
+                    ["Scrum Dominant", @player_match&.scrum_dominant || 0]
                   ],
                   "Consistency" => [
                     ["Time Played", @player_match&.time_played || 0],
@@ -533,53 +546,67 @@
     }
 
     // Function to update performance metrics tables
-    function updatePerformanceMetrics(bestMetrics, worstMetrics) {
-      // Find tables by their headers
-      const headers = document.querySelectorAll('h6');
-      let bestTableBody = null;
-      let worstTableBody = null;
+function updatePerformanceMetrics(bestMetrics, worstMetrics) {
+  const bestTableBody  = document.getElementById('best-metrics-body');
+  const worstTableBody = document.getElementById('worst-metrics-body');
 
-      headers.forEach(header => {
-        if (header.textContent.includes('Best Performance Metrics')) {
-          bestTableBody = header.closest('.mb-3').querySelector('tbody');
-        } else if (header.textContent.includes('Worst Performance Metrics')) {
-          worstTableBody = header.closest('.mb-3').querySelector('tbody');
-        }
-      });
+  if (bestTableBody)  updateMetricsTable(bestTableBody,  bestMetrics || [], false);
+  if (worstTableBody) updateMetricsTable(worstTableBody, worstMetrics || [], true);
+}
 
-      if (bestTableBody && bestMetrics) {
-        updateMetricsTable(bestTableBody, bestMetrics);
-      }
-
-      if (worstTableBody && worstMetrics) {
-        updateMetricsTable(worstTableBody, worstMetrics);
-      }
-    }
 
     // Helper function to update metrics table
-    function updateMetricsTable(tbody, metrics) {
-      tbody.innerHTML = '';
-      metrics.forEach(metric => {
-        const row = document.createElement('tr');
-        row.className = 'border-secondary';
+ function updateMetricsTable(tbody, metrics, isWorst) {
+  tbody.innerHTML = '';
 
-        const playerDisplay = metric.format === 'percentage' ? `${metric.player_value}%` : metric.player_value.toString();
-        const teamDisplay = metric.format === 'percentage' ? `${metric.team_avg}%` : metric.team_avg.toString();
-        const diffColor = metric.difference > 0 ? 'text-success' : 'text-danger';
-        const diffSign = metric.difference > 0 ? '+' : '';
-        const diffDisplay = metric.format === 'percentage' ?
-          `${diffSign}${metric.difference.toFixed(1)}%` :
-          `${diffSign}${metric.difference.toFixed(1)}`;
+  if (metrics.length === 0 && isWorst) {
+    const row = document.createElement('tr');
+    row.className = 'border-secondary';
+    row.innerHTML = `
+      <td colspan="4" class="text-center text-white py-3">
+        <i class="fas fa-check-circle text-success me-2"></i>You didn't perform worse than any stat compared to the team average
+      </td>
+    `;
+    tbody.appendChild(row);
+    return;
+  }
 
-        row.innerHTML = `
-          <td class="text-white px-2 py-1 small">${metric.name}</td>
-          <td class="text-white text-center px-2 py-1 small">${playerDisplay}</td>
-          <td class="text-white text-center px-2 py-1 small">${teamDisplay}</td>
-          <td class="${diffColor} text-center px-2 py-1 small fw-bold">${diffDisplay}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+  metrics.forEach(metric => {
+    // be defensive about metric.format coming as symbol/string
+    const fmt = (metric.format || '').toString();
+
+    const playerDisplay = fmt === 'percentage' ? `${metric.player_value}%`
+                      :  fmt === 'decimal'    ? `${metric.player_value}`
+                                              : `${Number(metric.player_value).toFixed(1)}`;
+
+    const teamDisplay   = fmt === 'percentage' ? `${metric.team_avg}%`
+                      :  fmt === 'decimal'    ? `${metric.team_avg}`
+                                              : `${Number(metric.team_avg).toFixed(1)}`;
+
+    // color and +/- handling
+    let diffValue = Number(metric.difference || 0);
+    const diffColor = diffValue > 0 ? 'text-success' : 'text-danger';
+
+    // Worst table shows absolute with '+' sign (how much worse)
+    if (isWorst) diffValue = Math.abs(diffValue);
+
+    const diffSign = (!isWorst && Number(metric.difference) > 0) ? '+' : (isWorst ? '+' : '');
+    const diffDisplay = fmt === 'percentage'
+      ? `${diffSign}${diffValue.toFixed(1)}%`
+      : `${diffSign}${diffValue.toFixed(1)}`;
+
+    const row = document.createElement('tr');
+    row.className = 'border-secondary';
+    row.innerHTML = `
+      <td class="text-white px-2 py-1 small">${metric.name}</td>
+      <td class="text-white text-center px-2 py-1 small">${playerDisplay}</td>
+      <td class="text-white text-center px-2 py-1 small">${teamDisplay}</td>
+      <td class="${diffColor} text-center px-2 py-1 small fw-bold">${diffDisplay}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
 
     // Function to update detailed stats tables
     function updateDetailedStats(playerMatch) {
@@ -598,7 +625,7 @@
         'Kicks Missed': playerMatch.missed_penalty_kick_goals,
         'Drops Made': playerMatch.drop_goal,
         'Drops Missed': playerMatch.missed_drop_goals,
-        'Mod Game Plus': playerMatch.mod_game_plus,
+        'Game Model +': playerMatch.mod_game_plus,
         // Defense stats
         'Positive Tackles': playerMatch.positive_tackle,
         'Neutral Tackles': playerMatch.neutral_tackle,
@@ -630,7 +657,10 @@
         // Work Rate stats
         'Total Carries': playerMatch.positive_carry + playerMatch.carries,
         'Total Tackles': playerMatch.positive_tackle + playerMatch.neutral_tackle + playerMatch.negative_tackle + playerMatch.assist_tackle,
-        'Game Model -': playerMatch.mod_game_minus,
+        'Offloads Good': playerMatch.positive_offload,
+        'Lineout Steals': playerMatch.lineout_turnover,
+        'Linebreak Assists': playerMatch.linebreak_assists,
+        'Scrum Dominant': playerMatch.scrum_dominant,
         // Consistency stats
         'Time Played': playerMatch.time_played,
         'Conversions Attempted': playerMatch.conversion + playerMatch.missed_conversion,

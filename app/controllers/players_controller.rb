@@ -125,20 +125,20 @@ class PlayersController < ApplicationController
     if player_matches.any?
       # Always use averages across all matches
       @overall_data = {
-        "Attack" => player_matches.where.not(attack_rating: nil).average(:attack_rating)&.round(1) || 5.0,
-        "Defense" => player_matches.where.not(defense_rating: nil).average(:defense_rating)&.round(1) || 5.0,
-        "Work Rate" => player_matches.where.not(work_rate_rating: nil).average(:work_rate_rating)&.round(1) || 5.0,
-        "Discipline" => player_matches.where.not(discipline_rating: nil).average(:discipline_rating)&.round(1) || 5.0,
-        "Skills" => player_matches.where.not(skills_rating: nil).average(:skills_rating)&.round(1) || 5.0,
-        "Consistency" => player_matches.where.not(consistency_rating: nil).average(:consistency_rating)&.round(1) || 5.0
+        "Attack" => player_matches.where.not(attack_rating: nil).average(:attack_rating)&.round(1) || 0.0,
+        "Defense" => player_matches.where.not(defense_rating: nil).average(:defense_rating)&.round(1) || 0.0,
+        "Work Rate" => player_matches.where.not(work_rate_rating: nil).average(:work_rate_rating)&.round(1) || 0.0,
+        "Discipline" => player_matches.where.not(discipline_rating: nil).average(:discipline_rating)&.round(1) || 0.0,
+        "Skills" => player_matches.where.not(skills_rating: nil).average(:skills_rating)&.round(1) || 0.0,
+        "Consistency" => player_matches.where.not(consistency_rating: nil).average(:consistency_rating)&.round(1) || 0.0
       }
     else
       @overall_data = {
-        "Attack" => 5.0,
-        "Defense" => 5.0,
-        "Work Rate" => 5.0,
-        "Discipline" => 5.0,
-        "Skills" => 5.0,
+        "Attack" => 0,
+        "Defense" => 0,
+        "Work Rate" => 0,
+        "Discipline" => 0,
+        "Skills" => 0,
         "Consistency" => 5.0
       }
     end
@@ -239,23 +239,23 @@ class PlayersController < ApplicationController
       # Return default values if no ratings available
       Rails.logger.info "No ratings found for #{player.name}, returning defaults"
       return {
-        "Attack" => 5.0,
-        "Defense" => 5.0,
-        "Work Rate" => 5.0,
-        "Discipline" => 5.0,
-        "Skills" => 5.0,
-        "Consistency" => 5.0
+        "Attack" => 0,
+        "Defense" => 0,
+        "Work Rate" => 0,
+        "Discipline" => 0,
+        "Skills" => 0,
+        "Consistency" => 0
       }
     end
 
     # Calculate averages
     result = {
-      "Attack" => player_matches.average(:attack_rating)&.round(1) || 5.0,
-      "Defense" => player_matches.average(:defense_rating)&.round(1) || 5.0,
-      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 5.0,
-      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 5.0,
-      "Skills" => player_matches.average(:skills_rating)&.round(1) || 5.0,
-      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 5.0
+      "Attack" => player_matches.average(:attack_rating)&.round(1) || 0.0,
+      "Defense" => player_matches.average(:defense_rating)&.round(1) || 0.0,
+      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1) || 0.0,
+      "Discipline" => player_matches.average(:discipline_rating)&.round(1) || 0.0,
+      "Skills" => player_matches.average(:skills_rating)&.round(1) || 0.0,
+      "Consistency" => player_matches.average(:consistency_rating)&.round(1) || 0.0
     }
 
     Rails.logger.info "Calculated ratings for #{player.name}: #{result.inspect}"
