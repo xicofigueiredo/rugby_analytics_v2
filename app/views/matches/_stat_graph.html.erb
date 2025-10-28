@@ -149,7 +149,7 @@
               </span>
             </div>
             <div class="text-end" style="width: 30%;">
-             <%= player.time_played %>' <span class="text-primary fw-bold"><%= player.overall_rating %></span>
+             <%= player.time_played %>' <span class="text-primary fw-bold"><%= player.overall_rating.round(1) %></span>
             </div>
           </li>
         <% end %>
