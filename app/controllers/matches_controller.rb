@@ -66,6 +66,11 @@ class MatchesController < ApplicationController
       else
         # Set their own player_match as default
         @player_match = PlayerMatch.where(match_id: @match.id, player_id: current_user.player_id).first
+
+        # If player didn't play in this match (no stats/time_played = 0), set to nil to show placeholder
+        if @player_match && (@player_match.time_played.nil? || @player_match.time_played == 0)
+          @player_match = nil
+        end
       end
       @player = @player_match&.player
       Rails.logger.info "Player mode: Found player_match for player_id #{current_user.player_id}: #{@player_match&.id}"
