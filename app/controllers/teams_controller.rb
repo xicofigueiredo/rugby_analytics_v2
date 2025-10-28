@@ -112,7 +112,7 @@ class TeamsController < ApplicationController
     @per_10min_stats = {}
     @team_stats.each do |stat_name, value|
       if @total_minutes > 0
-        per_10min_rate = (value.to_f / @total_minutes * 10).round(2)
+        per_10min_rate = (value.to_f / @total_minutes * 10).round(1)
         @per_10min_stats[stat_name] = per_10min_rate
       else
         @per_10min_stats[stat_name] = 0

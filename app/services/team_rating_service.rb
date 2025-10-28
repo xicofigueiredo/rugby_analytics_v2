@@ -29,7 +29,7 @@ class TeamRatingService
 
     return 5.0 if count == 0 # Default neutral rating if no players
     average = total_points / count
-    [[average, 10.0].min, 0.0].max.round(2)
+    [[average, 10.0].min, 0.0].max.round(1)
   end
 
   def calculate_defense_rating
@@ -45,7 +45,7 @@ class TeamRatingService
 
     return 5.0 if count == 0 # Default neutral rating if no players
     average = total_points / count
-    [[average, 10.0].min, 0.0].max.round(2)
+    [[average, 10.0].min, 0.0].max.round(1)
   end
 
   def calculate_consistency_rating
@@ -61,7 +61,7 @@ class TeamRatingService
 
     return 5.0 if count == 0 # Default neutral rating if no players
     average = total_points / count
-    [[average, 10.0].min, 0.0].max.round(2)
+    [[average, 10.0].min, 0.0].max.round(1)
   end
 
   def calculate_discipline_rating
@@ -77,7 +77,7 @@ class TeamRatingService
 
     return 5.0 if count == 0 # Default neutral rating if no players
     average = total_points / count
-    [[average, 10.0].min, 0.0].max.round(2)
+    [[average, 10.0].min, 0.0].max.round(1)
   end
 
   def calculate_skills_rating
@@ -93,7 +93,7 @@ class TeamRatingService
 
     return 5.0 if count == 0 # Default neutral rating if no players
     average = total_points / count
-    [[average, 10.0].min, 0.0].max.round(2)
+    [[average, 10.0].min, 0.0].max.round(1)
   end
 
   def calculate_work_rate_rating
@@ -109,6 +109,6 @@ class TeamRatingService
 
     return 5.0 if count == 0 # Default neutral rating if no players
     average = total_points / count
-    [[average, 10.0].min, 0.0].max.round(2)
+    [[average, 10.0].min, 0.0].max.round(1)
   end
 end

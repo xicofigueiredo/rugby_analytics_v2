@@ -108,7 +108,7 @@ class PlayersController < ApplicationController
       yellow_cards: player_matches.sum("COALESCE(yellow, 0)") || 0,
       red_cards: player_matches.sum("COALESCE(red, 0)") || 0,
       impact_player: player_matches.where("overall_rating > 8").count || 0,
-      average_rating: player_matches.where.not(overall_rating: nil).average(:overall_rating)&.round(2) || 0
+      average_rating: player_matches.where.not(overall_rating: nil).average(:overall_rating)&.round(1) || 0
     }
 
     # Calculate team performance per game (using teamstats)
@@ -164,7 +164,7 @@ class PlayersController < ApplicationController
     @per_10min_stats = {}
     @player_stats.each do |stat_name, value|
       if @total_minutes > 0
-        per_10min_rate = (value.to_f / @total_minutes * 10).round(2)
+        per_10min_rate = (value.to_f / @total_minutes * 10).round(1)
         @per_10min_stats[stat_name] = per_10min_rate
       else
         @per_10min_stats[stat_name] = 0

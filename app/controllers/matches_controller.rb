@@ -67,7 +67,7 @@ class MatchesController < ApplicationController
     elsif current_user.role == "coach" || current_user.role == "admin"
       # Filter players to only show coach's team in the dropdown
       @players = @players.joins(:player).where(players: { team_id: current_user.team_id })
-      
+
       # For coaches/admins, allow viewing specific player via player_match_id parameter
       if params[:player_match_id].present?
         @player_match = PlayerMatch.joins(:player)
@@ -1121,228 +1121,323 @@ class MatchesController < ApplicationController
     Rails.logger.info "Penalties: #{@penalties_top_players.count} players"
   end
 
-  def calculate_best_worst_metrics(player_match, match)
-    # Reload player_match to ensure fresh data
-    player_match.reload
 
-    # Get all player matches for this match from the same team as the player
-    team_player_matches = PlayerMatch.joins(:player)
-                                    .where(match_id: match.id)
-                                    .where(players: { team_id: player_match.player.team_id })
-                                    .where("time_played > 0")
-                                    .includes(:player)
-                                    .order(:position)
+  # --- MAIN: build best/worst metrics for a player in a match ---
+def calculate_best_worst_metrics(player_match, match)
+  player_match.reload
 
-    return if team_player_matches.empty?
+  team_player_matches = teammates_for_metrics(match, player_match)
+  return if team_player_matches.empty?
 
-    # Reload all team player matches to ensure fresh data
-    team_player_matches.each(&:reload)
-
-    # Define all metrics to compare
-    metrics = [
-      {
-        name: "% Tackles Made",
-        player_value: calculate_tackle_success_rate(player_match),
-        team_avg: calculate_team_avg_tackle_success_rate(team_player_matches),
-        format: :percentage
-      },
-      {
-        name: "Tackle Impact",
-        player_value: calculate_tackle_impact(player_match),
-        team_avg: calculate_team_avg_tackle_impact(team_player_matches),
-        format: :decimal
-      },
-      {
-        name: "% Carries with Gain",
-        player_value: calculate_carry_success_rate(player_match),
-        team_avg: calculate_team_avg_carry_success_rate(team_player_matches),
-        format: :percentage
-      },
-      {
-        name: "% Mod Game",
-        player_value: calculate_mod_game_success_rate(player_match),
-        team_avg: calculate_team_avg_mod_game_success_rate(team_player_matches),
-        format: :percentage
-      },
-      {
-        name: "Total Actions",
-        player_value: calculate_total_actions(player_match),
-        team_avg: calculate_team_avg_total_actions(team_player_matches),
-        format: :integer
-      },
-      {
-        name: "Positive Carries",
-        player_value: player_match.positive_carry || 0,
-        team_avg: team_player_matches.sum { |pm| pm.positive_carry || 0 }.to_f / team_player_matches.count,
-        format: :integer,
-        inverse: false
-      },
-      {
-        name: "Linebreaks",
-        player_value: player_match.linebreak || 0,
-        team_avg: team_player_matches.sum { |pm| pm.linebreak || 0 }.to_f / team_player_matches.count,
-        format: :integer
-      },
-      {
-        name: "Turnovers Won",
-        player_value: player_match.turnover || 0,
-        team_avg: team_player_matches.sum { |pm| pm.turnover || 0 }.to_f / team_player_matches.count,
-        format: :integer
-      },
-      {
-        name: "Penalties Conceded",
-        player_value: player_match.penalties_conceded || 0,
-        team_avg: calculate_team_avg_penalties(team_player_matches),
-        format: :integer,
-        inverse: true
-      },
-      {
-        name: "Knock Ons",
-        player_value: player_match.knock_on || 0,
-        team_avg: team_player_matches.sum { |pm| pm.knock_on || 0 }.to_f / team_player_matches.count,
-        format: :integer,
-        inverse: true
-      },
-      {
-        name: "Missed Tackles",
-        player_value: player_match.missed_tackle || 0,
-        team_avg: team_player_matches.sum { |pm| pm.missed_tackle || 0 }.to_f / team_player_matches.count,
-        format: :integer,
-        inverse: true
-      },
-      {
-        name: "Offloads Bad",
-        player_value: player_match.negative_offload || 0,
-        team_avg: team_player_matches.sum { |pm| pm.negative_offload || 0 }.to_f / team_player_matches.count,
-        format: :integer,
-        inverse: true
-      },
-      {
-        name: "Other Mistakes",
-        player_value: player_match.other_mistakes || 0,
-        team_avg: team_player_matches.sum { |pm| pm.other_mistakes || 0 }.to_f / team_player_matches.count,
-        format: :integer,
-        inverse: true
-      }
-    ]
-
-    # Calculate differences and sort
-    metrics_with_diff = metrics.map do |metric|
-      difference = metric[:player_value] - metric[:team_avg]
-      difference = -difference if metric[:inverse]
-      metric.merge(difference: difference)
-    end
-
-    # Sort by difference (best first)
-    sorted_metrics = metrics_with_diff.sort_by { |m| -m[:difference] }
-
-    # Get best 5 and worst 5
-    @best_5_metrics = sorted_metrics.first(5)
-    # Only include metrics with negative differences in worst metrics (actual poor performance)
-    worst_candidates = sorted_metrics.select { |m| m[:difference] < 0 }
-    @worst_5_metrics = worst_candidates.empty? ? [] : worst_candidates.last(5).reverse
-  end
-
-  def calculate_tackle_success_rate(player_match)
-    total_tackles = (player_match.positive_tackle || 0) + (player_match.neutral_tackle || 0) +
-                   (player_match.negative_tackle || 0) + (player_match.assist_tackle || 0)
-    missed_tackles = player_match.missed_tackle || 0
-    return 0 if (total_tackles + missed_tackles) == 0
-    (total_tackles.to_f / (total_tackles + missed_tackles) * 100).round(1)
-  end
-
-  def calculate_team_avg_tackle_success_rate(team_player_matches)
-    rates = team_player_matches.map { |pm| calculate_tackle_success_rate(pm) }.reject(&:zero?)
-    rates.empty? ? 0 : (rates.sum / rates.count.to_f).round(1)
-  end
-
-  def calculate_tackle_impact(player_match)
-    ((player_match.positive_tackle || 0) * 1.5 +
-     (player_match.neutral_tackle || 0) * 1.0 +
-     (player_match.negative_tackle || 0) * 0.3 +
-     (player_match.assist_tackle || 0) * 0.8).round(1)
-  end
-
-  def calculate_team_avg_tackle_impact(team_player_matches)
-    impacts = team_player_matches.map { |pm| calculate_tackle_impact(pm) }
-    (impacts.sum / impacts.count.to_f).round(1)
-  end
-
-  def calculate_carry_success_rate(player_match)
-    total_carries = (player_match.positive_carry || 0) + (player_match.carries || 0)
-    return 0 if total_carries == 0
-    ((player_match.positive_carry || 0).to_f / total_carries * 100).round(1)
-  end
-
-  def calculate_team_avg_carry_success_rate(team_player_matches)
-    rates = team_player_matches.map { |pm| calculate_carry_success_rate(pm) }.reject(&:zero?)
-    rates.empty? ? 0 : (rates.sum / rates.count.to_f).round(1)
-  end
-
-  def calculate_mod_game_success_rate(player_match)
-    mod_plus = player_match.mod_game_plus || 0
-    mod_minus = player_match.mod_game_minus || 0
-    mod_total = mod_plus + mod_minus
-    return 0 if mod_total == 0
-    (mod_plus.to_f / mod_total * 100).round(1)
-  end
-
-  def calculate_team_avg_mod_game_success_rate(team_player_matches)
-    rates = team_player_matches.map { |pm| calculate_mod_game_success_rate(pm) }.reject(&:zero?)
-    rates.empty? ? 0 : (rates.sum / rates.count.to_f).round(1)
-  end
-
-  def calculate_total_actions(player_match)
-    total_carries = (player_match.positive_carry || 0) + (player_match.carries || 0)
-    total_tackles = (player_match.positive_tackle || 0) + (player_match.neutral_tackle || 0) +
-                   (player_match.negative_tackle || 0) + (player_match.assist_tackle || 0)
-    total_carries + total_tackles + (player_match.turnover || 0) + (player_match.mod_game_plus || 0)
-  end
-
-  def calculate_team_avg_total_actions(team_player_matches)
-    actions = team_player_matches.map { |pm| calculate_total_actions(pm) }
-    (actions.sum / actions.count.to_f).round(1)
-  end
-
-  def calculate_team_avg_penalties(team_player_matches)
-    penalties = team_player_matches.map do |pm|
-      (pm.pen_offside || 0) + (pm.pen_breakdown || 0) + (pm.pen_scrum || 0) + (pm.pen_others || 0)
-    end
-    (penalties.sum / penalties.count.to_f).round(1)
-  end
-
-  def calculate_player_rating_averages(player)
-    # Get all player matches with ratings
-    player_matches = player.player_matches.where.not(
-      attack_rating: nil,
-      defense_rating: nil,
-      consistency_rating: nil,
-      discipline_rating: nil,
-      skills_rating: nil,
-      work_rate_rating: nil
-    )
-
-    if player_matches.empty?
-      # Return default values if no ratings available
-      return {
-        "Attack" => 0,
-        "Defense" => 0,
-        "Work Rate" => 0,
-        "Discipline" => 0,
-        "Skills" => 0,
-        "Consistency" => 0
-      }
-    end
-
-    # Calculate averages
+  metrics = [
+    # Percent / composite
     {
-      "Attack" => player_matches.average(:attack_rating)&.round(1),
-      "Defense" => player_matches.average(:defense_rating)&.round(1),
-      "Work Rate" => player_matches.average(:work_rate_rating)&.round(1),
-      "Discipline" => player_matches.average(:discipline_rating)&.round(1),
-      "Skills" => player_matches.average(:skills_rating)&.round(1),
-      "Consistency" => player_matches.average(:consistency_rating)&.round(1)
+      name: "% Tackles Made",
+      player_value: calculate_tackle_success_rate(player_match),
+      team_avg:     calculate_team_avg_tackle_success_rate(team_player_matches),
+      format: :percentage
+    },
+    {
+      name: "Tackle Impact",
+      player_value: calculate_tackle_impact(player_match),
+      team_avg:     calculate_team_avg_tackle_impact(team_player_matches),
+      format: :decimal
+    },
+    {
+      name: "% Positive Tackles",
+      player_value: positive_tackle_rate(player_match),
+      team_avg:     team_avg_positive_tackle_rate(team_player_matches),
+      format: :percentage
+    },
+    {
+      name: "% Carries with Gain",
+      player_value: calculate_carry_success_rate(player_match),
+      team_avg:     calculate_team_avg_carry_success_rate(team_player_matches),
+      format: :percentage
+    },
+    {
+      name: "% Mod Game",
+      player_value: calculate_mod_game_success_rate(player_match),
+      team_avg:     calculate_team_avg_mod_game_success_rate(team_player_matches),
+      format: :percentage
+    },
+
+    # Workload / skill counts
+    {
+      name: "Total Aerial Duels",
+      player_value: total_aerial_duels(player_match),
+      team_avg:     team_avg_of(team_player_matches) { |pm| total_aerial_duels(pm) },
+      format: :integer
+    },
+    {
+      name: "Total Carries",
+      player_value: total_carries(player_match),
+      team_avg:     team_avg_of(team_player_matches) { |pm| total_carries(pm) },
+      format: :integer
+    },
+    {
+      name: "Offloads Good",
+      player_value: safe(pm: player_match, attr: :positive_offload),
+      team_avg:     team_avg_attr(team_player_matches, :positive_offload),
+      format: :integer
+    },
+    {
+      name: "Linebreak Assists",
+      player_value: safe(pm: player_match, attr: :linebreak_assists),
+      team_avg:     team_avg_attr(team_player_matches, :linebreak_assists),
+      format: :integer
+    },
+    {
+      name: "Total Tackles",
+      player_value: total_tackles(player_match),
+      team_avg:     team_avg_of(team_player_matches) { |pm| total_tackles(pm) },
+      format: :integer
+    },
+
+    # Harmful (inverse = lower is better)
+    {
+      name: "Other Mistakes",
+      player_value: safe(pm: player_match, attr: :other_mistakes),
+      team_avg:     team_avg_attr(team_player_matches, :other_mistakes),
+      format: :integer,
+      inverse: true
+    },
+    {
+      name: "Knock On",
+      player_value: safe(pm: player_match, attr: :knock_on),
+      team_avg:     team_avg_attr(team_player_matches, :knock_on),
+      format: :integer,
+      inverse: true
+    },
+    {
+      name: "Total Penalties",
+      player_value: total_penalties(player_match),
+      team_avg:     team_avg_penalties(team_player_matches),
+      format: :integer,
+      inverse: true
+    },
+    {
+      name: "Aerial Duels Won",
+      player_value: safe(pm: player_match, attr: :aerial_duel_won),
+      team_avg:     team_avg_attr(team_player_matches, :aerial_duel_won),
+      format: :integer
+    },
+    {
+      name: "Aerial Duels Lost",
+      player_value: safe(pm: player_match, attr: :aerial_duel_lost),
+      team_avg:     team_avg_attr(team_player_matches, :aerial_duel_lost),
+      format: :integer,
+      inverse: true
+    },
+
+    # Existing positives
+    {
+      name: "Positive Carries",
+      player_value: safe(pm: player_match, attr: :positive_carry),
+      team_avg:     team_avg_attr(team_player_matches, :positive_carry),
+      format: :integer
+    },
+    {
+      name: "Linebreaks",
+      player_value: safe(pm: player_match, attr: :linebreak),
+      team_avg:     team_avg_attr(team_player_matches, :linebreak),
+      format: :integer
+    },
+    {
+      name: "Turnovers Won",
+      player_value: safe(pm: player_match, attr: :turnover),
+      team_avg:     team_avg_attr(team_player_matches, :turnover),
+      format: :integer
+    },
+    {
+      name: "Missed Tackles",
+      player_value: safe(pm: player_match, attr: :missed_tackle),
+      team_avg:     team_avg_attr(team_player_matches, :missed_tackle),
+      format: :integer,
+      inverse: true
+    },
+    {
+      name: "Offloads Bad",
+      player_value: safe(pm: player_match, attr: :negative_offload),
+      team_avg:     team_avg_attr(team_player_matches, :negative_offload),
+      format: :integer,
+      inverse: true
     }
+  ]
+
+  # Differences (flip sign when lower-is-better)
+  metrics_with_diff = metrics.map do |metric|
+    player_val = (metric[:player_value] || 0).to_f
+    team_val   = (metric[:team_avg]     || 0).to_f
+    diff = player_val - team_val
+    diff = -diff if metric[:inverse]
+    metric.merge(difference: diff)
   end
+
+  sorted = metrics_with_diff.sort_by { |m| -m[:difference] }
+  @best_5_metrics = sorted.first(5)
+
+  worse = sorted.select { |m| m[:difference] < 0 }.sort_by { |m| m[:difference] }
+  @worst_5_metrics =
+    if worse.any?
+      worse.first(5)
+    else
+      # optional fallback: bottom-5 overall so the table isn't empty
+      sorted.last(5).sort_by { |m| m[:difference] }
+    end
+end
+
+# --- selection helpers ---
+
+# Returns teammates for this match (same team, time_played > 0),
+# excluding the selected player. If that yields none, falls back to include them.
+#
+# --- metric helpers used by calculate_best_worst_metrics ---
+
+def calculate_tackle_success_rate(pm)
+  total = (pm.positive_tackle || 0) +
+          (pm.neutral_tackle  || 0) +
+          (pm.negative_tackle || 0) +
+          (pm.assist_tackle   || 0)
+  missed = pm.missed_tackle || 0
+  return 0.0 if (total + missed).zero?
+  (total.to_f / (total + missed) * 100).round(1)
+end
+
+def calculate_team_avg_tackle_success_rate(team_pms)
+  rates = team_pms.map { |pm| calculate_tackle_success_rate(pm) }.reject(&:zero?)
+  return 0.0 if rates.empty?
+  (rates.sum / rates.size).round(1)
+end
+
+def calculate_tackle_impact(pm)
+  ((pm.positive_tackle || 0) * 1.5 +
+   (pm.neutral_tackle  || 0) * 1.0 +
+   (pm.negative_tackle || 0) * 0.3 +
+   (pm.assist_tackle   || 0) * 0.8).round(1)
+end
+
+def calculate_team_avg_tackle_impact(team_pms)
+  vals = team_pms.map { |pm| calculate_tackle_impact(pm) }
+  return 0.0 if vals.empty?
+  (vals.sum / vals.size).round(1)
+end
+
+def calculate_carry_success_rate(pm)
+  total = (pm.positive_carry || 0) + (pm.carries || 0)
+  return 0.0 if total.zero?
+  ((pm.positive_carry || 0).to_f / total * 100).round(1)
+end
+
+def calculate_team_avg_carry_success_rate(team_pms)
+  rates = team_pms.map { |pm| calculate_carry_success_rate(pm) }.reject(&:zero?)
+  return 0.0 if rates.empty?
+  (rates.sum / rates.size).round(1)
+end
+
+def calculate_mod_game_success_rate(pm)
+  plus  = pm.mod_game_plus  || 0
+  minus = pm.mod_game_minus || 0
+  tot = plus + minus
+  return 0.0 if tot.zero?
+  (plus.to_f / tot * 100).round(1)
+end
+
+def calculate_team_avg_mod_game_success_rate(team_pms)
+  rates = team_pms.map { |pm| calculate_mod_game_success_rate(pm) }.reject(&:zero?)
+  return 0.0 if rates.empty?
+  (rates.sum / rates.size).round(1)
+end
+
+def calculate_total_actions(pm)
+  total_carries(pm) + total_tackles(pm) + (pm.turnover || 0) + (pm.mod_game_plus || 0)
+end
+
+def calculate_team_avg_total_actions(team_pms)
+  vals = team_pms.map { |pm| calculate_total_actions(pm) }
+  return 0.0 if vals.empty?
+  (vals.sum / vals.size.to_f).round(1)
+end
+
+def calculate_team_avg_penalties(team_pms)
+  vals = team_pms.map { |pm| total_penalties(pm) }
+  return 0.0 if vals.empty?
+  (vals.sum / vals.size.to_f).round(1)
+end
+
+def teammates_for_metrics(match, player_match)
+  scope = PlayerMatch.joins(:player)
+                     .where(match_id: match.id)
+                     .where(players: { team_id: player_match.player.team_id })
+                     .where("time_played > 0")
+                     .includes(:player)
+                     .order(:position)
+
+  excluded = scope.where.not(player_id: player_match.player_id)
+  list = excluded.any? ? excluded : scope
+  # reload to ensure fresh data and return an Array
+  list.to_a.each(&:reload)
+end
+
+# --- safety helpers ---
+
+def safe(pm:, attr:)
+  pm.public_send(attr).to_i
+end
+
+def team_avg_of(team_pms)
+  vals = team_pms.map { |pm| yield(pm).to_f }
+  return 0.0 if vals.empty?
+  (vals.sum / vals.size).round(1)
+end
+
+def team_avg_attr(team_pms, attr)
+  vals = team_pms.map { |pm| safe(pm: pm, attr: attr).to_f }
+  return 0.0 if vals.empty?
+  (vals.sum / vals.size).round(1)
+end
+
+# --- stat aggregations ---
+
+def total_penalties(pm)
+  safe(pm: pm, attr: :pen_offside)   +
+  safe(pm: pm, attr: :pen_breakdown) +
+  safe(pm: pm, attr: :pen_scrum)     +
+  safe(pm: pm, attr: :pen_others)
+end
+
+def team_avg_penalties(team_pms)
+  team_avg_of(team_pms) { |pm| total_penalties(pm) }
+end
+
+def total_tackles(pm)
+  safe(pm: pm, attr: :positive_tackle) +
+  safe(pm: pm, attr: :neutral_tackle)  +
+  safe(pm: pm, attr: :negative_tackle) +
+  safe(pm: pm, attr: :assist_tackle)
+end
+
+def total_carries(pm)
+  safe(pm: pm, attr: :positive_carry) + safe(pm: pm, attr: :carries)
+end
+
+def total_aerial_duels(pm)
+  safe(pm: pm, attr: :aerial_duel_won) + safe(pm: pm, attr: :aerial_duel_lost)
+end
+
+# % Positive Tackles
+def positive_tackle_rate(pm)
+  tot = total_tackles(pm)
+  return 0.0 if tot.zero?
+  ((safe(pm: pm, attr: :positive_tackle).to_f / tot) * 100).round(1)
+end
+
+def team_avg_positive_tackle_rate(team_pms)
+  rates = team_pms.map { |pm| positive_tackle_rate(pm) }.reject(&:zero?)
+  return 0.0 if rates.empty?
+  (rates.sum / rates.size).round(1)
+end
+
+
 
 end

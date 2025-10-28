@@ -17,26 +17,26 @@ class Teamstat < ApplicationRecord
 
   def lineout_success_rate
     return 0 if total_lineouts == 0
-    (lineouts_won.to_f / total_lineouts * 100).round(2)
+    (lineouts_won.to_f / total_lineouts * 100).round(1)
   end
 
   def scrum_success_rate
     return 0 if total_scrums == 0
-    (scrums_won.to_f / total_scrums * 100).round(2)
+    (scrums_won.to_f / total_scrums * 100).round(1)
   end
 
   # Lineout steal rate (lineouts stolen from opponent)
   def lineout_steal_rate
     total_opponent_lineouts = lineouts_stolen + lineouts_not_stolen
     return 0 if total_opponent_lineouts == 0
-    (lineouts_stolen.to_f / total_opponent_lineouts * 100).round(2)
+    (lineouts_stolen.to_f / total_opponent_lineouts * 100).round(1)
   end
 
   # Scrum steal rate (scrums stolen from opponent)
   def scrum_steal_rate
     total_opponent_scrums = scrums_stolen + scrums_not_stolen
     return 0 if total_opponent_scrums == 0
-    (scrums_stolen.to_f / total_opponent_scrums * 100).round(2)
+    (scrums_stolen.to_f / total_opponent_scrums * 100).round(1)
   end
 
   # Rating calculation methods
@@ -59,6 +59,6 @@ class Teamstat < ApplicationRecord
       (discipline_rating || 0) * 0.2 +
       (skills_rating || 0) * 0.1 +
       (work_rate_rating || 0) * 0.2
-    ).round(2)
+    ).round(1)
   end
 end
