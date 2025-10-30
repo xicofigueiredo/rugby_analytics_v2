@@ -82,10 +82,12 @@ def calculate_defense_rating(df):
                           for tt, mt in zip(total_tackles, missed_tackles)]
 
     # Calculate tackle impact score (weighted tackles including assist tackles with 0.8 weight)
-    tackle_impact = (df.get('offensive_tackles', [0] * len(df)) * 1.5 +
-                   df.get('neutral_tackles', [0] * len(df)) * 1.0 +
-                   df.get('defensive_tackles', [0] * len(df)) * 0.3 +
-                   df.get('assist_tackles', [0] * len(df)) * 0.8)
+    tackle_impact = [((ot * 1.5 + nt * 1.0 + dt * 0.3 + at * 0.8) / (tt * 1.5)) if tt > 0 else 0
+                     for ot, nt, dt, at, tt in zip(df.get('offensive_tackles', [0] * len(df)),
+                                                   df.get('neutral_tackles', [0] * len(df)),
+                                                   df.get('defensive_tackles', [0] * len(df)),
+                                                   df.get('assist_tackles', [0] * len(df)),
+                                                   total_tackles)]
 
     # Calculate base defense rating components (1-10 scale)
     # Tackle success rate: 0% = 1 rating, 100% = 10 rating
@@ -93,7 +95,7 @@ def calculate_defense_rating(df):
     tackle_success_rating = [max(1, tsr) for tsr in tackle_success_rating]
 
     # Tackle impact: normalize to 1-10 scale (using absolute values)
-    tackle_impact_rating = [10.0 if ti >= 10 else (ti/10) * 10.0 for ti in tackle_impact]
+    tackle_impact_rating = [10.0 if ti >= 1 else (ti) * 10.0 for ti in tackle_impact]
     tackle_impact_rating = [max(1, tir) for tir in tackle_impact_rating]
 
     # Total tackles rating: normalize to 1-10 scale (using absolute values)
@@ -148,7 +150,7 @@ def calculate_defense_rating(df):
                            for tir, r in zip(tackle_impact_rating, reliability)]
 
     # Recalculate base defense rating with reliability-adjusted components
-    base_defense_rating = [ttr * 0.65 + tsr * 0.10 + tir * 0.25
+    base_defense_rating = [ttr * 0.65 + tsr * 0.15 + tir * 0.2
                           for ttr, tsr, tir in zip(total_tackles_rating, tackle_success_rating, tackle_impact_rating)]
 
     # Base defense rating with bonuses
@@ -292,7 +294,7 @@ def calculate_attack_rating(df):
     assist_bonus = [a * 0.6 * tm for a, tm in zip(df['assists'], time_multiplier)]
     linebreak_bonus = [l * 0.4 * tm for l, tm in zip(df['linebreak'], time_multiplier)]
     linebreak_assist_bonus = [la * 0.5 * tm for la, tm in zip(df.get('linebreak_assists', [0] * len(df)), time_multiplier)]
-    mod_game_plus_bonus = [mgp * 0.3 * tm for mgp, tm in zip(df.get('mod_game_plus', [0] * len(df)), time_multiplier)]
+    mod_game_plus_bonus = [(mgp * 0.3) * tm for mgp, tm in zip(df.get('mod_game_plus', [0] * len(df)), time_multiplier)]
 
     # Offload bonuses/penalties (time-adjusted)
     offloads_good = df.get('offloads_good', [0] * len(df))
@@ -648,6 +650,7 @@ def calculate_consistency_rating(df):
     mod_plus = df.get('mod_game_plus', [0] * len(df))
     mod_minus = df.get('mod_game_minus', [0] * len(df))
     total_mod = [mp + mm for mp, mm in zip(mod_plus, mod_minus)]
+    diff_mod = [mp - mm for mp, mm in zip(mod_plus, mod_minus)]
 
     mod_ratio = [mp / tm if tm > 0 else 0.5 for mp, tm in zip(mod_plus, total_mod)]  # 0.5 = neutral
 
@@ -729,6 +732,8 @@ def calculate_weighted_overall_rating(df):
 
     # Calculate weighted overall ratings for valid players only
     overall_ratings = []
+    # Extra point adjustment: +0.5 if 1, 0 if 0, -0.5 if -1 (default 0)
+    extra_points = df.get('extra_point', [0] * len(df))
     valid_index = 0
     for i in range(len(df)):
         if valid_players.iloc[i]:
@@ -736,12 +741,14 @@ def calculate_weighted_overall_rating(df):
             overall_rating = (attack_ratings[valid_index] * 0.35 + defense_ratings[valid_index] * 0.35 +
                             work_rate_ratings[valid_index] * 0.10 + consistency_ratings[valid_index] * 0.10 +
                             discipline_ratings[valid_index] * 0.05 + skills_ratings[valid_index] * 0.05)
-
-            # Apply extra_points adjustment: +1 adds 0.5, -1 subtracts 0.5
-            extra_points = df.iloc[i].get('extra_points', 0) or 0
-            overall_rating += extra_points * 0.5
-
-            overall_ratings.append(round(overall_rating, 2))
+            # Apply extra point adjustment
+            ep = extra_points[i]
+            if pd.isna(ep):
+                ep_adj = 0
+            else:
+                ep_adj = 0.5 if ep == 1 else (-0.5 if ep == -1 else 0)
+            overall_rating += ep_adj
+            overall_ratings.append(overall_rating)
             valid_index += 1
         else:
             overall_ratings.append(float('nan'))

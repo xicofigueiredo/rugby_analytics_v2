@@ -432,11 +432,6 @@ class MatchesController < ApplicationController
     @player_match = @match.player_matches.find(params[:player_match_id])
 
     if @player_match.update(player_match_params)
-      # If extra_points was changed, trigger Python recalculation for this match
-      if params[:player_match][:extra_points].present?
-        Rails.logger.info "Extra points changed for player #{@player_match.player.name}, triggering Python recalculation"
-        PythonRatingService.new(@match).calculate_all_ratings!
-      end
 
       respond_to do |format|
         format.json { render json: { status: 'success', message: 'Player data updated successfully.' } }
@@ -590,8 +585,7 @@ class MatchesController < ApplicationController
             knock_on: @player_match.knock_on || 0,
             other_mistakes: @player_match.other_mistakes || 0,
             mod_game_minus: @player_match.mod_game_minus || 0,
-            time_played: @player_match.time_played || 0,
-            extra_points: @player_match.extra_points || 0
+            time_played: @player_match.time_played || 0
           }
         }
       }
@@ -673,7 +667,6 @@ class MatchesController < ApplicationController
     params.require(:player_match).permit(
       :coach_notes,
       :player_notes,
-      :extra_points
     )
   end
 
@@ -1001,7 +994,7 @@ class MatchesController < ApplicationController
       'AVANTS' => 'knock_on',
       'CARRIES (+)' => 'positive_carry',
       'CARRIES' => 'carries',
-      'PONTOS EXTRA' => 'extra_points'
+      # 'PONTOS EXTRA' removed; extra points now handled in Python
     }
 
     # Update player_match with stats from CSV
