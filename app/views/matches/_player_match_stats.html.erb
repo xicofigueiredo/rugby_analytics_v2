@@ -271,7 +271,8 @@
                     ["Kicks Missed", @player_match&.missed_penalty_kick_goals || 0],
                     ["Drops Made", @player_match&.drop_goal || 0],
                     ["Drops Missed", @player_match&.missed_drop_goals || 0],
-                    ["Game Model +", @player_match&.mod_game_plus || 0]
+                    ["Game Model +", @player_match&.mod_game_plus || 0],
+                    ["Game Model -", @player_match&.mod_game_minus || 0]
                   ],
                   "Defense" => [
                     ["Positive Tackles", @player_match&.positive_tackle || 0],
@@ -319,8 +320,7 @@
                     ["Drops Attempted", (@player_match&.drop_goal || 0) + (@player_match&.missed_drop_goals || 0)],
                     ["Lineout Intros Total", (@player_match&.introduction_won || 0) + (@player_match&.introduction_lost || 0)],
                     ["Total Offloads", (@player_match&.positive_offload || 0) + (@player_match&.negative_offload || 0)],
-                    ["Total Aerial Duels", (@player_match&.aerial_duel_won || 0) + (@player_match&.aerial_duel_lost || 0)],
-                    ["Total Mod Game", (@player_match&.mod_game_plus || 0) + (@player_match&.mod_game_minus || 0)]
+                    ["Total Aerial Duels", (@player_match&.aerial_duel_won || 0) + (@player_match&.aerial_duel_lost || 0)]
                   ]
                 }
 

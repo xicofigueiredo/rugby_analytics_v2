@@ -666,7 +666,7 @@ class MatchesController < ApplicationController
   def player_match_params
     params.require(:player_match).permit(
       :coach_notes,
-      :player_notes,
+      :player_notes
     )
   end
 
@@ -994,7 +994,7 @@ class MatchesController < ApplicationController
       'AVANTS' => 'knock_on',
       'CARRIES (+)' => 'positive_carry',
       'CARRIES' => 'carries',
-      # 'PONTOS EXTRA' removed; extra points now handled in Python
+      'PONTOS EXTRA' => 'extra_points'
     }
 
     # Update player_match with stats from CSV

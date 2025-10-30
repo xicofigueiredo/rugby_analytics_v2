@@ -383,8 +383,7 @@ class TeamsController < ApplicationController
         "Drops Attempted" => 0,
         "Lineout Intros Total" => 0,
         "Total Offloads" => 0,
-        "Total Aerial Duels" => 0,
-        "Total Mod Game" => 0
+        "Total Aerial Duels" => 0
       }
     end
 
@@ -448,8 +447,7 @@ class TeamsController < ApplicationController
       "Drops Attempted" => (player_matches.sum(:drop_goal) || 0) + (player_matches.sum(:missed_drop_goals) || 0),
       "Lineout Intros Total" => (player_matches.sum(:introduction_won) || 0) + (player_matches.sum(:introduction_lost) || 0),
       "Total Offloads" => (player_matches.sum(:positive_offload) || 0) + (player_matches.sum(:negative_offload) || 0),
-      "Total Aerial Duels" => (player_matches.sum(:aerial_duel_won) || 0) + (player_matches.sum(:aerial_duel_lost) || 0),
-      "Total Mod Game" => (player_matches.sum(:mod_game_plus) || 0) + (player_matches.sum(:mod_game_minus) || 0)
+      "Total Aerial Duels" => (player_matches.sum(:aerial_duel_won) || 0) + (player_matches.sum(:aerial_duel_lost) || 0)
     }
   end
 

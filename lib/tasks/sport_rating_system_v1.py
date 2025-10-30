@@ -733,7 +733,7 @@ def calculate_weighted_overall_rating(df):
     # Calculate weighted overall ratings for valid players only
     overall_ratings = []
     # Extra point adjustment: +0.5 if 1, 0 if 0, -0.5 if -1 (default 0)
-    extra_points = df.get('extra_point', [0] * len(df))
+    extra_points = df.get('extra_points', [0] * len(df))
     valid_index = 0
     for i in range(len(df)):
         if valid_players.iloc[i]:
