@@ -9,10 +9,20 @@
         <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
           <%= @player.name %>
         </div>
+        <%
+          team_image = case @player.team.name&.upcase
+          when "SPORT"
+            asset_path('sport.jpg')
+          when "RC MONTEMOR"
+            asset_path('rcm.png')
+          else
+            asset_path('sport.jpg')
+          end
+        %>
         <div class="d-flex align-items-center justify-content-between">
           <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
           <span class="me-2" style="color: white;"><%= @player.country %></span>
-          <span class="me-2"><img src="<%= asset_path('sport.jpg') %>" alt="Team Logo" style="width:35px;height:35px;"></span>
+          <span class="me-2"><img src="<%= team_image %>" alt="Team Logo" style="width:35px;height:35px;"></span>
           <span style="color: white;"><%= @player.team.name %></span>
         </div>
         <div class="col-md-12">
