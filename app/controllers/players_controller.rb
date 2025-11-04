@@ -139,7 +139,7 @@ class PlayersController < ApplicationController
         "Work Rate" => 0,
         "Discipline" => 0,
         "Skills" => 0,
-        "Consistency" => 5.0
+        "Consistency" => 0
       }
     end
 
