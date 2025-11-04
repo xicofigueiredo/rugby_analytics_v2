@@ -85,7 +85,13 @@ class PlayersController < ApplicationController
 
   def update
     if @player.update(player_params)
-      redirect_to players_path, notice: 'Player was successfully updated.'
+      if current_user.role == 'admin'
+        redirect_to players_path, notice: 'Player was successfully updated.'
+      elsif current_user.role == 'coach'
+        redirect_to team_path(@player.team), notice: 'Player was successfully updated.'
+      else
+        redirect_to player_path(@player), notice: 'Player was successfully updated.'
+      end
     else
       flash.now[:alert] = 'There was an error updating the player.'
       render :edit, status: :unprocessable_entity
