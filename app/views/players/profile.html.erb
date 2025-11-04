@@ -15,7 +15,7 @@
           <%= @player.name %>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
+          <span class="me-2"><img src="<%= country_flag_url(@player.country) %>" alt="<%= @player.country || 'Flag' %>" style="width:24px;height:18px;"></span>
           <span class="me-2" style="color: white;"><%= @player.country %></span>
           <%
             team_image = case @player.team.name&.upcase

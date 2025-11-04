@@ -21,7 +21,7 @@
           <%= @team.name %>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="me-2"><img src="https://flagcdn.com/24x18/pt.png" alt="Flag" style="width:24px;height:18px;"></span>
+          <span class="me-2"><img src="<%= country_flag_url(@team.country || 'Portugal') %>" alt="<%= @team.country || 'Portugal' %>" style="width:24px;height:18px;"></span>
           <span class="me-2" style="color: white;"><%= @team.country || 'Portugal' %></span>
           <span class="me-2" style="color: white;">Level: <%= @team.level %></span>
         </div>
