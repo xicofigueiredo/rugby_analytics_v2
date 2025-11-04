@@ -414,7 +414,7 @@ class PlayersController < ApplicationController
 
   def player_params
     params.require(:player)
-          .permit(:name, :age, :height, :weight, :team_id, :country, positions: [])
+          .permit(:name, :age, :height, :weight, :team_id, :country, :birthdate, :caps, positions: [])
           .tap { |params| params[:positions]&.reject!(&:blank?) }
   end
 

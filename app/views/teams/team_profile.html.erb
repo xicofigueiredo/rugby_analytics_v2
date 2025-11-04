@@ -6,7 +6,17 @@
     <div class="col-md-4">
       <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
         <br>
-        <img src="<%= asset_path('sport.jpg') %>" alt="<%= @team.name %>" class="profile-img mb-3" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
+        <%
+          team_image = case @team.name&.upcase
+          when "SPORT"
+            asset_path('sport.jpg')
+          when "MONTEMOR"
+            asset_path('rcm.png')
+          else
+            asset_path('sport.jpg')
+          end
+        %>
+        <img src="<%= team_image %>" alt="<%= @team.name %>" class="profile-img mb-3" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
         <div class="h4 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
           <%= @team.name %>
         </div>

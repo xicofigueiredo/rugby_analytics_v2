@@ -18,7 +18,7 @@ class PlayerMatch < ApplicationRecord
   # Rating calculation methods
   def calculate_ratings!
     # This method is now called on the match level, not individual player level
-    # Use PythonRatingService.new(self.match).calculate_all_ratings! instead
+    # Use SportPythonRatingService.new(self.match).calculate_all_ratings! instead
     Rails.logger.warn "calculate_ratings! called on individual PlayerMatch. Use match-level calculation instead."
   end
 

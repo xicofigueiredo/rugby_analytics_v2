@@ -1,6 +1,6 @@
 require 'open3'
 
-class PythonRatingService
+class RcmPythonRatingService
   def initialize(match)
     @match = match
   end
