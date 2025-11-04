@@ -75,6 +75,7 @@
                   <th>Age</th>
                   <th>Height</th>
                   <th>Weight</th>
+                  <th class="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -91,6 +92,13 @@
                     <td><%= player.age || '-' %></td>
                     <td><%= player.height ? "#{player.height} cm" : '-' %></td>
                     <td><%= player.weight ? "#{player.weight} kg" : '-' %></td>
+                    <td class="text-center">
+                      <%= link_to edit_player_path(player),
+                          class: "btn btn-sm btn-outline-light",
+                          onclick: "event.stopPropagation();" do %>
+                        <i class="fas fa-pencil-alt"></i>
+                      <% end %>
+                    </td>
                   </tr>
                 <% end %>
               </tbody>

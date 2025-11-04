@@ -4,6 +4,7 @@ class Player < ApplicationRecord
   has_many :player_matches
   has_many :matches, through: :player_matches
   has_many :actions, through: :player_matches
+  has_one_attached :photo
 
   # Validations
   validates :name, presence: true, length: { minimum: 2 }

@@ -6,6 +6,11 @@
     <div class="col-md-4">
       <div class="card main-card p-2 h-100 d-flex justify-content-center align-items-center">
         <br>
+        <% if @player.photo.attached? %>
+          <div class="mb-3">
+            <%= image_tag @player.photo, class: "rounded-circle", style: "width: 150px; height: 150px; object-fit: cover; border: 3px solid #4dc9f6;" %>
+          </div>
+        <% end %>
         <div class="h5 text-white mb-1 d-flex justify-content-center align-items-center gap-2">
           <%= @player.name %>
         </div>
