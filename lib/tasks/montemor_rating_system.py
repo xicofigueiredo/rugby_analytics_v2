@@ -120,7 +120,7 @@ def calculate_defense_rating(df):
     tackle_success_rating = [max(1, tsr) for tsr in tackle_success_rating]
     
     # Tackle impact: normalize to 1-10 scale (using absolute values)
-    tackle_impact_rating = [10.0 if ti >= 1 else (ti) * 10.0 for ti in tackle_impact]
+    tackle_impact_rating = [10.0 if ti >= 1 else ti * 10.0 for ti in tackle_impact]
     tackle_impact_rating = [max(1, tir) for tir in tackle_impact_rating]
     
     # Total tackles rating: normalize to 1-10 scale (using absolute values)
@@ -393,11 +393,16 @@ def calculate_attack_rating(df):
     ruck_lost = df.get('rucks_lost', [0] * len(df))
     ruck_bonus = [(rh * 0.05 - rl * 0.2) * tm for rh, rl, tm in zip(ruck_hit, ruck_lost, time_multiplier)]
 
+    # Lineout success: +0.1 per successful lineout (up to 2.0 max)
+    lineouts_won = df.get('lineouts_won', [0] * len(df))
+    lineouts_lost = df.get('lineouts_lost', [0] * len(df))
+    lineout_success_points = [min(lw * 0.1 - ll * 0.3, 2.0) for lw, ll in zip(lineouts_won, lineouts_lost)]
+    
     # Total bonus points
-    total_bonus = [tb + ab + lb + db + ob + mp + kb + pbv + kigb + ruckb
-                   for tb, ab, lb, db, ob, mp, kb, pbv, kigb, ruckb in 
+    total_bonus = [tb + ab + lb + db + ob + mp + kb + pbv + kigb + ruckb + lsp
+                   for tb, ab, lb, db, ob, mp, kb, pbv, kigb, ruckb, lsp in 
                    zip(try_bonus, assist_bonus, linebreak_bonus, defenders_beaten_bonus, 
-                       offload_bonus, mistake_penalty, kick_bonus, pass_bonus, kick_in_game_bonus, ruck_bonus)]
+                       offload_bonus, mistake_penalty, kick_bonus, pass_bonus, kick_in_game_bonus, ruck_bonus, lineout_success_points)]
     
     # Base attack rating with bonuses
     base_attack_rating_with_bonuses = [bar + tb for bar, tb in zip(base_attack_rating, total_bonus)]
