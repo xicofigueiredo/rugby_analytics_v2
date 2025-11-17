@@ -932,7 +932,7 @@ class MatchesController < ApplicationController
       # Calculate Python-based ratings for all players
       Rails.logger.info "Calculating Python-based ratings for match #{match.id}"
       begin
-        SportSportPythonRatingService.new(match).calculate_all_ratings!
+        SportPythonRatingService.new(match).calculate_all_ratings!
         Rails.logger.info "Successfully calculated Python ratings for match #{match.id}"
       rescue => e
         Rails.logger.error "Failed to calculate Python ratings for match #{match.id}: #{e.message}"

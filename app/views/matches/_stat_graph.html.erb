@@ -72,7 +72,7 @@
             <div class="text-end" style="width: 30%;">
                               <%= player == @mvp_player ? '<i class="fa-solid fa-star fa-lg fa-fw text-warning"></i>'.html_safe : '' %>
 
-             <%= player.time_played %>' <span class="text-primary fw-bold"><%= player.overall_rating.round(1) %></span>
+             <%= player.time_played %>' <span class="text-primary fw-bold"><%= player.overall_rating&.round(1) || '-' %></span>
             </div>
           </li>
         <% end %>
@@ -149,7 +149,7 @@
               </span>
             </div>
             <div class="text-end" style="width: 30%;">
-             <%= player.time_played %>' <span class="text-primary fw-bold"><%= player.overall_rating.round(1) %></span>
+             <%= player.time_played %>' <span class="text-primary fw-bold"><%= player.overall_rating&.round(1) || '-' %></span>
             </div>
           </li>
         <% end %>
