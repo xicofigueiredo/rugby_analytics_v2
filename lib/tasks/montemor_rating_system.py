@@ -342,6 +342,8 @@ def calculate_attack_rating(df):
     try_bonus = [t * 1.0 * tm for t, tm in zip(df['tries'], time_multiplier)]
     assist_bonus = [a * 0.6 * tm for a, tm in zip(df['assists'], time_multiplier)]
     linebreak_bonus = [l * 0.4 * tm for l, tm in zip(df['linebreak'], time_multiplier)]
+    linebreak_assists = df.get('linebreak_assists', [0] * len(df))
+    linebreak_assist_bonus = [la * 0.4 * tm for la, tm in zip(linebreak_assists, time_multiplier)]
     defenders_beaten_bonus = [db * 0.1 * tm for db, tm in zip(df['defenders_beaten'], time_multiplier)]
     
     # Offload bonuses/penalties (time-adjusted)
@@ -356,6 +358,16 @@ def calculate_attack_rating(df):
     error_made_attack = df.get('error_made_attack', [0] * len(df))
     interception_suffered = df.get('interception_suffered', [0] * len(df))
     mistake_penalty = [(ko * -0.5 + tl * -0.4 + pam * -0.6 + ema * -0.3 + inter * -0.4) * tm for ko, tl, pam, ema, inter, tm in zip(knock_on, turnover_loss, penalty_attack_made, error_made_attack, interception_suffered, time_multiplier)]
+    
+    # Mod game bonuses/penalties
+    mod_game_plus = df.get('mod_game_plus', [0] * len(df))
+    mod_game_minus = df.get('mod_game_minus', [0] * len(df))
+    mod_game_bonus = [((mgp - mgm)* 0.3) * tm for mgp, mgm, tm in zip(mod_game_plus, mod_game_minus, time_multiplier)]
+    
+    # Pick and go bonuses/penalties
+    pick_and_go_plus = df.get('pick_and_go_plus', [0] * len(df))
+    pick_and_go_minus = df.get('pick_and_go_minus', [0] * len(df))
+    pick_and_go_bonus = [((pgp - pgm)* 0.1) * tm for pgp, pgm, tm in zip(pick_and_go_plus, pick_and_go_minus, time_multiplier)]
     
     # Conversion/kick bonuses (made = +0.2, missed = -0.2)
     conversions_made = df.get('conversions_made', [0] * len(df))
@@ -401,10 +413,10 @@ def calculate_attack_rating(df):
     lineout_intro_points = [min(liw * 0.2 - lil * 0.5, 2.0) for liw, lil in zip(lineout_intros_won, lineout_intros_lost)]
     
     # Total bonus points
-    total_bonus = [tb + ab + lb + db + ob + mp + kb + pbv + kigb + ruckb + lsp
-                   for tb, ab, lb, db, ob, mp, kb, pbv, kigb, ruckb, lsp in 
+    total_bonus = [tb + ab + lb + db + ob + mp + kb + pbv + kigb + ruckb + lsp + mgb + pgb + lbb + lip
+                   for tb, ab, lb, db, ob, mp, kb, pbv, kigb, ruckb, lsp, mgb, pgb, lbb, lip in 
                    zip(try_bonus, assist_bonus, linebreak_bonus, defenders_beaten_bonus, 
-                       offload_bonus, mistake_penalty, kick_bonus, pass_bonus, kick_in_game_bonus, ruck_bonus, lineout_success_points)]
+                       offload_bonus, mistake_penalty, kick_bonus, pass_bonus, kick_in_game_bonus, ruck_bonus, lineout_success_points, mod_game_bonus, pick_and_go_bonus, linebreak_assist_bonus, lineout_intro_points)]
     
     # Base attack rating with bonuses
     base_attack_rating_with_bonuses = [bar + tb for bar, tb in zip(base_attack_rating, total_bonus)]
@@ -536,7 +548,7 @@ def calculate_work_rate_rating(df):
     carries_with_gain = df.get('carries_with_gain', [0] * len(df))
     carries_neutral_gain = df.get('carries_neutral_gain', [0] * len(df))
     carries_without_gain = df.get('carries_without_gain', [0] * len(df))
-    total_carries = [cwg + cng + cwg * 0.2 for cwg, cng, cwg in zip(carries_with_gain, carries_neutral_gain, carries_without_gain)]
+    total_carries = [cwg + cng + (cwng * 0.2) for cwg, cng, cwng in zip(carries_with_gain, carries_neutral_gain, carries_without_gain)]
 
     # Tackles
     offensive_tackles = df.get('offensive_tackles', [0] * len(df))
@@ -558,7 +570,8 @@ def calculate_work_rate_rating(df):
     # Passes
     passes_good = df.get('passes_good', [0] * len(df))
     kick_pass = df.get('kicks_pass', [0] * len(df))
-    total_passes = [(pg + kp) * 0.5 for pg, kp in zip(passes_good, kick_pass)]
+    linebreak_assists = df.get('linebreak_assists', [0] * len(df))
+    total_passes = [(pg + kp) * 0.5 + la * 1 for pg, kp, la in zip(passes_good, kick_pass, linebreak_assists)]
 
     # Kicks
     kicks_in_game_good = df.get('kicks_in_game_good', [0] * len(df))
@@ -572,45 +585,49 @@ def calculate_work_rate_rating(df):
     linebreaks = df.get('linebreak', [0] * len(df))
     total_linebreaks = [lb for lb in linebreaks]
 
+    # Pick and go
+    pick_and_go = df.get('pick_and_go_plus', [0] * len(df))
+
     # BASE: total number of actions (absolute)
-    total_actions = [tc + tt + tti + trh + tp + tk + to + lb for tc, tt, tti, trh, tp, tk, to, lb in 
-    zip(total_carries, total_tackles, total_turnovers_and_interceptions, total_rucks_hit, total_passes, total_kicks, total_offloads, total_linebreaks)]
+    total_actions = [tc + tt + tti + trh + tp + tk + to + lb + pg for tc, tt, tti, trh, tp, tk, to, lb, pg in 
+    zip(total_carries, total_tackles, total_turnovers_and_interceptions, total_rucks_hit, total_passes, total_kicks, total_offloads, total_linebreaks, pick_and_go)]
 
     # Reliability adjustment on absolute actions
-    reliability = [m / (m + 20) for m in minutes]
+    reliability = [m / (m + 20) if m > 0 else 0 for m in minutes]
     total_actions_valid = [ta for ta, valid in zip(total_actions, valid_players) if valid]
-    actions_per_minute = [ta / m if m > 0 else 0 for ta, m, valid in zip(total_actions_valid, minutes, valid_players) if valid]
+    minutes_valid = [m for m, valid in zip(minutes, valid_players) if valid]
+    actions_per_minute = [ta / m if m > 0 else 0 for ta, m in zip(total_actions_valid, minutes_valid)]
     team_avg_actions_per_minute = sum(actions_per_minute) / len(actions_per_minute) if actions_per_minute else 0
-    actions_adj = [am * r + team_avg_actions_per_minute * (1 - r) + team_avg_actions_per_minute * (1 - r) for am, r in zip(actions_per_minute, reliability)]
+    reliability_valid = [r for r, valid in zip(reliability, valid_players) if valid]
+    actions_adj = [am * r + team_avg_actions_per_minute * (1 - r) + team_avg_actions_per_minute * (1 - r) for am, r in zip(actions_per_minute, reliability_valid)]
 
     # Absolute rating: 40 total actions => 10
-    abs_rating = [max(1, (aa / 0.5) * 10.0) for aa in actions_adj] # 40 actions / 80 minutes = 0.5 actions per minute
+    abs_rating = [max(1, (aa / 0.5) * 10.0) for aa in actions_adj] # 30 actions / 80 minutes = 0.375 actions per minute
 
-    # Relative rating: min-max of total actions to 1-10 (no reliability here)
-    if any(valid_players):
-        min_val = min(total_actions_valid)
-        max_val = max(total_actions_valid)
-        if max_val > min_val:
-            rel_rating_all = [1 + (ta - min_val) / (max_val - min_val) * 9 for ta in total_actions]
-        else:
-            rel_rating_all = [5.5] * len(df)
-    else:
-        rel_rating_all = [5.5] * len(df)
-
-    # Combine: 90% absolute + 10% relative
-    work_rate_rating = [ar * 0.9 + rr * 0.1 for ar, rr in zip(abs_rating, rel_rating_all)]
-
-    # Clamp to 1-10
-    work_rate_rating = [max(1, min(7.5, wrr)) for wrr in work_rate_rating]
+    # Clamp to 1-7.5
+    work_rate_rating = [max(1, min(7.5, ar)) for ar in abs_rating]
     
-    extra_wr_bonus = df.get('extra_wr_bonus', [0] * len(df))
-    extra_wr_penalty = df.get('extra_wr_penalty', [0] * len(df))
-    work_rate_rating = [wrr + ewb * 0.5 - ewp * 1 for wrr, ewb, ewp in zip(work_rate_rating, extra_wr_bonus, extra_wr_penalty)]
+    # Get bonuses/penalties and filter to only valid players
+    extra_wr_bonus_all = df.get('extra_wr_bonus', pd.Series([0] * len(df)))
+    extra_wr_penalty_all = df.get('extra_wr_penalty', pd.Series([0] * len(df)))
+    
+    # Convert to list if Series, ensure it's the right length
+    if isinstance(extra_wr_bonus_all, pd.Series):
+        extra_wr_bonus_all = extra_wr_bonus_all.fillna(0).tolist()
+    if isinstance(extra_wr_penalty_all, pd.Series):
+        extra_wr_penalty_all = extra_wr_penalty_all.fillna(0).tolist()
+    
+    # Filter bonuses/penalties to only valid players
+    extra_wr_bonus_valid = [ewb for ewb, valid in zip(extra_wr_bonus_all, valid_players) if valid]
+    extra_wr_penalty_valid = [ewp for ewp, valid in zip(extra_wr_penalty_all, valid_players) if valid]
+    
+    # Apply bonuses/penalties (now all arrays have the same length)
+    work_rate_rating = [wrr + ewb * 0.5 - ewp * 1 for wrr, ewb, ewp in zip(work_rate_rating, extra_wr_bonus_valid, extra_wr_penalty_valid)]
 
     # Clamp to 1-10
     work_rate_rating = [max(1, min(10, wrr)) for wrr in work_rate_rating]
     
-    return [wrr for wrr, valid in zip(work_rate_rating, valid_players) if valid]
+    return work_rate_rating
     
 def calculate_skills_rating(df):
     """
@@ -678,7 +695,8 @@ def calculate_skills_rating(df):
     
     # Linebreaks: +0.3 each
     linebreaks = df.get('linebreak', [0] * len(df))
-    skills_rating = [sr + lb * 0.3 for sr, lb in zip(skills_rating, linebreaks)]
+    linebreak_assists = df.get('linebreak_assists', [0] * len(df))
+    skills_rating = [sr + (lb + la) * 0.3 for sr, lb, la in zip(skills_rating, linebreaks, linebreak_assists)]
     
     # Defenders Beaten: +0.2 each
     defenders_beaten = df.get('defenders_beaten', [0] * len(df))
@@ -872,17 +890,7 @@ def calculate_consistency_rating(df):
     carry_consistency = [0 if cp >= 50 else ((cp - 50) // 10) * 0.2 for cp in carry_pct]
     consistency_rating = [cr + cc for cr, cc in zip(consistency_rating, carry_consistency)]
     
-    # # 8. Penalty for mistakes (fixed penalties)
-    # total_penalties = df.get('total_penalties', [0] * len(df))
-    # knock_ons = df.get('knock_on', [0] * len(df))
-    # other_mistakes = df.get('other_mistakes', [0] * len(df))
-    
-    # # Fixed penalties: -0.3 per penalty, -0.4 per knock-on, -0.2 per other mistake
-    # # Exponential penalty for total_penalties, linear for others
-    # mistake_penalty = [pow(1.5, tp) - 1 + ko * 0.4 + om * 0.2 for tp, ko, om in zip(total_penalties, knock_ons, other_mistakes)]
-    # consistency_rating = [cr - mp for cr, mp in zip(consistency_rating, mistake_penalty)]
-    
-    # 9. Kick in Game consistency
+    # 8. Kick in Game consistency
     kicks_in_game_good = df.get('kicks_in_game_good', [0] * len(df))
     kicks_in_game_bad = df.get('kicks_in_game_bad', [0] * len(df))
     total_kicks_in_game = [kig + kib for kig, kib in zip(kicks_in_game_good, kicks_in_game_bad)]
@@ -893,7 +901,7 @@ def calculate_consistency_rating(df):
     kick_in_game_consistency = [(kigp - 100) / 50 for kigp in kick_in_game_pct]  # -2 at 0%
     consistency_rating = [cr + kigc for cr, kigc in zip(consistency_rating, kick_in_game_consistency)]
     
-    # 10. Drop in Game consistency
+    # 9. Drop in Game consistency
     drops_in_game_good = df.get('drops_in_game_good', [0] * len(df))
     drops_in_game_bad = df.get('drops_in_game_bad', [0] * len(df))
     total_drops_in_game = [dig + didg for dig, didg in zip(drops_in_game_good, drops_in_game_bad)]
@@ -903,6 +911,28 @@ def calculate_consistency_rating(df):
     # Drop in Game consistency: 100% = +0, 0% = -2 (linear scaling)
     drop_in_game_consistency = [(dip - 100) / 50 for dip in drop_in_game_pct]  # -2 at 0%
     consistency_rating = [cr + dic for cr, dic in zip(consistency_rating, drop_in_game_consistency)]
+    
+    # Mod game consistency
+    mod_game_plus = df.get('mod_game_plus', [0] * len(df))
+    mod_game_minus = df.get('mod_game_minus', [0] * len(df))
+    total_mod_game = [mgp + mgm for mgp, mgm in zip(mod_game_plus, mod_game_minus)]
+
+    mod_game_pct = [(mmp / tm) * 100 if tm > 0 else 100 for mmp, tm in zip(mod_game_plus, total_mod_game)]
+
+    # Mod game consistency: 100% = +0, 0% = -2 (linear scaling)
+    mod_game_consistency = [(mmp - 100) / 50 for mmp in mod_game_pct]  # -2 at 0%
+    consistency_rating = [cr + mgc for cr, mgc in zip(consistency_rating, mod_game_consistency)]
+    
+    # Pick and go consistency: 100% = +0, 0% = -2 (linear scaling)
+    pick_and_go_plus = df.get('pick_and_go_plus', [0] * len(df))
+    pick_and_go_minus = df.get('pick_and_go_minus', [0] * len(df))
+    total_pick_and_go = [pgp + pgm for pgp, pgm in zip(pick_and_go_plus, pick_and_go_minus)]
+
+    pick_and_go_pct = [(ppg / tp) * 100 if tp > 0 else 100 for ppg, tp in zip(pick_and_go_plus, total_pick_and_go)]
+
+    # Pick and go consistency: 100% = +0, 0% = -1 (linear scaling)
+    pick_and_go_consistency = [(pgp - 100) / 100 for pgp in pick_and_go_pct]  # -1 at 0%
+    consistency_rating = [cr + pc for cr, pc in zip(consistency_rating, pick_and_go_consistency)]
     
     #  Only adjust scores outside 1-10 range (don't change scores already in range)
     consistency_rating = [max(1, min(10, cr)) for cr in consistency_rating]
@@ -943,16 +973,43 @@ def calculate_weighted_overall_rating(df):
     skills_ratings = calculate_skills_rating(df)
     consistency_ratings = calculate_consistency_rating(df)
     
+    # Verify all rating arrays have the same length
+    rating_lengths = {
+        'attack': len(attack_ratings),
+        'defense': len(defense_ratings),
+        'discipline': len(discipline_ratings),
+        'work_rate': len(work_rate_ratings),
+        'skills': len(skills_ratings),
+        'consistency': len(consistency_ratings)
+    }
+    
+    # Get the expected length (number of valid players)
+    num_valid = valid_players.sum()
+    
+    # Check if all arrays have the expected length
+    if not all(length == num_valid for length in rating_lengths.values()):
+        # Find which arrays have mismatched lengths
+        mismatched = {name: length for name, length in rating_lengths.items() if length != num_valid}
+        raise ValueError(
+            f"Rating array length mismatch. Expected {num_valid} ratings (valid players), but got: "
+            f"{rating_lengths}. Mismatched: {mismatched}. "
+            f"This may indicate an issue in one of the rating calculation functions."
+        )
+    
     # Calculate weighted overall ratings for valid players only
     overall_ratings = []
     valid_index = 0
     for i in range(len(df)):
         if valid_players.iloc[i]:
             # Use the valid_index to access the filtered rating arrays
-            overall_rating = (attack_ratings[valid_index] * 0.3 + defense_ratings[valid_index] * 0.3 + 
-                            work_rate_ratings[valid_index] * 0.10 + consistency_ratings[valid_index] * 0.05 + 
-                            discipline_ratings[valid_index] * 0.20 + skills_ratings[valid_index] * 0.05)
-            overall_ratings.append(overall_rating)
+            if valid_index >= len(attack_ratings):
+                # Safety check to prevent index out of range
+                overall_ratings.append(float('nan'))
+            else:
+                overall_rating = (attack_ratings[valid_index] * 0.3 + defense_ratings[valid_index] * 0.3 + 
+                                work_rate_ratings[valid_index] * 0.10 + consistency_ratings[valid_index] * 0.05 + 
+                                discipline_ratings[valid_index] * 0.20 + skills_ratings[valid_index] * 0.05)
+                overall_ratings.append(overall_rating)
             valid_index += 1
         else:
             overall_ratings.append(float('nan'))
