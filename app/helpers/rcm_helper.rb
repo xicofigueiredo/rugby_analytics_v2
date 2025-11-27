@@ -146,7 +146,7 @@ module RcmHelper
 
     # Map RCM column names (second header row) to PlayerMatch fields
     mapping = {
-      'MINUTOS ' => 'time_played',
+      'MINUTOS' => 'time_played',
       'Ensaio' => 'try',
       'Assistência' => 'try_assist',
       'Conversão de ensaio acertada' => 'conversion',

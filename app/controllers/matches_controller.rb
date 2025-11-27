@@ -98,6 +98,7 @@ class MatchesController < ApplicationController
                                   .order(:position)
                                   .first
       end
+
       @player = @player_match&.player
       Rails.logger.info "Coach/Admin mode: Found player_match for team #{current_user.team_id}: #{@player_match&.id}, player: #{@player&.name}"
     else
@@ -467,7 +468,7 @@ class MatchesController < ApplicationController
       Rails.logger.info "CSV read successfully, rows: #{csv_data.count}"
       if current_user.team.name == 'SPORT'
         sport_process_match_csv(csv_data)
-      elsif current_user.team.name == 'RC Montemor'
+      elsif current_user.team.name == 'Montemor'
         rcm_process_match_csv(csv_data)
       end
       redirect_to matches_path, notice: 'Match and player stats uploaded successfully!'
