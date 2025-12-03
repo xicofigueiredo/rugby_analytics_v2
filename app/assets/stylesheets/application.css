@@ -63,6 +63,7 @@
     border-top: none !important;
     height: 80px;
     padding-bottom: env(safe-area-inset-bottom, 0);
+    z-index: 1030;
   }
   body {
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
@@ -153,6 +154,11 @@
 body {
   background: #1a1336f6;
   min-height: 100vh;
+}
+
+/* Rugby theme colors */
+.bg-rugby-purple {
+  background-color: #141125 !important;
 }
 .main-card {
   background: #23263a;
