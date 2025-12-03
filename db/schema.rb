@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_04_164513) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_27_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -142,6 +142,30 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_04_164513) do
     t.integer "mod_game_minus"
     t.decimal "overall_rating", precision: 4, scale: 2
     t.integer "extra_points"
+    t.integer "interception"
+    t.integer "ruck_clear"
+    t.integer "ruck_seal"
+    t.integer "ruck_lost"
+    t.integer "pen_defense"
+    t.integer "neutral_carry"
+    t.integer "negative_carry"
+    t.integer "good_pass"
+    t.integer "bad_pass"
+    t.integer "kick"
+    t.integer "given_interception"
+    t.integer "given_turnover"
+    t.integer "defenders_beaten"
+    t.integer "atack_penalties"
+    t.integer "unforced_errors"
+    t.integer "lineout_won"
+    t.integer "lineout_lost"
+    t.integer "kick_pass"
+    t.integer "drop_on_target"
+    t.integer "drop_off_target"
+    t.integer "forced_an_error"
+    t.integer "misplaced"
+    t.integer "positive_pick"
+    t.integer "negative_pick"
     t.index ["match_id"], name: "index_player_matches_on_match_id"
     t.index ["player_id"], name: "index_player_matches_on_player_id"
   end

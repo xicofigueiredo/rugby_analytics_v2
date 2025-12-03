@@ -56,6 +56,33 @@
   }
 }
 
+/* Mobile bottom nav icon+label and black background */
+@media (max-width: 991.98px) {
+  .mobile-bottom-nav {
+    background-color: #141125 !important;
+    border-top: none !important;
+    height: 80px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  body {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
+  }
+  .mobile-bottom-nav .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .mobile-bottom-nav .nav-link i {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .mobile-bottom-nav .nav-label {
+    font-size: 0.75rem;
+    line-height: 1;
+    opacity: 0.9;
+  }
+}
 .player-shirt img {
   width: 100%;
   height: auto;

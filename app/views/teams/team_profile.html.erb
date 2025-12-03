@@ -10,10 +10,8 @@
           team_image = case @team.name&.upcase
           when "SPORT"
             asset_path('sport.jpg')
-          when "RC MONTEMOR"
+          when "MONTEMOR"
             asset_path('rcm.png')
-          else
-            asset_path('sport.jpg')
           end
         %>
         <img src="<%= team_image %>" alt="<%= @team.name %>" class="profile-img mb-3" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">

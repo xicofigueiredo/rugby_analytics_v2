@@ -4,12 +4,24 @@
       BreakDown<span class="text-danger">Lab</span>
     </div>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <button class="navbar-toggler d-none d-lg-block" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
 
+    <div class="ms-auto d-lg-none">
+      <% if user_signed_in? %>
+        <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light" do %>
+          <i class="fas fa-sign-out-alt me-1"></i>
+        <% end %>
+      <% else %>
+        <%= link_to new_user_session_path, class: "btn btn-outline-light" do %>
+          <i class="fas fa-sign-in-alt me-1"></i> Sign In
+        <% end %>
+      <% end %>
+    </div>
+
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav mx-auto flex-row gap-0">
+      <ul class="navbar-nav mx-auto flex-row gap-0 d-none d-lg-flex">
         <% if user_signed_in? %>
           <li class="nav-item">
             <%= link_to matches_path, class: "nav-link text-white #{'active' if controller_name == 'matches'}" do %>
@@ -50,7 +62,7 @@
         <% end %>
       </ul>
 
-      <ul class="navbar-nav me-3">
+      <ul class="navbar-nav me-3 d-none d-lg-flex">
         <% if user_signed_in? %>
           <li class="nav-item">
             <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light" do %>

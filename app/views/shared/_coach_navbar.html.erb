@@ -55,3 +55,36 @@
     </div>
   </div>
 </nav>
+
+<% if user_signed_in? %>
+<nav class="d-lg-none fixed-bottom mobile-bottom-nav bg-rugby-purple">
+  <div class="container">
+    <ul class="nav justify-content-around align-items-center py-2 mb-0">
+      <li class="nav-item">
+        <%= link_to matches_path, class: "nav-link text-white px-2 d-flex flex-column align-items-center #{'active' if controller_name == 'matches'}" do %>
+          <i class="fas fa-list-ul"></i>
+          <small class="nav-label">Matches</small>
+        <% end %>
+      </li>
+      <li class="nav-item">
+        <%= link_to teams_path, class: "nav-link text-white px-2 d-flex flex-column align-items-center #{'active' if controller_name == 'teams' && action_name == 'show'}" do %>
+          <i class="fas fa-building"></i>
+          <small class="nav-label">My Club</small>
+        <% end %>
+      </li>
+      <li class="nav-item">
+        <%= link_to team_profile_path, class: "nav-link text-white px-2 d-flex flex-column align-items-center #{'active' if controller.class.name.start_with?('Teams') && action_name == 'team_profile'}" do %>
+          <i class="fas fa-users"></i>
+          <small class="nav-label">My Team</small>
+        <% end %>
+      </li>
+      <li class="nav-item">
+        <%= link_to head_to_head_path, class: "nav-link text-white px-2 d-flex flex-column align-items-center #{'active' if controller.action_name == 'head_to_head'}", data: { turbo_frame: "main_content" } do %>
+          <i class="fas fa-exchange-alt"></i>
+          <small class="nav-label">H2H</small>
+        <% end %>
+      </li>
+    </ul>
+  </div>
+</nav>
+<% end %>
