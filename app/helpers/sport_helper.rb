@@ -288,7 +288,8 @@ module SportHelper
     field_mapping = {
       'MIN' => 'time_played',
       'ENSAIOS' => 'try',
-      'CARTÕES' => 'yellow',
+      'AMARELOS' => 'yellow',
+      'VERMELHOS' => 'red',
       'CONVERSÕES FEITAS' => 'conversion',
       'CONVERSÕES TOTAL' => nil, # We only track made conversions
       'PEN POSTES CONVERTIDAS' => 'penalty_kick_goal',
