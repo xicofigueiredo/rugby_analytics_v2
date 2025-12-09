@@ -202,7 +202,7 @@ module SportHelper
         end
 
         # Find player by name
-        player = Player.find_by(name: player_name)
+        player = Player.find_by(name: player_name, team_id: current_user.team_id)
 
         if player.nil?
           Rails.logger.warn "Player '#{player_name}' not found, skipping..."
