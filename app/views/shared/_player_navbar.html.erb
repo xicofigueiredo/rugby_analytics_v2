@@ -4,10 +4,6 @@
       BreakDown<span class="text-danger">Lab</span>
     </div>
 
-    <button class="navbar-toggler d-none d-lg-block" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
     <div class="ms-auto d-lg-none">
       <% if user_signed_in? %>
         <%= button_to destroy_user_session_path, method: :delete, class: "btn btn-outline-light" do %>
