@@ -80,6 +80,12 @@
           <small class="nav-label">H2H</small>
         <% end %>
       </li>
+      <li class="nav-item">
+        <%= button_to destroy_user_session_path, method: :delete, class: "nav-link text-white px-2 d-flex flex-column align-items-center bg-transparent border-0" do %>
+          <i class="fas fa-sign-out-alt"></i>
+          <small class="nav-label">Logout</small>
+        <% end %>
+      </li>
     </ul>
   </div>
 </nav>
