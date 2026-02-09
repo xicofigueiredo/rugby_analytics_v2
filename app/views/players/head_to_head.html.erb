@@ -4,15 +4,29 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="card main-card p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
           <h4 class="text-white mb-0">
             <i class="fas fa-users me-2"></i>Head-to-Head Comparison
           </h4>
-          <span class="text-secondary">Select up to three players to compare</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="text-secondary">Select up to three players to compare</span>
+            <% if @player1 && @player2 %>
+              <!-- Competition Filter -->
+              <div class="btn-group" role="group">
+                <%= link_to "All", head_to_head_path(player1_id: @player1_id, player2_id: @player2_id, player3_id: @player3_id, competition_filter: 'all'),
+                    class: "btn btn-sm #{@competition_filter == 'all' ? 'btn-danger' : 'btn-outline-light'}" %>
+                <%= link_to "CN1", head_to_head_path(player1_id: @player1_id, player2_id: @player2_id, player3_id: @player3_id, competition_filter: 'cn1'),
+                    class: "btn btn-sm #{@competition_filter == 'cn1' ? 'btn-danger' : 'btn-outline-light'}" %>
+                <%= link_to "CN2", head_to_head_path(player1_id: @player1_id, player2_id: @player2_id, player3_id: @player3_id, competition_filter: 'cn2'),
+                    class: "btn btn-sm #{@competition_filter == 'cn2' ? 'btn-danger' : 'btn-outline-light'}" %>
+              </div>
+            <% end %>
+          </div>
         </div>
         <br>
         <%= form_with url: head_to_head_path, method: :get, local: true, class: "row g-3" do |f| %>
           <% if @team_players.any? %>
+            <%= hidden_field_tag :competition_filter, @competition_filter if @competition_filter.present? %>
             <div class="col-md-3">
               <label class="form-label text-white">Player 1</label>
               <%= f.select :player1_id,

@@ -159,11 +159,25 @@ class PlayersController < ApplicationController
   def all_stats
     @player = Player.find(params[:id])
 
-    # Calculate all detailed stats using the same method as head_to_head
-    @player_stats = calculate_player_season_stats(@player)
+    # Get filter parameter (CN1, CN2, or All)
+    @competition_filter = params[:competition_filter] || 'all'
+
+    # Get all player matches with playing time
+    player_matches = @player.player_matches.joins(:match)
+                            .where("CAST(time_played AS INTEGER) > 0")
+
+    # Apply competition filter
+    if @competition_filter == 'cn1'
+      player_matches = player_matches.where("matches.competition ILIKE ?", "%CN1%")
+    elsif @competition_filter == 'cn2'
+      player_matches = player_matches.where("matches.competition ILIKE ?", "%CN2%")
+    end
+    # If 'all', no additional filter is applied
+
+    # Calculate all detailed stats using filtered player_matches
+    @player_stats = calculate_player_season_stats(@player, player_matches)
 
     # Calculate total minutes played for per-minute calculations
-    player_matches = @player.player_matches.where("CAST(time_played AS INTEGER) > 0")
     @total_minutes = player_matches.sum(:time_played) || 0
 
     # Calculate per-10-minute rates for each stat
@@ -186,6 +200,9 @@ class PlayersController < ApplicationController
       redirect_to root_path, alert: 'You are not assigned to a team. Please contact an administrator.'
     end
 
+    # Get filter parameter (CN1, CN2, or All)
+    @competition_filter = params[:competition_filter] || 'all'
+
     # Get selected players for comparison
     @player1_id = params[:player1_id]
     @player2_id = params[:player2_id]
@@ -196,48 +213,78 @@ class PlayersController < ApplicationController
       @player2 = Player.find(@player2_id)
       @player3 = Player.find(@player3_id) if @player3_id.present?
 
-      # Calculate real statistics from player_matches
-      @player1_stats = calculate_player_season_stats(@player1)
-      @player2_stats = calculate_player_season_stats(@player2)
+      # Get filtered player_matches for each player
+      player1_matches = filter_player_matches(@player1.player_matches, @competition_filter)
+      player2_matches = filter_player_matches(@player2.player_matches, @competition_filter)
+      player3_matches = @player3.present? ? filter_player_matches(@player3.player_matches, @competition_filter) : nil
+
+      # Calculate real statistics from filtered player_matches
+      @player1_stats = calculate_player_season_stats(@player1, player1_matches)
+      @player2_stats = calculate_player_season_stats(@player2, player2_matches)
 
       # Calculate real statistics for third player if present
       if @player3.present?
-        @player3_stats = calculate_player_season_stats(@player3)
+        @player3_stats = calculate_player_season_stats(@player3, player3_matches)
       end
 
-      # Performance ratings for radar chart
-      @player1_performance = calculate_player_rating_averages(@player1)
-
-      @player2_performance = calculate_player_rating_averages(@player2)
+      # Performance ratings for radar chart (using filtered matches)
+      @player1_performance = calculate_player_rating_averages(@player1, player1_matches)
+      @player2_performance = calculate_player_rating_averages(@player2, player2_matches)
 
       # Performance data for third player if present
       if @player3.present?
-        @player3_performance = calculate_player_rating_averages(@player3)
+        @player3_performance = calculate_player_rating_averages(@player3, player3_matches)
       end
 
       # Season averages (same as performance for now, could be filtered by season later)
-      @player1_season_avg = calculate_player_rating_averages(@player1)
-      @player2_season_avg = calculate_player_rating_averages(@player2)
+      @player1_season_avg = calculate_player_rating_averages(@player1, player1_matches)
+      @player2_season_avg = calculate_player_rating_averages(@player2, player2_matches)
 
       # Season averages for third player if present
       if @player3.present?
-        @player3_season_avg = calculate_player_rating_averages(@player3)
+        @player3_season_avg = calculate_player_rating_averages(@player3, player3_matches)
       end
     end
   end
 
   private
 
-  def calculate_player_rating_averages(player)
-    # Get all player matches with ratings
-    player_matches = player.player_matches.where.not(
-      attack_rating: nil,
-      defense_rating: nil,
-      consistency_rating: nil,
-      discipline_rating: nil,
-      skills_rating: nil,
-      work_rate_rating: nil
-    )
+  def filter_player_matches(player_matches, competition_filter)
+    # Join with match to filter by competition
+    filtered = player_matches.joins(:match)
+
+    # Apply competition filter
+    if competition_filter == 'cn1'
+      filtered = filtered.where("matches.competition ILIKE ?", "%CN1%")
+    elsif competition_filter == 'cn2'
+      filtered = filtered.where("matches.competition ILIKE ?", "%CN2%")
+    end
+
+    filtered
+  end
+
+  def calculate_player_rating_averages(player, player_matches = nil)
+    # Get all player matches with ratings (use provided matches or get all)
+    if player_matches.nil?
+      player_matches = player.player_matches.where.not(
+        attack_rating: nil,
+        defense_rating: nil,
+        consistency_rating: nil,
+        discipline_rating: nil,
+        skills_rating: nil,
+        work_rate_rating: nil
+      )
+    else
+      # Filter the provided matches to only include those with ratings
+      player_matches = player_matches.where.not(
+        attack_rating: nil,
+        defense_rating: nil,
+        consistency_rating: nil,
+        discipline_rating: nil,
+        skills_rating: nil,
+        work_rate_rating: nil
+      )
+    end
 
     Rails.logger.info "Player #{player.name} has #{player_matches.count} matches with ratings"
 
@@ -268,9 +315,10 @@ class PlayersController < ApplicationController
     result
   end
 
-  def calculate_player_season_stats(player)
+  def calculate_player_season_stats(player, player_matches = nil)
     # Get all player_matches for this player where they actually played
-    player_matches = player.player_matches.where("CAST(time_played AS INTEGER) > 0")
+    # If player_matches is provided (filtered), use it; otherwise get all matches
+    player_matches ||= player.player_matches.where("CAST(time_played AS INTEGER) > 0")
 
     if player_matches.empty?
       return {

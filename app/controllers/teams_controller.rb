@@ -97,10 +97,21 @@ class TeamsController < ApplicationController
     @team = current_user.team
     @players = @team.players.includes(:user)
 
+    # Get filter parameter (CN1, CN2, or All)
+    @competition_filter = params[:competition_filter] || 'all'
+
     # Get all player matches for this team with playing time
-    team_player_matches = PlayerMatch.joins(:player)
+    team_player_matches = PlayerMatch.joins(:player, :match)
                                     .where(players: { team_id: @team.id })
                                     .where('time_played > 0')
+
+    # Apply competition filter
+    if @competition_filter == 'cn1'
+      team_player_matches = team_player_matches.where("matches.competition ILIKE ?", "%CN1%")
+    elsif @competition_filter == 'cn2'
+      team_player_matches = team_player_matches.where("matches.competition ILIKE ?", "%CN2%")
+    end
+    # If 'all', no additional filter is applied
 
     # Calculate comprehensive team stats using the same method as individual players
     @team_stats = calculate_team_season_stats(team_player_matches)
@@ -119,8 +130,14 @@ class TeamsController < ApplicationController
       end
     end
 
-    # Get match count for this team
-    @matches_played = Match.where('home_team_id = ? OR away_team_id = ?', @team.id, @team.id).count
+    # Get match count for this team (with same filter)
+    matches_query = Match.where('home_team_id = ? OR away_team_id = ?', @team.id, @team.id)
+    if @competition_filter == 'cn1'
+      matches_query = matches_query.where("competition ILIKE ?", "%CN1%")
+    elsif @competition_filter == 'cn2'
+      matches_query = matches_query.where("competition ILIKE ?", "%CN2%")
+    end
+    @matches_played = matches_query.count
   end
 
   def new
