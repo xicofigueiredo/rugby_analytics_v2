@@ -1,0 +1,162 @@
+<div class="container">
+  <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <h2 class="text-white mb-0"><%= @team.name %> – Player Rankings</h2>
+    <div class="d-flex flex-wrap align-items-center gap-4">
+      <!-- Competition Filter -->
+      <div class="btn-group" role="group">
+        <%= link_to "All", rankings_path(competition_filter: 'all', period_filter: @period_filter),
+            class: "btn btn-sm #{@competition_filter == 'all' ? 'btn-danger' : 'btn-outline-light'}" %>
+        <%= link_to "CN1", rankings_path(competition_filter: 'cn1', period_filter: @period_filter),
+            class: "btn btn-sm #{@competition_filter == 'cn1' ? 'btn-danger' : 'btn-outline-light'}" %>
+        <%= link_to "CN2", rankings_path(competition_filter: 'cn2', period_filter: @period_filter),
+            class: "btn btn-sm #{@competition_filter == 'cn2' ? 'btn-danger' : 'btn-outline-light'}" %>
+      </div>
+      <!-- Period Filter -->
+      <div class="btn-group" role="group">
+        <%= link_to "Last game", rankings_path(competition_filter: @competition_filter, period_filter: 'last_game'),
+            class: "btn btn-sm #{@period_filter == 'last_game' ? 'btn-danger' : 'btn-outline-light'}" %>
+        <%= link_to "Last 5 games", rankings_path(competition_filter: @competition_filter, period_filter: 'last_5'),
+            class: "btn btn-sm #{@period_filter == 'last_5' ? 'btn-danger' : 'btn-outline-light'}" %>
+        <%= link_to "All season", rankings_path(competition_filter: @competition_filter, period_filter: 'all_season'),
+            class: "btn btn-sm #{@period_filter == 'all_season' ? 'btn-danger' : 'btn-outline-light'}" %>
+      </div>
+    </div>
+  </div>
+
+  <% # Group stats for display (same categories as elsewhere) %>
+  <% stats_by_category = {
+    "Work rate & carries" => ["Total Tackles", "Total Carries", "Carries With Gain", "Time Played"],
+    "Attack" => ["Tries", "Assists", "Linebreak", "Offloads Good", "Offloads Bad"],
+    "Defence" => ["Positive Tackles", "Missed Tackles", "Turnovers Won", "Lineout Steals", "Aerial Duels Won"],
+    "Discipline & errors" => ["Total Penalties", "Knock On"]
+  } %>
+
+  <%# Controls: buttons to toggle which stat cards are visible %>
+  <div class="mb-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <% default_category = stats_by_category.keys.first %>
+      <% all_labels = stats_by_category.values.flatten %>
+      <% all_labels.each do |label| %>
+        <button type="button"
+                class="btn btn-sm btn-outline-light stat-toggle-btn flex-fill text-center"
+                data-stat="<%= label %>"><%= label %></button>
+      <% end %>
+      <div class="ms-2 d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" id="stat-select-all">All</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="stat-clear">None</button>
+      </div>
+    </div>
+  </div>
+
+  <% stats_by_category.each do |category, stat_labels| %>
+      <% stat_labels.each do |label| %>
+        <% next unless @rankings.key?(label) %>
+        <% rows = @rankings[label] %>
+        <div class="col-12 col-sm-6 col-md-4 mb-3" data-stat-label="<%= label %>">
+          <div class="card main-card h-100">
+            <div class="card-header bg-dark text-white py-2">
+              <strong>Most <%= label %></strong>
+            </div>
+            <div class="card-body p-0">
+              <% if rows.empty? %>
+                <p class="text-secondary small p-3 mb-0">No data for this period.</p>
+              <% else %>
+                <div class="table-responsive">
+                  <table class="table table-dark table-sm mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-secondary border-0 py-2 pe-3">#</th>
+                        <th class="text-secondary border-0 py-1">Player</th>
+                        <th class="text-secondary border-0 py-1 text-end pe-3">Value</th>
+                        <th class="text-secondary border-0 py-1 text-end d-none d-md-table-cell">Min</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% rows.each_with_index do |row, idx| %>
+                        <tr>
+                          <td class="border-0 py-1 text-white-50 pe-3"><%= idx + 1 %></td>
+                          <td class="border-0 py-1 text-white"><%= row[:player].name %></td>
+                          <td class="border-0 py-1 text-end text-white pe-3"><%= row[:value] %></td>
+                          <td class="border-0 py-1 text-end text-white-50 d-none d-md-table-cell"><%= row[:minutes] %></td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const STORAGE_KEY = 'rankings_stats_selected';
+      const buttons = Array.from(document.querySelectorAll('.stat-toggle-btn'));
+      const cards = Array.from(document.querySelectorAll('[data-stat-label]'));
+      const defaultCategory = "<%= stats_by_category.keys.first %>";
+      const defaultActive = <%= raw(stats_by_category[stats_by_category.keys.first].to_json) %>;
+
+      function setButtonVisual(b, isActive) {
+        if (isActive) {
+          b.classList.add('active');
+          b.classList.remove('btn-outline-light');
+          b.classList.add('btn-danger');
+        } else {
+          b.classList.remove('active');
+          b.classList.remove('btn-danger');
+          b.classList.add('btn-outline-light');
+        }
+      }
+
+      function getStored() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+
+      function store(arr) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch (e) {}
+      }
+
+      function updateVisibility() {
+        const active = buttons.filter(b => b.classList.contains('active')).map(b => b.dataset.stat);
+        cards.forEach(card => {
+          const label = card.dataset.statLabel;
+          card.style.display = active.length === 0 ? 'none' : (active.includes(label) ? '' : 'none');
+        });
+        store(active);
+      }
+
+      // initialize: use stored selection if present; otherwise set default category once and store it
+      const stored = getStored();
+      if (stored && Array.isArray(stored)) {
+        buttons.forEach(b => setButtonVisual(b, stored.includes(b.dataset.stat)));
+      } else {
+        // set only default category labels active
+        buttons.forEach(b => setButtonVisual(b, defaultActive.includes(b.dataset.stat)));
+        store(defaultActive);
+      }
+
+      // wire events
+      buttons.forEach(b => {
+        b.addEventListener('click', () => {
+          const nowActive = !b.classList.contains('active');
+          setButtonVisual(b, nowActive);
+          updateVisibility();
+        });
+      });
+
+      const selectAll = document.getElementById('stat-select-all');
+      const clearAll = document.getElementById('stat-clear');
+      if (selectAll) selectAll.addEventListener('click', () => { buttons.forEach(b => setButtonVisual(b, true)); updateVisibility(); });
+      if (clearAll) clearAll.addEventListener('click', () => { buttons.forEach(b => setButtonVisual(b, false)); updateVisibility(); });
+
+      // initialize visibility according to the visuals we just set
+      updateVisibility();
+    });
+  </script>
+</div>

@@ -14,6 +14,7 @@ Rails.application.routes.draw do
         get 'all_stats'
       end
     end
+    get 'rankings', to: 'rankings#index', as: :rankings
     namespace :admin do
       resources :users, except: [:show]
     end

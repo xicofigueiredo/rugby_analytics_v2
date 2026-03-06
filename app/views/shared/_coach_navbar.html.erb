@@ -30,6 +30,11 @@
               H2H
             <% end %>
           </li>
+          <li class="nav-item">
+            <%= link_to rankings_path, class: "nav-link text-white #{'active' if controller_name == 'rankings'}" do %>
+              Rankings
+            <% end %>
+          </li>
         <% end %>
       </ul>
 
@@ -78,6 +83,12 @@
         <%= link_to head_to_head_path, class: "nav-link text-white px-2 d-flex flex-column align-items-center #{'active' if controller.action_name == 'head_to_head'}", data: { turbo_frame: "main_content" } do %>
           <i class="fas fa-exchange-alt"></i>
           <small class="nav-label">H2H</small>
+        <% end %>
+      </li>
+      <li class="nav-item">
+        <%= link_to rankings_path, class: "nav-link text-white px-2 d-flex flex-column align-items-center #{'active' if controller_name == 'rankings'}" do %>
+          <i class="fas fa-trophy"></i>
+          <small class="nav-label">Rankings</small>
         <% end %>
       </li>
       <li class="nav-item">
