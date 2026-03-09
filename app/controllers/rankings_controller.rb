@@ -23,7 +23,7 @@ class RankingsController < ApplicationController
     "Time Played" => ->(pm) { pm.time_played || 0 }
   }.freeze
 
-  TOP_N = 10
+  TOP_N = 20
 
   def index
     @team = current_user.team || current_user.player&.team
@@ -63,10 +63,12 @@ class RankingsController < ApplicationController
     perf_rows = rated_pms.includes(match: [:home_team, :away_team]).map do |pm|
       next unless pm.overall_rating
       match = pm.match
-      opponent = (match.home_team_id == @team.id) ? match.away_team : match.home_team
+      is_home = (match.home_team_id == @team.id)
+      opponent = is_home ? match.away_team : match.home_team
       {
         player: pm.player,
         opponent_name: opponent&.name || "Unknown",
+        loc: (is_home ? 'H' : 'A'),
         rating: pm.overall_rating.to_f,
         date: match.date
       }
