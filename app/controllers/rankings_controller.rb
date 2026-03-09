@@ -48,6 +48,30 @@ class RankingsController < ApplicationController
       # Sort by value desc, take top N
       @rankings[stat_label] = rows.sort_by { |r| -r[:value] }.first(TOP_N)
     end
+
+    # Average overall ratings (top by average overall_rating)
+    rated_pms = player_matches.where.not(overall_rating: nil)
+    grouped_ratings = rated_pms.group_by { |pm| pm.player.name.to_s.strip.downcase }
+    avg_rows = grouped_ratings.map do |player_key, pms|
+      player = pms.find { |pm| pm.player.team_id == @team.id }&.player || pms.first.player
+      avg = pms.sum { |pm| (pm.overall_rating || 0).to_f } / (pms.size.nonzero? || 1)
+      { player: player, avg: avg.to_f, games: pms.size }
+    end
+    @average_ratings = avg_rows.sort_by { |r| -r[:avg] }.first(TOP_N)
+    # Top performances: return the top N PlayerMatch performances by overall_rating.
+    # This allows the same player to appear multiple times (vs different opponents).
+    perf_rows = rated_pms.includes(match: [:home_team, :away_team]).map do |pm|
+      next unless pm.overall_rating
+      match = pm.match
+      opponent = (match.home_team_id == @team.id) ? match.away_team : match.home_team
+      {
+        player: pm.player,
+        opponent_name: opponent&.name || "Unknown",
+        rating: pm.overall_rating.to_f,
+        date: match.date
+      }
+    end.compact
+    @top_performances = perf_rows.sort_by { |r| -r[:rating] }.first(TOP_N)
   end
 
   private

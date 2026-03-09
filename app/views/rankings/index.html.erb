@@ -41,11 +41,96 @@
                 class="btn btn-sm btn-outline-light stat-toggle-btn flex-fill text-center"
                 data-stat="<%= label %>"><%= label %></button>
       <% end %>
+      <button type="button"
+              class="btn btn-sm btn-outline-light stat-toggle-btn flex-fill text-center"
+              data-stat="Average Ratings">Avg Ratings</button>
+      <button type="button"
+              class="btn btn-sm btn-outline-light stat-toggle-btn flex-fill text-center"
+              data-stat="Top Performances">Top Performances</button>
       <div class="ms-2 d-flex gap-2">
         <button type="button" class="btn btn-sm btn-secondary" id="stat-select-all">All</button>
         <button type="button" class="btn btn-sm btn-outline-secondary" id="stat-clear">None</button>
       </div>
     </div>
+  <%# Average ratings table %>
+  <br>
+  <div class="row">
+    <div class="col-12 mb-3" data-stat-label="Average Ratings">
+      <div class="card main-card">
+        <div class="card-header bg-dark text-white py-2">
+          <strong>Top Average Ratings</strong>
+        </div>
+        <div class="card-body p-0">
+          <% if @average_ratings.blank? %>
+            <p class="text-secondary small p-3 mb-0">No ratings available for the selected matches.</p>
+          <% else %>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th class="text-secondary border-0 py-1 pe-3">#</th>
+                    <th class="text-secondary border-0 py-1">Player</th>
+                    <th class="text-secondary border-0 py-1 text-end pe-3">Avg Rating</th>
+                    <th class="text-secondary border-0 py-1 text-end d-none d-md-table-cell">Games</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @average_ratings.each_with_index do |row, idx| %>
+                    <tr>
+                      <td class="border-0 py-1 text-white-50 pe-3"><%= idx + 1 %></td>
+                      <td class="border-0 py-1 text-white"><%= row[:player].name %></td>
+                      <td class="border-0 py-1 text-end text-white pe-3"><%= number_with_precision(row[:avg], precision: 2) %></td>
+                      <td class="border-0 py-1 text-end text-white-50 d-none d-md-table-cell"><%= row[:games] %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <%# Top performances table %>
+  <div class="row">
+    <div class="col-12 mb-3" data-stat-label="Top Performances">
+      <div class="card main-card">
+        <div class="card-header bg-dark text-white py-2">
+          <strong>Top Performances (best rating per player)</strong>
+        </div>
+        <div class="card-body p-0">
+          <% if @top_performances.blank? %>
+            <p class="text-secondary small p-3 mb-0">No rated performances for the selected matches.</p>
+          <% else %>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th class="text-secondary border-0 py-1 pe-3">#</th>
+                    <th class="text-secondary border-0 py-1">Player</th>
+                    <th class="text-secondary border-0 py-1">Opponent</th>
+                    <th class="text-secondary border-0 py-1 text-end pe-3">Rating</th>
+                    <th class="text-secondary border-0 py-1 text-end d-none d-md-table-cell">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @top_performances.each_with_index do |row, idx| %>
+                    <tr>
+                      <td class="border-0 py-1 text-white-50 pe-3"><%= idx + 1 %></td>
+                      <td class="border-0 py-1 text-white"><%= row[:player].name %></td>
+                      <td class="border-0 py-1 text-white"><%= row[:opponent_name] %></td>
+                      <td class="border-0 py-1 text-end text-white pe-3"><%= number_with_precision(row[:rating], precision: 2) %></td>
+                      <td class="border-0 py-1 text-end text-white-50 d-none d-md-table-cell"><%= row[:date].try(:strftime, "%Y-%m-%d") %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 
   <% stats_by_category.each do |category, stat_labels| %>
