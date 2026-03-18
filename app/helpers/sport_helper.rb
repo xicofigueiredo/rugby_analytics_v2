@@ -202,7 +202,7 @@ module SportHelper
         end
 
         # Find player by name
-        player = Player.find_by(name: player_name, team_id: current_user.team_id)
+        player = Player.where("TRIM(name) = ? AND team_id = ?", player_name, current_user.team_id).first
 
         if player.nil?
           Rails.logger.warn "Player '#{player_name}' not found, skipping..."

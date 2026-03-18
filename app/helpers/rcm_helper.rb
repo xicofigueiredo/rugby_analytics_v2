@@ -103,7 +103,7 @@ module RcmHelper
           Rails.logger.info "RCM team stats extracted: #{team_stats_data.inspect}"
         end
 
-        player = Player.find_by(name: player_name, team_id: current_user.team_id)
+        player = Player.where("TRIM(name) = ? AND team_id = ?", player_name, current_user.team_id).first
         unless player
           Rails.logger.warn "Player '#{player_name}' not found (RCM), skipping"
           next
