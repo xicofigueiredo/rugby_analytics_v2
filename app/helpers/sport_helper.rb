@@ -32,15 +32,15 @@ module SportHelper
       # Parse date
       Rails.logger.info "Parsing date from: '#{date_str}'"
       begin
-        # Handle the format "27-Sep" by adding current year
-        if date_str&.match?(/\d{1,2}-\w{3}/)
-          date = Date.parse("#{date_str}-#{Date.current.year}")
+        cleaned_date = date_str.to_s.gsub('.', '').gsub('/', '-').strip
+        if cleaned_date.match?(/\A\d{1,2}-[A-Za-z]{3,}\z/)
+          date = Date.parse("#{cleaned_date}-#{Date.current.year}")
         else
-          date = Date.parse(date_str) if date_str
+          date = Date.parse(cleaned_date)
         end
       rescue Date::Error => e
         Rails.logger.error "Failed to parse date '#{date_str}': #{e.message}"
-        date = Date.current # Default to today
+        date = Date.current
       end
 
       # Validate team names before proceeding
