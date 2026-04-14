@@ -29,6 +29,7 @@ class RankingsController < ApplicationController
     @team = current_user.team || current_user.player&.team
     @competition_filter = params[:competition_filter] || "all"
     @period_filter = params[:period_filter] || "all_season"
+    @minutes_filter = params[:minutes_filter] || "all"
 
     player_matches = base_player_matches
 
@@ -41,13 +42,33 @@ class RankingsController < ApplicationController
       rows = grouped.map do |player_key, pms|
         # prefer a player record that belongs to the team, otherwise pick the first
         player = pms.find { |pm| pm.player.team_id == @team.id }&.player || pms.first.player
-        value = pms.sum { |pm| value_proc.call(pm) }
         minutes = pms.sum { |pm| pm.time_played || 0 }
-        { player: player, value: value, minutes: minutes }
+        total_value = pms.sum { |pm| value_proc.call(pm) }
+        value_per_10 = minutes.positive? ? ((total_value.to_f / minutes) * 10.0) : 0.0
+
+        {
+          player: player,
+          value: (@minutes_filter == "min_10" ? value_per_10 : total_value),
+          total_value: total_value,
+          value_per_10: value_per_10,
+          minutes: minutes
+        }
       end
-      # Sort by value desc, take top N
-      @rankings[stat_label] = rows.sort_by { |r| -r[:value] }.first(TOP_N)
+      # Sort by selected metric desc, then by total desc
+      @rankings[stat_label] = rows.sort_by { |r| [-r[:value], -r[:total_value]] }.first(TOP_N)
     end
+
+    # Rankings shown as won/total (e.g. 11/14)
+    @rankings["Conversions"] = build_ratio_ranking(
+      player_matches,
+      won_proc: ->(pm) { pm.conversion || 0 },
+      total_proc: ->(pm) { (pm.conversion || 0) + (pm.missed_conversion || 0) }
+    )
+    @rankings["Lineout Introductions"] = build_ratio_ranking(
+      player_matches,
+      won_proc: ->(pm) { pm.introduction_won || 0 },
+      total_proc: ->(pm) { (pm.introduction_won || 0) + (pm.introduction_lost || 0) }
+    )
 
     # Average overall ratings (top by average overall_rating)
     rated_pms = player_matches.where.not(overall_rating: nil)
@@ -109,10 +130,41 @@ class RankingsController < ApplicationController
 
     return PlayerMatch.none if match_ids.empty?
 
-    PlayerMatch.joins(:player, :match)
-               .where(match_id: match_ids)
-               .where(players: { team_id: @team.id })
-               .where("player_matches.time_played > 0")
-               .includes(:player)
+    player_matches = PlayerMatch.joins(:player, :match)
+                                .where(match_id: match_ids)
+                                .where(players: { team_id: @team.id })
+                                .where("player_matches.time_played > 0")
+                                .includes(:player)
+
+    case @minutes_filter
+    when "min_10"
+      player_matches = player_matches.where("player_matches.time_played >= 10")
+    end
+
+    player_matches
+  end
+
+  def build_ratio_ranking(player_matches, won_proc:, total_proc:)
+    grouped = player_matches.group_by { |pm| pm.player.name.to_s.strip.downcase }
+    rows = grouped.map do |_player_key, pms|
+      player = pms.find { |pm| pm.player.team_id == @team.id }&.player || pms.first.player
+      won = pms.sum { |pm| won_proc.call(pm) }
+      total = pms.sum { |pm| total_proc.call(pm) }
+      minutes = pms.sum { |pm| pm.time_played || 0 }
+
+      {
+        player: player,
+        value: (@minutes_filter == "min_10" ? (minutes.positive? ? ((won.to_f / minutes) * 10.0) : 0.0) : won),
+        won: won,
+        total: total,
+        total_value: won,
+        minutes: minutes
+      }
+    end
+
+    rows
+      .select { |row| row[:total].positive? }
+      .sort_by { |row| [-row[:value], -row[:total_value]] }
+      .first(TOP_N)
   end
 end
